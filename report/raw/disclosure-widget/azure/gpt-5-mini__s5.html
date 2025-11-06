@@ -1,0 +1,275 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand / Collapse Widget Examples</title>
+  <style>
+    :root{
+      --accent:#0b76ef;
+      --bg:#fff;
+      --muted:#666;
+      --radius:8px;
+    }
+
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      line-height:1.4;
+      margin:24px;
+      background:#f7f9fc;
+      color:#0b0b0b;
+    }
+
+    h1{ margin:0 0 18px 0; font-size:20px; }
+    p.lead{ margin-top:6px; color:var(--muted); font-size:14px; }
+
+    .example{
+      background:var(--bg);
+      border:1px solid rgba(16,24,40,0.06);
+      box-shadow: 0 1px 2px rgba(16,24,40,0.03);
+      padding:16px;
+      border-radius:var(--radius);
+      margin-bottom:16px;
+      max-width:720px;
+    }
+
+    /* Shared header/button styles */
+    .expander-header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      width:100%;
+    }
+
+    .expander-btn, summary {
+      all:unset;
+      display:inline-flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      width:100%;
+      cursor:pointer;
+      padding:8px 10px;
+      border-radius:6px;
+      font-weight:600;
+      color: #07203a;
+    }
+
+    .expander-btn:hover, summary:hover{
+      background:rgba(11,118,239,0.06);
+    }
+
+    .expander-btn:focus, summary:focus{
+      outline:3px solid rgba(11,118,239,0.15);
+      outline-offset:2px;
+    }
+
+    .caret{
+      width:18px;
+      height:18px;
+      transform:rotate(0deg);
+      transition:transform .2s ease;
+      flex-shrink:0;
+      color:var(--accent);
+    }
+
+    /* hide default summary marker cross-browser */
+    summary {
+      list-style: none;
+    }
+    summary::-webkit-details-marker { display:none; }
+
+    /* Controlled content container - required to have class "details" */
+    .details{
+      overflow:hidden;
+      max-height:0;
+      opacity:0;
+      transition: max-height 260ms cubic-bezier(.2,.9,.2,1), opacity 180ms ease;
+      padding:0 2px;
+      margin-top:8px;
+      will-change: max-height, opacity;
+    }
+
+    .details.open{
+      opacity:1;
+    }
+
+    /* native <details> open state (for the example using <details>) */
+    details[open] .details{
+      opacity:1;
+      /* max-height will be set by script for smooth animation or allowed by CSS fallback */
+    }
+
+    .details .content{
+      padding:12px;
+      background:linear-gradient(180deg,#fff,#fbfdff);
+      border-radius:6px;
+      border:1px solid rgba(11,118,239,0.06);
+      color:#0b1720;
+    }
+
+    /* rotate caret when open */
+    .open-indicator{
+      transform:rotate(90deg);
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widgets</h1>
+  <p class="lead">Two examples: native <details> and a custom ARIA-controlled widget. Each controlled content container uses the class "details".</p>
+
+  <!-- Example 1: Native details element -->
+  <div class="example">
+    <details id="native-details-1">
+      <summary class="expander-header" aria-controls="native-details-content-1">
+        <span>Native details element (built-in)</span>
+        <svg class="caret" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 5v14l11-7z" fill="currentColor"/>
+        </svg>
+      </summary>
+
+      <!-- Controlled content container must have class "details" -->
+      <div id="native-details-content-1" class="details" aria-hidden="true">
+        <div class="content">
+          <p>This is the content of a native &lt;details&gt; element. Browsers provide default behavior for keyboard and screen-reader support. This demo uses a small script to animate the open/close transition and keep aria-hidden in sync for the content container.</p>
+          <p><strong>Tip:</strong> You can toggle with Enter or Space when the summary has focus.</p>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Example 2: Custom ARIA-controlled widget -->
+  <div class="example">
+    <div class="expander" data-expander>
+      <button
+        id="expanderBtn1"
+        class="expander-btn"
+        type="button"
+        aria-expanded="false"
+        aria-controls="custom-details-1">
+        <span>Custom ARIA-controlled expander</span>
+        <svg class="caret" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 5v14l11-7z" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <!-- Controlled content container must have class "details" -->
+      <div id="custom-details-1" class="details" aria-hidden="true">
+        <div class="content">
+          <p>This is a custom expand/collapse widget. The button uses aria-expanded and aria-controls; the content container has aria-hidden and the <code>details</code> class as requested.</p>
+          <ul>
+            <li>Keyboard: Space/Enter toggle the button (native behavior for button elements).</li>
+            <li>Animated open/close using max-height and JS for smooth transitions.</li>
+            <li>Accessible to screen readers when aria attributes are updated.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Utility functions for animating height for .details containers
+    function openDetailsElement(el){
+      el.classList.add('open');
+      el.setAttribute('aria-hidden','false');
+
+      // Remove any previously set max-height to measure natural height
+      el.style.maxHeight = 'none';
+      const naturalHeight = el.scrollHeight;
+
+      // Start from 0 to naturalHeight to animate
+      el.style.maxHeight = '0px';
+      // Force reflow
+      void el.offsetHeight;
+      el.style.maxHeight = naturalHeight + 'px';
+
+      // When transition ends, clear explicit max-height so content can size naturally
+      const cleanup = (e) => {
+        if(e && e.target !== el) return;
+        el.style.maxHeight = 'none';
+        el.removeEventListener('transitionend', cleanup);
+      };
+      el.addEventListener('transitionend', cleanup);
+    }
+
+    function closeDetailsElement(el){
+      el.classList.remove('open');
+      el.setAttribute('aria-hidden','true');
+
+      // If maxHeight is 'none', set it to the current scrollHeight first
+      if(getComputedStyle(el).maxHeight === 'none'){
+        el.style.maxHeight = el.scrollHeight + 'px';
+        // force reflow
+        void el.offsetHeight;
+      }
+      // then animate to 0
+      el.style.maxHeight = '0px';
+    }
+
+    // Custom expander buttons
+    document.querySelectorAll('[data-expander]').forEach(wrapper => {
+      const btn = wrapper.querySelector('.expander-btn');
+      const detailsId = btn.getAttribute('aria-controls');
+      const panel = document.getElementById(detailsId);
+
+      // Ensure initial aria-hidden matches state
+      panel.setAttribute('aria-hidden', btn.getAttribute('aria-expanded') !== 'true');
+
+      btn.addEventListener('click', () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        if(expanded){
+          btn.setAttribute('aria-expanded','false');
+          closeDetailsElement(panel);
+          // rotate indicator
+          const caret = btn.querySelector('.caret');
+          if(caret) caret.classList.remove('open-indicator');
+        } else {
+          btn.setAttribute('aria-expanded','true');
+          openDetailsElement(panel);
+          const caret = btn.querySelector('.caret');
+          if(caret) caret.classList.add('open-indicator');
+        }
+      });
+
+      // Optional: handle keyboard on non-button controls; button already handles space/enter natively.
+    });
+
+    // Animate native <details> elements' inner .details container and keep aria-hidden in sync
+    document.querySelectorAll('details').forEach(dt => {
+      const inner = dt.querySelector('.details');
+      if(!inner) return;
+
+      // Ensure correct initial aria-hidden
+      inner.setAttribute('aria-hidden', dt.hasAttribute('open') ? 'false' : 'true');
+      if(dt.hasAttribute('open')){
+        // set panel to open state immediately
+        inner.classList.add('open');
+        inner.style.maxHeight = 'none';
+      } else {
+        inner.classList.remove('open');
+        inner.style.maxHeight = '0px';
+      }
+
+      dt.addEventListener('toggle', () => {
+        if(dt.open){
+          openDetailsElement(inner);
+          // rotate caret inside summary if present
+          const caret = dt.querySelector('.caret');
+          if(caret) caret.classList.add('open-indicator');
+        } else {
+          closeDetailsElement(inner);
+          const caret = dt.querySelector('.caret');
+          if(caret) caret.classList.remove('open-indicator');
+        }
+      });
+
+      // If content size changes while open, adjust maxHeight to accommodate (keeps animation consistent)
+      const ro = new ResizeObserver(() => {
+        if(dt.open){
+          inner.style.maxHeight = 'none';
+        }
+      });
+      ro.observe(inner);
+    });
+  </script>
+</body>
+</html>

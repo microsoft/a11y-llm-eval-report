@@ -1,0 +1,209 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Dialog Example</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .trigger {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+        }
+
+        .trigger:hover {
+            background-color: #0056b3;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            -webkit-overflow-scrolling: touch; /* For smoother scrolling on iOS */
+        }
+
+        .modal.is-open {
+            display: flex; /* Show when open */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%; /* Responsive width */
+            max-width: 500px; /* Max width for larger screens */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+            transform: scale(1); /* Initial state for animation */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .close-button {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 5px; /* Increase hit area */
+            border-radius: 4px;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #000;
+            background-color: #e0e0e0;
+            outline: none; /* Remove default focus outline */
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .modal-action-button {
+            padding: 8px 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-action-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+    <button type="button" class="trigger">Open Modal</button>
+
+    <div id="myModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-content">
+            <span class="close-button" aria-label="Close dialog" tabindex="0">&times;</span>
+            <h2 id="modalTitle">Modal Title</h2>
+            <p>This is the content of the modal dialog. You can put any HTML elements here, such as forms, images, or more text.</p>
+            <p>Click the "X" button, press ESC, or click outside this box to close the modal.</p>
+            <button type="button" class="modal-action-button">Action Button</button>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('myModal');
+        const triggerBtn = document.querySelector('.trigger');
+        const closeBtn = document.querySelector('.close-button');
+        const modalContent = document.querySelector('.modal-content');
+
+        function openModal() {
+            modal.classList.add('is-open');
+            // Set focus to the first interactive element inside the modal
+            const firstFocusableElement = modal.querySelector('button:not([disabled]), input:not([disabled]), [href]:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])');
+            if (firstFocusableElement) {
+                firstFocusableElement.focus();
+            } else {
+                // Fallback: if no interactive elements, focus the close button
+                closeBtn.focus();
+            }
+            document.body.style.overflow = 'hidden'; // Prevent scrolling the body
+        }
+
+        function closeModal() {
+            modal.classList.remove('is-open');
+            // Return focus to the trigger button for accessibility
+            triggerBtn.focus();
+            document.body.style.overflow = ''; // Restore body scrolling
+        }
+
+        // When the user clicks the trigger button, open the modal
+        triggerBtn.addEventListener('click', openModal);
+
+        // When the user clicks on <span> (x) or presses Enter/Space on it, close the modal
+        closeBtn.addEventListener('click', closeModal);
+        closeBtn.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault(); // Prevent default scroll for space key
+                closeModal();
+            }
+        });
+
+        // When the user clicks anywhere outside of the modal-content, close it
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        // When the user presses the Escape key, close the modal
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                closeModal();
+            }
+        });
+
+        // Basic focus trapping (more advanced solutions exist for full accessibility)
+        modal.addEventListener('keydown', function(event) {
+            if (!modal.classList.contains('is-open')) return;
+            if (event.key === 'Tab') {
+                const focusableElements = modal.querySelectorAll('button:not([disabled]), [href]:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])');
+                const firstFocusableElement = focusableElements[0];
+                const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+                if (event.shiftKey) { // If Shift + Tab
+                    if (document.activeElement === firstFocusableElement) {
+                        lastFocusableElement.focus();
+                        event.preventDefault();
+                    }
+                } else { // If Tab
+                    if (document.activeElement === lastFocusableElement) {
+                        firstFocusableElement.focus();
+                        event.preventDefault();
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

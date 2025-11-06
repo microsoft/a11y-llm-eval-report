@@ -1,0 +1,237 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Modal Dialog Example</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+  background: #f5f6f9;
+  color: #1f2328;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2rem;
+  min-height: 100vh;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  border: 1px solid transparent;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.trigger {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+}
+
+.trigger:hover {
+  background: #1e4fc7;
+  transform: translateY(-1px);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.modal--open {
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.modal__dialog {
+  position: relative;
+  max-width: 480px;
+  width: 100%;
+  background: white;
+  color: #101828;
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.24);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem 2rem 2rem;
+}
+
+.modal__dialog:focus {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.modal__close {
+  background: transparent;
+  border: none;
+  color: #475467;
+  padding: 0.3rem;
+  line-height: 0;
+  border-radius: 50%;
+}
+
+.modal__close:hover {
+  background: #f2f4f7;
+}
+
+.modal__body {
+  line-height: 1.6;
+  font-size: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.modal__footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.modal__button--primary {
+  background: #2563eb;
+  color: white;
+}
+
+.modal__button--primary:hover {
+  background: #1e4fc7;
+}
+
+.modal__button--secondary {
+  background: #e4e7ec;
+  color: #344054;
+}
+
+.modal__button--secondary:hover {
+  background: #d2d6dc;
+}
+</style>
+</head>
+<body>
+<h1>Modal Dialog Demo</h1>
+<p>This example demonstrates a modal dialog that opens when you click the trigger button.</p>
+<button type="button" class="trigger">Open Modal</button>
+
+<div class="modal" role="presentation" aria-hidden="true">
+  <div class="modal__overlay" data-modal-close></div>
+  <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-title">Need a quick start?</h2>
+      <button type="button" class="modal__close" data-modal-close aria-label="Close dialog">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M15.5 5.08 14.42 4 10 8.42 5.58 4 4.5 5.08 8.92 9.5 4.5 13.92 5.58 15 10 10.58 14.42 15 15.5 13.92 11.08 9.5 15.5 5.08Z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      Jump right into your next project with our curated templates and best practices.
+      Customize them to fit your team’s workflow, and you’ll be shipping in no time.
+    </div>
+    <div class="modal__footer">
+      <button type="button" class="modal__button--secondary" data-modal-close>Not now</button>
+      <button type="button" class="modal__button--primary">View templates</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const modal = document.querySelector('.modal');
+  const dialog = modal.querySelector('.modal__dialog');
+  const openButton = document.querySelector('.trigger');
+  const closeSelectors = '[data-modal-close]';
+  const closeElements = modal.querySelectorAll(closeSelectors);
+
+  let focusableElements = [];
+  let previouslyFocused;
+
+  function updateFocusable() {
+    focusableElements = Array.from(dialog.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    ));
+  }
+
+  function openModal() {
+    previouslyFocused = document.activeElement;
+    modal.classList.add('modal--open');
+    modal.setAttribute('aria-hidden', 'false');
+    updateFocusable();
+    requestAnimationFrame(() => {
+      const focusTarget = focusableElements[0] || dialog;
+      focusTarget.focus();
+    });
+    document.addEventListener('keydown', handleKeydown);
+  }
+
+  function closeModal() {
+    modal.classList.remove('modal--open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', handleKeydown);
+    if (previouslyFocused) {
+      previouslyFocused.focus();
+    }
+  }
+
+  function handleKeydown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeModal();
+    }
+    if (event.key === 'Tab' && focusableElements.length) {
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  openButton.addEventListener('click', openModal);
+  closeElements.forEach((el) => {
+    el.addEventListener('click', closeModal);
+  });
+})();
+</script>
+</body>
+</html>

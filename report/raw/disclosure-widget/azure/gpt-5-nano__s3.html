@@ -1,0 +1,191 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #111;
+      --accent: #2a7ae2;
+      --muted: #555;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .example {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #fff;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .example h3 {
+      margin: 0 0 .5rem 0;
+      font-size: 1.05rem;
+    }
+
+    /* Custom widget styles */
+    .custom-controls {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: .5rem;
+    }
+
+    .trigger {
+      appearance: none;
+      border: 1px solid var(--accent);
+      background: #fff;
+      color: var(--accent);
+      padding: .6rem .9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .trigger[aria-expanded="true"] {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .details {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.25s ease;
+    }
+
+    .details.open {
+      max-height: 600px; /* big enough for typical content; JS will adjust height when opened */
+    }
+
+    .details p {
+      margin: .25rem 0;
+    }
+
+    /* Native details widget styling (container for controlled content uses .details as required) */
+    details.example {
+      /* keep styling consistent with the custom widget card */
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: .75rem;
+      background: #fff;
+    }
+
+    details.example summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    details .details {
+      /* rely on the browser’s native toggle; content inside will be shown/hidden automatically */
+      max-height: none;
+      overflow: visible;
+    }
+
+    @media (max-width: 600px) {
+      .example { padding: .75rem; }
+    }
+
+    /* Focus styles for accessibility */
+    .trigger:focus {
+      outline: 2px solid #0a5cff;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <h1>Expand/Collapse Widget Demo</h1>
+
+    <!-- Custom widget example (wrapped in .example) -->
+    <div class="example" aria-label="Custom expand/collapse widget example">
+      <h3>Custom Toggle (animated)</h3>
+      <div class="custom-controls">
+        <button id="custom-trigger-1" class="trigger" aria-expanded="false" aria-controls="custom-details-1" data-toggle="custom">
+          Expand
+        </button>
+      </div>
+      <div id="custom-details-1" class="details" aria-label="Details about Custom Widget">
+        <p>This content is controlled by a custom expand/collapse widget. The container for the controlled content uses the class "details". It demonstrates a smooth height animation when revealing content.</p>
+        <p>You can place any HTML inside here, including lists, images, or additional sections.</p>
+      </div>
+    </div>
+
+    <!-- Native details widget example (the content container uses class "details") -->
+    <div class="example" aria-label="Native details widget example">
+      <h3>Native Details Element</h3>
+      <details class="details-container" role="group">
+        <summary>Click to reveal hidden content</summary>
+        <!-- Container for controlled content with class "details" -->
+        <div class="details" aria-label="Details about Native widget contents">
+          <p>This is a native HTML details/summary widget. The content is inside a container with the class "details" to satisfy the requirement that the controlled content container has that class.</p>
+          <p>Wrapping content inside a div with class "details" allows us to apply consistent styling or scripts to the controlled portion.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    // Custom widget logic
+    (function () {
+      var trigger = document.getElementById('custom-trigger-1');
+      var panel = document.getElementById('custom-details-1');
+
+      function openPanel() {
+        panel.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+        // Animate to fit content height
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+      }
+
+      function closePanel() {
+        panel.style.maxHeight = '0px';
+        panel.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+
+      trigger.addEventListener('click', function () {
+        if (panel.classList.contains('open')) {
+          closePanel();
+        } else {
+          openPanel();
+        }
+      });
+
+      // Initialize as collapsed
+      closePanel();
+      // Keyboard support
+      trigger.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          trigger.click();
+        }
+      });
+
+      // Adjust height on resize when open
+      window.addEventListener('resize', function () {
+        if (panel.classList.contains('open')) {
+          panel.style.maxHeight = panel.scrollHeight + 'px';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

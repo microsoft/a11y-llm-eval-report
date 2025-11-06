@@ -1,0 +1,304 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widget Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --fg: #111827;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.5;
+      color: var(--fg);
+      background: var(--bg);
+    }
+    header {
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0 0 .5rem;
+      font-size: 1.75rem;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .example {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    .example h2 {
+      margin: 0 0 .75rem;
+      font-size: 1.25rem;
+    }
+
+    /* Toggle button styling */
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .625rem .875rem;
+      background: #fff;
+      color: var(--fg);
+      font: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    .toggle:hover {
+      border-color: #d1d5db;
+      background: #f8fafc;
+    }
+    .toggle:focus-visible {
+      outline: 3px solid rgba(37,99,235,.35);
+      outline-offset: 2px;
+    }
+    .toggle .indicator {
+      display: inline-block;
+      width: 1em;
+      text-align: center;
+      color: var(--muted);
+    }
+    .toggle[aria-expanded="false"] .indicator::before { content: "▸"; }
+    .toggle[aria-expanded="true"] .indicator::before { content: "▾"; }
+
+    /* Controlled content container */
+    .details {
+      margin-top: .75rem;
+      padding: .75rem .875rem;
+      border-left: 3px solid var(--accent);
+      background: #f3f4f6;
+      border-radius: 8px;
+    }
+    .details p { margin: 0 0 .5rem; }
+    .details ul { margin: .5rem 0 0 .75rem; }
+    .muted { color: var(--muted); }
+    code {
+      background: #eef2ff;
+      color: #1f2937;
+      padding: .1rem .3rem;
+      border-radius: 6px;
+    }
+
+    /* Native <details> tweaks */
+    details.details {
+      padding: .25rem .5rem .5rem;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: #fbfbff;
+    }
+    details.details summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #1f2937;
+      list-style: none;
+    }
+    details.details summary::-webkit-details-marker {
+      display: none;
+    }
+    details.details summary::before {
+      content: "▸";
+      color: var(--muted);
+      margin-right: .5rem;
+      display: inline-block;
+      width: 1em;
+      text-align: center;
+      transition: transform .2s ease;
+    }
+    details.details[open] summary::before {
+      content: "▾";
+    }
+
+    /* Accordion layout */
+    .accordion {
+      display: grid;
+      gap: .5rem;
+    }
+    .accordion .item {
+      padding: .5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: no-preference) {
+      .details {
+        transition: opacity .18s ease;
+      }
+      .details[hidden] {
+        opacity: 0;
+        transition: opacity .12s ease;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widget Examples</h1>
+    <p>Accessible demos using native and custom controls</p>
+  </header>
+  <main>
+
+    <div class="example">
+      <h2>Native HTML details/summary</h2>
+      <details class="details">
+        <summary>View product specifications</summary>
+        <div>
+          <p class="muted">This uses the built-in HTML <code>&lt;details&gt;</code> element.</p>
+          <ul>
+            <li>Display: 13.3" 2560×1600</li>
+            <li>Memory: 16 GB LPDDR5</li>
+            <li>Storage: 512 GB NVMe SSD</li>
+            <li>Ports: 2× USB-C (Thunderbolt), 1× 3.5mm</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <h2>Button-controlled region</h2>
+      <button id="toggle-basic" class="toggle" aria-controls="basic-details" aria-expanded="false">
+        <span class="indicator"></span>
+        Show more information
+      </button>
+      <div id="basic-details" class="details" hidden tabindex="-1" role="region" aria-labelledby="toggle-basic">
+        <p>This section is controlled by the button above.</p>
+        <p class="muted">It starts hidden and toggles visibility while updating <code>aria-expanded</code>.</p>
+        <ul>
+          <li>Accessible: uses ARIA attributes with a real button control</li>
+          <li>Keyboard-friendly: Space/Enter activate the toggle</li>
+          <li>Screen-reader friendly: Announces expanded/collapsed state</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>Accordion (single item open)</h2>
+      <div class="accordion" role="group" aria-label="Frequently Asked Questions">
+        <div class="item">
+          <button id="faq-q1" class="toggle" aria-controls="faq-a1" aria-expanded="false" data-accordion-group="faq">
+            <span class="indicator"></span>
+            What is an accordion?
+          </button>
+          <div id="faq-a1" class="details" hidden tabindex="-1" role="region" aria-labelledby="faq-q1">
+            <p>An accordion presents multiple sections where only one is open at a time.</p>
+          </div>
+        </div>
+        <div class="item">
+          <button id="faq-q2" class="toggle" aria-controls="faq-a2" aria-expanded="false" data-accordion-group="faq">
+            <span class="indicator"></span>
+            How is this accessible?
+          </button>
+          <div id="faq-a2" class="details" hidden tabindex="-1" role="region" aria-labelledby="faq-q2">
+            <p>Each toggle is a button with <code>aria-expanded</code>, and each panel is a labeled region.</p>
+          </div>
+        </div>
+        <div class="item">
+          <button id="faq-q3" class="toggle" aria-controls="faq-a3" aria-expanded="false" data-accordion-group="faq">
+            <span class="indicator"></span>
+            Can multiple panels be open?
+          </button>
+          <div id="faq-a3" class="details" hidden tabindex="-1" role="region" aria-labelledby="faq-q3">
+            <p>In this example, opening one panel closes the others in the same group.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    (function() {
+      function closeOthersInGroup(groupName, exceptBtn) {
+        const groupButtons = document.querySelectorAll('[data-accordion-group="' + groupName + '"]');
+        groupButtons.forEach(function(btn) {
+          if (btn === exceptBtn) return;
+          const targetId = btn.getAttribute('aria-controls');
+          const target = document.getElementById(targetId);
+          if (!target) return;
+          btn.setAttribute('aria-expanded', 'false');
+          target.hidden = true;
+        });
+      }
+
+      function toggleButton(btn) {
+        const targetId = btn.getAttribute('aria-controls');
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        const willExpand = !expanded;
+
+        btn.setAttribute('aria-expanded', String(willExpand));
+        target.hidden = !willExpand;
+
+        if (willExpand) {
+          const groupName = btn.getAttribute('data-accordion-group');
+          if (groupName) {
+            closeOthersInGroup(groupName, btn);
+          }
+          // Move focus into the region without scrolling
+          try { target.focus({ preventScroll: true }); } catch(e) {}
+        }
+      }
+
+      document.addEventListener('click', function(e) {
+        const btn = e.target.closest('button.toggle[aria-controls]');
+        if (btn) {
+          toggleButton(btn);
+        }
+      });
+
+      // Keyboard accessibility for non-click activation contexts (Space already triggers click on buttons)
+      document.addEventListener('keydown', function(e) {
+        const btn = e.target.closest('button.toggle[aria-controls]');
+        if (!btn) return;
+        // Optional: also support Arrow keys in accordion
+        const groupName = btn.getAttribute('data-accordion-group');
+        if (!groupName) return;
+
+        const items = Array.from(document.querySelectorAll('[data-accordion-group="' + groupName + '"]'));
+        const idx = items.indexOf(btn);
+        if (idx < 0) return;
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const next = items[(idx + 1) % items.length];
+          next.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prev = items[(idx - 1 + items.length) % items.length];
+          prev.focus();
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          items[0].focus();
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          items[items.length - 1].focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

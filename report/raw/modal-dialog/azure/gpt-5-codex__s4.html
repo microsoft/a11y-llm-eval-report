@@ -1,0 +1,202 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Modal Dialog Example</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  body {
+    margin: 0;
+    padding: 2rem;
+    background: #f4f4f7;
+    min-height: 100vh;
+  }
+  .trigger {
+    padding: 0.75rem 1.5rem;
+    background: #4a69bd;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .trigger:hover {
+    background: #3b55a3;
+    transform: translateY(-1px);
+  }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(14, 16, 26, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1000;
+  }
+  .modal-overlay.active {
+    display: flex;
+  }
+  .modal {
+    background: #fff;
+    color: #1d1f2f;
+    width: min(100%, 28rem);
+    border-radius: 0.8rem;
+    box-shadow: 0 1.5rem 4rem rgba(14, 16, 26, 0.2);
+    overflow: hidden;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  .modal-overlay.active .modal {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .modal header {
+    padding: 1.25rem 1.5rem;
+    background: #364f6b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .modal main {
+    padding: 1.5rem;
+    line-height: 1.5;
+  }
+  .modal footer {
+    padding: 1rem 1.5rem;
+    background: #f5f7fa;
+    text-align: right;
+  }
+  .modal button {
+    background: none;
+    border: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+  .modal .close {
+    color: #cfd8e2;
+    font-size: 1.4rem;
+    line-height: 1;
+    padding: 0.25rem;
+  }
+  .modal .close:hover {
+    color: #fff;
+  }
+  .modal .action {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    background: #364f6b;
+    color: #fff;
+    border: none;
+    transition: background 0.2s ease;
+  }
+  .modal .action:hover {
+    background: #2d4158;
+  }
+  @media (max-width: 480px) {
+    .modal main {
+      padding: 1.25rem;
+    }
+    .modal footer {
+      padding: 0.75rem 1.25rem;
+    }
+  }
+</style>
+</head>
+<body>
+<button class="trigger" type="button" aria-haspopup="dialog">Open Modal</button>
+
+<div class="modal-overlay" role="none" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description">
+    <header>
+      <h2 id="modal-title">Example Modal</h2>
+      <button class="close" type="button" aria-label="Close modal">&times;</button>
+    </header>
+    <main id="modal-description">
+      <p>This is an example modal dialog component. It demonstrates how to create an accessible overlay that is hidden by default and activated via a trigger button.</p>
+      <p>The modal can be dismissed by pressing the close button, clicking outside the modal, or pressing the Escape key.</p>
+    </main>
+    <footer>
+      <button class="action" type="button">Confirm</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const trigger = document.querySelector('.trigger');
+    const overlay = document.querySelector('.modal-overlay');
+    const modal = overlay.querySelector('.modal');
+    const closeButton = overlay.querySelector('.close');
+    const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    let focusableElements = [];
+    let previouslyFocusedElement = null;
+
+    function openModal() {
+      previouslyFocusedElement = document.activeElement;
+      overlay.classList.add('active');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      focusableElements = Array.from(modal.querySelectorAll(focusableSelectors));
+      if (focusableElements.length) {
+        focusableElements[0].focus();
+      }
+      document.addEventListener('keydown', handleKeyDown);
+      overlay.addEventListener('click', handleBackdropClick);
+    }
+
+    function closeModal() {
+      overlay.classList.remove('active');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
+      overlay.removeEventListener('click', handleBackdropClick);
+      if (previouslyFocusedElement) {
+        previouslyFocusedElement.focus();
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+      if (event.key === 'Tab') {
+        trapFocus(event);
+      }
+    }
+
+    function handleBackdropClick(event) {
+      if (!modal.contains(event.target)) {
+        closeModal();
+      }
+    }
+
+    function trapFocus(event) {
+      if (focusableElements.length === 0) return;
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    trigger.addEventListener('click', openModal);
+    closeButton.addEventListener('click', closeModal);
+  })();
+</script>
+</body>
+</html>

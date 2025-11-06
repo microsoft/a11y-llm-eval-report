@@ -1,0 +1,316 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Expand/Collapse Widgets Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #fff;
+      --text: #1b1f23;
+      --muted: #666;
+      --border: #dcdcdc;
+      --accent: #0a84ff;
+      --surface: #f7f7f8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      line-height: 1.5;
+    }
+
+    body {
+      padding: 24px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin: 0 0 16px;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin: 0 0 12px;
+    }
+
+    p {
+      margin: 0 0 8px;
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin: 16px 0;
+      background: var(--surface);
+    }
+
+    /* Common details container styling */
+    .details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      margin-top: 10px;
+      color: var(--text);
+    }
+
+    .details[hidden] {
+      display: none !important;
+    }
+
+    /* Native <details> element styling */
+    details.details {
+      padding: 0; /* Let children handle padding */
+    }
+
+    details.details summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      outline: none;
+      user-select: none;
+    }
+
+    details.details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.details summary::before {
+      content: "▶";
+      display: inline-block;
+      margin-right: 8px;
+      transform: rotate(0deg);
+      transition: transform 160ms ease;
+      color: var(--muted);
+    }
+
+    details.details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    details.details .content {
+      border-top: 1px solid var(--border);
+      padding: 12px;
+    }
+
+    /* Toggle button */
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+      transition: border-color 120ms ease, box-shadow 120ms ease, transform 50ms ease-in-out;
+    }
+
+    .toggle-btn:hover {
+      border-color: #c8c8c8;
+    }
+
+    .toggle-btn:active {
+      transform: translateY(1px);
+    }
+
+    .toggle-btn:focus-visible {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
+    }
+
+    /* Icon for button */
+    .chev {
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 6px 0 6px 8px;
+      border-color: transparent transparent transparent var(--muted);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+    .toggle-btn[aria-expanded="true"] .chev {
+      transform: rotate(90deg);
+      border-color: transparent transparent transparent var(--accent);
+    }
+
+    /* Checkbox-based toggle (CSS-only trigger, JS updates label text) */
+    .toggle-checkbox {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+    }
+
+    .toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 600;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+    .toggle-label:hover {
+      border-color: #c8c8c8;
+    }
+    .toggle-label:focus-visible {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
+    }
+    .toggle-label .chev {
+      border-color: transparent transparent transparent var(--muted);
+    }
+    .toggle-checkbox:checked + .toggle-label .chev {
+      transform: rotate(90deg);
+      border-color: transparent transparent transparent var(--accent);
+    }
+
+    /* Misc content styling inside details */
+    .details ul {
+      margin: 8px 0 0 18px;
+    }
+    .details code {
+      background: #f0f3f6;
+      padding: 0 4px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+    }
+
+    footer {
+      margin-top: 32px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widgets</h1>
+  <p>Below are different approaches to expanding and collapsing content. Each widget is wrapped with an element that has the <code>example</code> class, and the controlled content containers use the <code>details</code> class.</p>
+
+  <div class="example">
+    <h2>Native HTML details element</h2>
+    <details class="details">
+      <summary>What is the native details element?</summary>
+      <div class="content">
+        <p>The native <code>&lt;details&gt;</code> element provides built-in expand/collapse behavior with keyboard and screen reader support. Click or press Space/Enter on the summary to toggle.</p>
+        <ul>
+          <li>Automatic accessibility semantics</li>
+          <li>No JavaScript required</li>
+          <li>Customizable appearance</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+
+  <div class="example">
+    <h2>Button-controlled panel</h2>
+    <button type="button" class="toggle-btn" aria-expanded="false" aria-controls="panel-1" data-target="panel-1">
+      <span class="chev" aria-hidden="true"></span>
+      Show details
+    </button>
+    <div id="panel-1" class="details" hidden>
+      <p>This panel is controlled by a button using JavaScript. The button updates its <code>aria-expanded</code> state and toggles the <code>hidden</code> attribute on the controlled container.</p>
+      <ul>
+        <li>Uses <code>aria-controls</code> to indicate the relationship</li>
+        <li>Accessible toggle states</li>
+        <li>Flexible styling</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="example">
+    <h2>Checkbox-based toggle (CSS trigger)</h2>
+    <input type="checkbox" id="check-1" class="toggle-checkbox" aria-controls="panel-2" aria-expanded="false">
+    <label class="toggle-label" for="check-1">
+      <span class="chev" aria-hidden="true"></span>
+      Show details
+    </label>
+    <div id="panel-2" class="details" style="display:none" aria-live="polite">
+      <p>This approach uses a checkbox as the toggle control. CSS and a small bit of JavaScript update visibility and label text.</p>
+      <p>It keeps markup simple and avoids the <code>hidden</code> attribute so screen readers can announce updates dynamically when needed.</p>
+    </div>
+  </div>
+
+  <footer>
+    Demo of expand/collapse patterns using native and custom controls. Try toggling each widget.
+  </footer>
+
+  <script>
+    // Button-controlled panels
+    (function () {
+      var buttons = document.querySelectorAll('.toggle-btn');
+      buttons.forEach(function (btn) {
+        var targetId = btn.getAttribute('data-target') || btn.getAttribute('aria-controls');
+        var panel = document.getElementById(targetId);
+        if (!panel) return;
+
+        function setState(expanded) {
+          btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+          panel.hidden = !expanded;
+          btn.lastChild.nodeValue = expanded ? ' Hide details' : ' Show details';
+        }
+
+        setState(false);
+        btn.addEventListener('click', function () {
+          var expanded = btn.getAttribute('aria-expanded') === 'true';
+          setState(!expanded);
+        });
+      });
+    })();
+
+    // Checkbox-based panels (CSS trigger + JS label)
+    (function () {
+      var checkboxes = document.querySelectorAll('.toggle-checkbox');
+      checkboxes.forEach(function (chk) {
+        var targetId = chk.getAttribute('aria-controls');
+        var panel = document.getElementById(targetId);
+        var label = document.querySelector('label[for="' + chk.id + '"]');
+
+        function update() {
+          var expanded = chk.checked;
+          chk.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+          // Toggle visibility via style to avoid layout jumps when using attribute selectors.
+          if (panel) {
+            panel.style.display = expanded ? 'block' : 'none';
+          }
+          if (label) {
+            // Preserve icon node, only update text node
+            var textNode = Array.prototype.find.call(label.childNodes, function (n) { return n.nodeType === Node.TEXT_NODE; });
+            if (textNode) {
+              textNode.nodeValue = expanded ? ' Hide details' : ' Show details';
+            } else {
+              label.appendChild(document.createTextNode(expanded ? ' Hide details' : ' Show details'));
+            }
+          }
+        }
+
+        update();
+        chk.addEventListener('change', update);
+      });
+    })();
+  </script>
+</body>
+</html>

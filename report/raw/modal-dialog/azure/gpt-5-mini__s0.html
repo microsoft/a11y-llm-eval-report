@@ -1,0 +1,311 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --overlay-bg: rgba(0,0,0,0.6);
+      --dialog-bg: #fff;
+      --max-width: 540px;
+      --radius: 8px;
+      --transition: 200ms ease;
+      --focus-outline: 3px solid #4c9aff;
+    }
+
+    html,body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    main {
+      padding: 2rem;
+    }
+
+    .trigger {
+      display: inline-block;
+      padding: 0.6rem 1rem;
+      background: #2563eb;
+      color: white;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* Modal wrapper - invisible by default */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: block;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .modal .overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--overlay-bg);
+      opacity: 0;
+      transition: opacity var(--transition);
+      pointer-events: none;
+    }
+
+    .modal .dialog {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0.96);
+      width: calc(100% - 2rem);
+      max-width: var(--max-width);
+      background: var(--dialog-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      padding: 1rem;
+      opacity: 0;
+      transition: opacity var(--transition), transform var(--transition);
+      pointer-events: none;
+    }
+
+    .modal.open {
+      pointer-events: auto;
+    }
+
+    .modal.open .overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal.open .dialog {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+
+    .dialog header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .dialog h2 {
+      margin: 0;
+      font-size: 1.125rem;
+    }
+
+    .dialog .close {
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      padding: 0.25rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .dialog .close:focus {
+      outline: var(--focus-outline);
+      outline-offset: 2px;
+    }
+
+    .dialog .content {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      color: #222;
+    }
+
+    .dialog .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .dialog button {
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #f3f4f6;
+      cursor: pointer;
+    }
+
+    .dialog button.primary {
+      background: #2563eb;
+      color: white;
+      border-color: transparent;
+    }
+
+    .dialog button:focus {
+      outline: var(--focus-outline);
+      outline-offset: 2px;
+    }
+
+    /* Prevent background from scrolling when modal open */
+    body.modal-open {
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    /* Small tweaks for very small screens */
+    @media (max-width: 420px) {
+      .dialog {
+        width: calc(100% - 1rem);
+        padding: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="mainContent">
+    <h1>Modal Dialog Component</h1>
+    <p>This example contains a modal dialog that is closed by default. Click the button to open it.</p>
+    <button class="trigger" type="button">Open Modal</button>
+  </main>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="overlay" data-close="overlay"></div>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" tabindex="-1">
+      <header>
+        <h2 id="dialogTitle">Example Modal</h2>
+        <button class="close" type="button" aria-label="Close dialog">&times;</button>
+      </header>
+      <div class="content">
+        <p>This is a sample modal dialog. It traps focus, closes with the Escape key, by clicking the overlay, or using the close button.</p>
+        <p>Try keyboard navigation with Tab and Shift+Tab.</p>
+      </div>
+      <div class="actions">
+        <button type="button">Cancel</button>
+        <button type="button" class="primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var modal = document.getElementById('modal');
+      var dialog = modal.querySelector('.dialog');
+      var overlay = modal.querySelector('.overlay');
+      var closeBtn = modal.querySelector('.close');
+      var triggers = Array.prototype.slice.call(document.querySelectorAll('.trigger'));
+      var focusableSelector = 'a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"])';
+      var previouslyFocused = null;
+
+      function getFocusableElements() {
+        return Array.prototype.slice.call(dialog.querySelectorAll(focusableSelector))
+          .filter(function (el) { return el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement; });
+      }
+
+      function openModal(trigger) {
+        previouslyFocused = trigger || document.activeElement;
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+
+        // Wait a tick to allow transition then focus first element
+        window.setTimeout(function () {
+          var focusables = getFocusableElements();
+          if (focusables.length) {
+            focusables[0].focus();
+          } else {
+            dialog.focus();
+          }
+        }, 10);
+
+        // Attach listeners
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+
+        // Return focus to the trigger if possible
+        if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+          previouslyFocused.focus();
+        }
+
+        document.removeEventListener('keydown', onKeyDown);
+      }
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+        if (e.key === 'Tab') {
+          var focusables = getFocusableElements();
+          if (focusables.length === 0) {
+            e.preventDefault();
+            return;
+          }
+          var first = focusables[0];
+          var last = focusables[focusables.length - 1];
+          if (e.shiftKey) {
+            if (document.activeElement === first || document.activeElement === dialog) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      }
+
+      // Open handlers for triggers
+      triggers.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          openModal(btn);
+        });
+      });
+
+      // Close handlers
+      closeBtn.addEventListener('click', function () {
+        closeModal();
+      });
+
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) {
+          closeModal();
+        }
+      });
+
+      // Close when clicking an element with data-close attribute inside modal (e.g., overlay has one)
+      modal.addEventListener('click', function (e) {
+        var cl = e.target.getAttribute && e.target.getAttribute('data-close');
+        if (cl === 'overlay') {
+          closeModal();
+        }
+      });
+
+      // Allow opening via elements with .trigger added later
+      document.addEventListener('click', function (e) {
+        var t = e.target;
+        if (t && t.classList && t.classList.contains('trigger')) {
+          openModal(t);
+        }
+      });
+
+      // Ensure focus is trapped if focus somehow leaves
+      modal.addEventListener('focusout', function (e) {
+        if (modal.classList.contains('open')) {
+          window.setTimeout(function () {
+            if (!modal.contains(document.activeElement)) {
+              var focusables = getFocusableElements();
+              if (focusables.length) focusables[0].focus();
+              else dialog.focus();
+            }
+          }, 0);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root{
+      --bg:#f8f9fb;
+      --card:#ffffff;
+      --border:#d7dcef;
+      --accent:#2563eb;
+      --muted:#6b7280;
+      --radius:10px;
+      --transition:250ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #f4f7fb 0%, #ffffff 100%);
+      color:#0f172a;
+      padding:32px;
+      line-height:1.5;
+    }
+
+    h1{
+      margin:0 0 20px 0;
+      font-size:20px;
+    }
+
+    .example{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:12px;
+      margin:16px 0;
+      box-shadow: 0 2px 6px rgba(15,23,42,0.04);
+      max-width:760px;
+    }
+
+    .summary{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      width:100%;
+      padding:10px 12px;
+      background:transparent;
+      border:0;
+      text-align:left;
+      cursor:pointer;
+      font-size:15px;
+      font-weight:600;
+      color:var(--accent);
+      border-radius:8px;
+      transition:background var(--transition);
+    }
+
+    .summary:hover{
+      background:rgba(37,99,235,0.06);
+    }
+
+    .summary:focus{
+      outline:3px solid rgba(37,99,235,0.14);
+      outline-offset:2px;
+    }
+
+    .summary .title{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .summary .label{
+      color:inherit;
+      font-weight:600;
+    }
+
+    .summary .hint{
+      color:var(--muted);
+      font-weight:500;
+      font-size:13px;
+    }
+
+    .chev{
+      width:18px;
+      height:18px;
+      display:inline-block;
+      transition:transform var(--transition);
+      flex:0 0 18px;
+      margin-left:12px;
+      color:var(--accent);
+    }
+
+    /* rotate when expanded using aria-expanded on the button */
+    .summary[aria-expanded="true"] .chev{
+      transform:rotate(90deg);
+    }
+
+    /* controlled content */
+    .details{
+      overflow:hidden;
+      max-height:0;
+      transition:max-height var(--transition), opacity var(--transition);
+      opacity:0;
+      margin-top:8px;
+      border-top:1px dashed var(--border);
+      padding-top:12px;
+    }
+
+    /* when open we set opacity 1 (height handled by JS for accurate transitions) */
+    .details.open{
+      opacity:1;
+    }
+
+    /* inner content styling */
+    .details p{
+      margin:0 0 12px 0;
+      color:#0f172a;
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* small demo footer */
+    .meta{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:8px;
+    }
+
+    /* small code-like box inside details */
+    .panel{
+      background:#fbfdff;
+      border:1px solid #e6eefb;
+      padding:10px;
+      border-radius:8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
+      font-size:13px;
+      color:#0f172a;
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget Examples</h1>
+
+  <!-- Example 1: collapsed by default -->
+  <div class="example">
+    <button class="summary" aria-expanded="false" aria-controls="details1" id="summary1" type="button">
+      <span class="title">
+        <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+          <path d="M8 5v14l11-7z" fill="currentColor"/>
+        </svg>
+        <span class="label">Example 1 — Click to expand</span>
+      </span>
+      <span class="hint">More info</span>
+    </button>
+
+    <div id="details1" class="details" role="region" aria-labelledby="summary1">
+      <p class="muted">This content is controlled by the button above. Use the button or press Enter/Space to toggle.</p>
+      <div class="panel">
+        <strong>Notes:</strong>
+        <ul>
+          <li>ARIA: button has aria-expanded and aria-controls</li>
+          <li>The content container has the class "details"</li>
+          <li>Transition uses max-height + opacity (height set dynamically)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Example 2: expanded by default -->
+  <div class="example">
+    <button class="summary" aria-expanded="true" aria-controls="details2" id="summary2" type="button">
+      <span class="title">
+        <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+          <path d="M8 5v14l11-7z" fill="currentColor"/>
+        </svg>
+        <span class="label">Example 2 — Expanded by default</span>
+      </span>
+      <span class="hint">Currently open</span>
+    </button>
+
+    <div id="details2" class="details" role="region" aria-labelledby="summary2">
+      <p class="muted">This example starts expanded. The script will calculate and set the correct max-height so the transition is smooth.</p>
+      <div class="panel">
+        <strong>Quick tips:</strong>
+        <ol>
+          <li>Press <kbd>Esc</kbd> while focus is inside the details to close it.</li>
+          <li>Buttons are keyboard-accessible (Space/Enter).</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      /**
+       * Accessible expand/collapse controller.
+       * - Buttons must have class "summary", an unique id and aria-controls pointing to the .details element.
+       * - The controlled element must have class "details".
+       * - The script toggles aria-expanded and manages max-height for smooth transitions.
+       */
+
+      function initSummaryButton(button){
+        var detailsId = button.getAttribute('aria-controls');
+        if(!detailsId) return;
+        var details = document.getElementById(detailsId);
+        if(!details || !details.classList.contains('details')) return;
+
+        // helper to expand
+        function expand(){
+          // measure content height
+          var full = details.scrollHeight;
+          details.style.maxHeight = full + "px";
+          details.classList.add('open');
+          button.setAttribute('aria-expanded','true');
+        }
+
+        // helper to collapse
+        function collapse(){
+          // to animate from current height to zero, set explicit height first
+          // then force reflow and set to 0.
+          details.style.maxHeight = details.scrollHeight + "px";
+          // force reflow
+          void details.offsetHeight;
+          details.style.maxHeight = "0px";
+          details.classList.remove('open');
+          button.setAttribute('aria-expanded','false');
+        }
+
+        // ensure initial state matches aria-expanded
+        if(button.getAttribute('aria-expanded') === 'true'){
+          // set maxHeight so transition can work if user toggles
+          details.style.maxHeight = details.scrollHeight + "px";
+          details.classList.add('open');
+        } else {
+          details.style.maxHeight = "0px";
+          details.classList.remove('open');
+        }
+
+        // click toggles
+        button.addEventListener('click', function(){
+          var expanded = button.getAttribute('aria-expanded') === 'true';
+          if(expanded){
+            collapse();
+          } else {
+            expand();
+          }
+        });
+
+        // allow keydown of Enter/Space to activate as well (the button already handles this natively,
+        // but we ensure consistency when other elements are used)
+        button.addEventListener('keydown', function(e){
+          if(e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter'){
+            // let the button native handler handle activation; no need to duplicate
+            return;
+          }
+        });
+
+        // allow closing with Escape while focus is inside details
+        details.addEventListener('keydown', function(e){
+          if(e.key === 'Escape' || e.key === 'Esc'){
+            collapse();
+            // return focus to the button
+            button.focus();
+          }
+        });
+
+        // If the content within details changes size (images load, content injected), keep maxHeight updated when open
+        var resizeObserver = window.ResizeObserver ? new ResizeObserver(function(){
+          if(button.getAttribute('aria-expanded') === 'true'){
+            details.style.maxHeight = details.scrollHeight + "px";
+          }
+        }) : null;
+        if(resizeObserver){
+          resizeObserver.observe(details);
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function(){
+        var buttons = document.querySelectorAll('.example .summary');
+        buttons.forEach(initSummaryButton);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --backdrop: rgba(0, 0, 0, 0.5);
+      --radius: 12px;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: #222;
+      background: #f7f7f7;
+    }
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+    .trigger {
+      appearance: none;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .trigger:hover {
+      background: #1d4ed8;
+    }
+
+    /* Modal base */
+    .modal[hidden] {
+      display: none;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+    }
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: var(--backdrop);
+    }
+    .modal-dialog {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      width: min(92vw, 560px);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      padding: 24px;
+      outline: none;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    .modal-close {
+      appearance: none;
+      border: none;
+      background: #f3f4f6;
+      color: #111827;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+    }
+    .modal-close:hover {
+      background: #e5e7eb;
+    }
+    .modal-body {
+      color: #374151;
+      line-height: 1.5;
+      margin: 12px 0 18px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .btn {
+      appearance: none;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn.primary {
+      background: #16a34a;
+      color: #fff;
+    }
+    .btn.primary:hover {
+      background: #15803d;
+    }
+    .btn.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .btn.secondary:hover {
+      background: #d1d5db;
+    }
+
+    /* Small animation for entrance */
+    .modal:not([hidden]) .modal-dialog {
+      animation: modalIn 180ms ease-out;
+    }
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, calc(-50% - 6px));
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Modal Dialog Component</h1>
+    <p>This is an example of a modal dialog. It is closed by default. Click the button below to open it.</p>
+    <button class="trigger" aria-haspopup="dialog" aria-controls="exampleModal">Open Modal</button>
+  </div>
+
+  <div class="modal" id="exampleModal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" tabindex="-1">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Example Modal</h2>
+        <button class="modal-close" aria-label="Close dialog" title="Close" data-close>&times;</button>
+      </div>
+      <div class="modal-body" id="modal-desc">
+        <p>This modal is opened by clicking a button with the class "trigger". It supports closing via the close button, clicking the backdrop, or pressing Escape.</p>
+        <p>Try tabbing around to see the focus remain within the modal.</p>
+
+        <label for="name">Name</label>
+        <input id="name" type="text" placeholder="Your name" style="display:block;width:100%;padding:10px;margin:8px 0;border:1px solid #d1d5db;border-radius:8px;">
+        <a href="#" onclick="return false;">Focusable Link</a>
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" data-close>Cancel</button>
+        <button class="btn primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.getElementById('exampleModal');
+      const dialog = modal.querySelector('.modal-dialog');
+      const triggers = document.querySelectorAll('.trigger');
+      let previouslyFocused = null;
+      let currentModal = null;
+
+      function getFocusable(root) {
+        const selectors = [
+          'a[href]',
+          'area[href]',
+          'button:not([disabled])',
+          'input:not([disabled]):not([type="hidden"])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          '[tabindex]:not([tabindex="-1"])'
+        ];
+        return Array.from(root.querySelectorAll(selectors.join(',')))
+          .filter(el => el.offsetParent !== null || el === root); // visible or root itself
+      }
+
+      function openModal() {
+        previouslyFocused = document.activeElement;
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        currentModal = modal;
+
+        // Focus management
+        setTimeout(() => {
+          const focusable = getFocusable(dialog);
+          if (focusable.length) {
+            focusable[0].focus();
+          } else {
+            dialog.focus();
+          }
+        }, 0);
+
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeModal() {
+        modal.hidden = true;
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', onKeyDown);
+        currentModal = null;
+
+        if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+          previouslyFocused.focus();
+        }
+      }
+
+      function onKeyDown(e) {
+        if (!currentModal) return;
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          closeModal();
+          return;
+        }
+        if (e.key === 'Tab') {
+          const focusable = getFocusable(dialog);
+          if (focusable.length === 0) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          const focused = document.activeElement;
+
+          if (e.shiftKey) {
+            if (focused === first || !dialog.contains(focused)) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (focused === last || !dialog.contains(focused)) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      }
+
+      triggers.forEach(btn => {
+        btn.addEventListener('click', openModal);
+      });
+
+      // Close via backdrop or any [data-close] control
+      modal.addEventListener('click', (e) => {
+        if (e.target.matches('[data-close]')) {
+          closeModal();
+        }
+      });
+
+      // Prevent clicks inside dialog from closing via event bubbling (backdrop click)
+      dialog.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    })();
+  </script>
+</body>
+</html>

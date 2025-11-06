@@ -1,0 +1,226 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Modal Dialog Example</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    :root {
+        color-scheme: light dark;
+    }
+    body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: linear-gradient(135deg, #f7f8fc 0%, #dfe3f7 100%);
+        color: #202230;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    button {
+        font: inherit;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 999px;
+        background: #4557ff;
+        color: #fff;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(69, 87, 255, 0.25);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:focus-visible {
+        outline: 3px solid rgba(69, 87, 255, 0.5);
+        outline-offset: 3px;
+    }
+    button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 32px rgba(69, 87, 255, 0.3);
+    }
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(16, 18, 30, 0.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        backdrop-filter: blur(4px);
+        z-index: 999;
+    }
+    .modal-overlay[aria-hidden="false"] {
+        display: flex;
+        animation: fadeIn 180ms ease-out forwards;
+    }
+    .modal-dialog {
+        position: relative;
+        width: min(480px, 100%);
+        border-radius: 1rem;
+        overflow: hidden;
+        background: #ffffff;
+        color: #202230;
+        box-shadow: 0 28px 60px rgba(16, 18, 30, 0.2);
+        transform: translateY(-12px);
+        animation: slideIn 220ms ease-out forwards;
+    }
+    .modal-header {
+        padding: 1.5rem 1.75rem 0.75rem;
+        border-bottom: 1px solid rgba(32, 34, 48, 0.08);
+    }
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+    .modal-body {
+        padding: 1rem 1.75rem 1.5rem;
+        line-height: 1.6;
+    }
+    .modal-footer {
+        padding: 0 1.75rem 1.5rem;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+    .modal-close {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        background: transparent;
+        color: inherit;
+        padding: 0;
+        box-shadow: none;
+    }
+    .modal-close:hover {
+        background: rgba(69, 87, 255, 0.08);
+        transform: none;
+        box-shadow: none;
+    }
+    .modal-close svg {
+        width: 1.1rem;
+        height: 1.1rem;
+    }
+    .secondary {
+        background: #f0f2ff;
+        color: #4557ff;
+        box-shadow: none;
+    }
+    .secondary:hover {
+        background: #e0e5ff;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes slideIn {
+        from { transform: translateY(-24px); opacity: 0.96; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
+</head>
+<body>
+<button class="trigger" type="button">Show Modal Dialog</button>
+
+<div class="modal-overlay" data-modal aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description">
+        <button class="modal-close" type="button" data-close aria-label="Close dialog">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.9 4.89a1 1 0 1 0 1.41 1.42L12 13.41l4.89 4.9a1 1 0 0 0 1.42-1.41L13.41 12l4.9-4.89a1 1 0 0 0-.01-1.4z" fill="currentColor"/>
+            </svg>
+        </button>
+        <header class="modal-header">
+            <h2 id="modal-title">Weekly Team Sync</h2>
+        </header>
+        <section class="modal-body" id="modal-description">
+            <p>Our next team sync is scheduled for Tuesday at 10:00 AM. Please review your project milestones and come prepared with updates, blockers, and questions for the group.</p>
+            <p>If you are unable to attend, reach out to your lead so we can capture your notes ahead of time.</p>
+        </section>
+        <footer class="modal-footer">
+            <button class="secondary" type="button" data-close>Dismiss</button>
+            <button type="button">Open Agenda</button>
+        </footer>
+    </div>
+</div>
+
+<script>
+    const modalOverlay = document.querySelector('[data-modal]');
+    const triggerButton = document.querySelector('.trigger');
+    const closeButtons = modalOverlay.querySelectorAll('[data-close]');
+    let lastFocusedElement = null;
+
+    const focusableSelectors = [
+        'a[href]:not([tabindex="-1"])',
+        'button:not([disabled]):not([tabindex="-1"])',
+        'textarea:not([disabled]):not([tabindex="-1"])',
+        'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"])',
+        'select:not([disabled]):not([tabindex="-1"])',
+        '[tabindex]:not([tabindex="-1"])'
+    ];
+
+    function getFocusableElements(container) {
+        return Array.from(container.querySelectorAll(focusableSelectors.join(',')));
+    }
+
+    function openModal() {
+        lastFocusedElement = document.activeElement;
+        modalOverlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        const focusable = getFocusableElements(modalOverlay);
+        if (focusable.length) {
+            focusable[0].focus();
+        }
+        document.addEventListener('keydown', trapTabKey);
+    }
+
+    function closeModal() {
+        modalOverlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', trapTabKey);
+        if (lastFocusedElement) {
+            lastFocusedElement.focus();
+        }
+    }
+
+    function trapTabKey(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+            return;
+        }
+        if (event.key !== 'Tab') {
+            return;
+        }
+        const focusable = getFocusableElements(modalOverlay);
+        if (focusable.length === 0) {
+            event.preventDefault();
+            return;
+        }
+        const firstElement = focusable[0];
+        const lastElement = focusable[focusable.length - 1];
+        if (event.shiftKey) {
+            if (document.activeElement === firstElement) {
+                event.preventDefault();
+                lastElement.focus();
+            }
+        } else {
+            if (document.activeElement === lastElement) {
+                event.preventDefault();
+                firstElement.focus();
+            }
+        }
+    }
+
+    triggerButton.addEventListener('click', openModal);
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', closeModal);
+    });
+
+    modalOverlay.addEventListener('mousedown', event => {
+        if (event.target === modalOverlay) {
+            closeModal();
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color-scheme: light dark;
+    }
+    body {
+      margin: 0;
+      padding: 2rem;
+      background: radial-gradient(circle at top, #f7f8ff, #edf2ff);
+      min-height: 100vh;
+    }
+    button {
+      cursor: pointer;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.4rem;
+      border: none;
+      background: #4f46ef;
+      color: #fff;
+      font-weight: 600;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    button:hover {
+      box-shadow: 0 12px 30px rgba(79, 70, 239, 0.25);
+      transform: translateY(-1px);
+    }
+    button:focus-visible {
+      outline: 3px solid rgba(79, 70, 239, 0.45);
+      outline-offset: 3px;
+    }
+    .modal-overlay[hidden] {
+      display: none;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.5);
+      z-index: 1000;
+      animation: fadeIn 180ms ease, scaleIn 220ms ease;
+    }
+    .modal {
+      background: #ffffff;
+      color: #0f172a;
+      max-width: 420px;
+      width: min(90vw, 420px);
+      border-radius: 1rem;
+      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+      overflow: hidden;
+      transform-origin: center;
+    }
+    .modal-header {
+      padding: 1.4rem 1.6rem 0.4rem;
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 1.4rem;
+      line-height: 1.1;
+      color: #1e293b;
+    }
+    .modal-body {
+      padding: 0.4rem 1.6rem 1.2rem;
+      color: #475569;
+      line-height: 1.6;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      padding: 1.1rem 1.6rem 1.4rem;
+      background: #f8fafc;
+    }
+    .modal-footer button {
+      background: #1e40af;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1.1rem;
+      right: 1.1rem;
+      background: transparent;
+      color: inherit;
+      padding: 0.4rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s ease;
+    }
+    .modal-close:hover {
+      background: rgba(148, 163, 184, 0.18);
+    }
+    .modal-container {
+      position: relative;
+      padding-top: 0.6rem;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { transform: scale(0.98); }
+      to { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="example-modal">
+    Open Modal Dialog
+  </button>
+
+  <div class="modal-overlay" id="example-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal">
+      <div class="modal-container">
+        <button class="modal-close" type="button" aria-label="Close dialog">
+          &#x2715;
+        </button>
+        <div class="modal-header">
+          <h2 class="modal-title" id="modal-title">Plan Upgrade Needed</h2>
+        </div>
+        <div class="modal-body">
+          <p>
+            Your current plan limits your access to premium analytics dashboards. Upgrade now to unlock
+            detailed reports, goal tracking, and automated insights tailored to your team.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" data-dismiss>Not Now</button>
+          <button type="button">View Plans</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.getElementById("example-modal");
+      const openButton = document.querySelector(".trigger");
+      const closeButton = modal.querySelector(".modal-close");
+      const dismissButtons = modal.querySelectorAll("[data-dismiss]");
+      let activeElementBeforeOpen = null;
+
+      function openModal() {
+        if (!modal.hasAttribute("hidden")) return;
+        activeElementBeforeOpen = document.activeElement;
+        modal.removeAttribute("hidden");
+        modal.setAttribute("aria-hidden", "false");
+        const firstFocusable = modal.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+        (firstFocusable || closeButton).focus();
+      }
+
+      function closeModal() {
+        if (modal.hasAttribute("hidden")) return;
+        modal.setAttribute("hidden", "");
+        modal.setAttribute("aria-hidden", "true");
+        if (activeElementBeforeOpen) {
+          activeElementBeforeOpen.focus({ preventScroll: true });
+        }
+      }
+
+      function onKeyDown(event) {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeModal();
+        }
+        if (event.key === "Tab" && !modal.hasAttribute("hidden")) {
+          const focusableElements = modal.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+          if (!focusableElements.length) return;
+          const focusable = Array.from(focusableElements).filter(el => !el.disabled);
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
+      }
+
+      openButton.addEventListener("click", openModal);
+      closeButton.addEventListener("click", closeModal);
+      dismissButtons.forEach(btn => btn.addEventListener("click", closeModal));
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+      window.addEventListener("keydown", onKeyDown);
+    })();
+  </script>
+</body>
+</html>

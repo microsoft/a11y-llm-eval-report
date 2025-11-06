@@ -1,0 +1,163 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand / Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --card: #141020;
+      --border: #2a2540;
+      --text: #e6e0f0;
+      --muted: #c6bfd1;
+      --accent: #7aa2f7;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; }
+    header { text-align: center; padding: 2rem 1rem 1rem; }
+    h1 { margin: 0 0 .25rem; font-size: 1.75rem; }
+    p.lead { margin: 0; color: var(--muted); }
+
+    main.container { max-width: 860px; margin: 0 auto; padding: 1rem 1rem 2rem; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+
+    @media (min-width: 720px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .example { border: 1px solid var(--border); border-radius: 10px; background: #141020; overflow: hidden; }
+    .trigger {
+      width: 100%; text-align: left; background: #1e1740; color: #fff;
+      border: none; padding: 1rem; font-size: 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
+      gap: .5rem;
+    }
+    .trigger:hover { background: #251b4f; }
+    .trigger:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .icon { display: inline-block; width: 1rem; height: 1rem; transition: transform .25s ease; }
+
+    .details {
+      max-height: 0; overflow: hidden;
+      padding: 0 1rem; transition: max-height .25s ease, padding .25s ease;
+    }
+    .details.open { padding: 0 1rem 1rem; }
+
+    .details p, .details ul { margin: .5rem 0; color: #e6e0f0; }
+    .details ul { padding-left: 1.25rem; }
+
+    hr.sep { border: 0; height: 1px; background: #2a2540; margin: 1rem 0 0; }
+
+    /* Small visual polish for the widget header */
+    .widget-header { font-weight: 600; font-size: 1rem; color: #e9e3f7; }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand / Collapse Widget Demo</h1>
+    <p class="lead">Wrap each widget with a div that has an "example" class. The container for the controlled content uses a "details" class.</p>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+
+      <!-- Example 1 -->
+      <section class="example" aria-label="Question about HTML">
+        <button id="qa1" class="trigger" aria-expanded="false" aria-controls="content1">
+          <span class="widget-header">What is HTML?</span>
+          <span class="icon" aria-hidden="true">▾</span>
+        </button>
+        <div id="content1" class="details" role="region" aria-labelledby="qa1">
+          <p>HTML stands for HyperText Markup Language. It is the standard language used to create and structure content on the web.</p>
+          <p>HTML defines the meaning and structure of web content, and it is enhanced by CSS and JavaScript.</p>
+        </div>
+      </section>
+
+      <!-- Example 2 -->
+      <section class="example" aria-label="Tips widget">
+        <button id="qa2" class="trigger" aria-expanded="false" aria-controls="content2">
+          <span class="widget-header">CSS Styling Essentials</span>
+          <span class="icon" aria-hidden="true">▾</span>
+        </button>
+        <div id="content2" class="details" role="region" aria-labelledby="qa2">
+          <ul>
+            <li>Use CSS variables to keep your design consistent.</li>
+            <li>Maintain readable contrast for accessibility.</li>
+            <li>Separate content, presentation, and behavior for maintainability.</li>
+          </ul>
+          <p>CSS controls presentation while HTML handles structure and semantics.</p>
+        </div>
+      </section>
+
+    </div>
+
+    <hr class="sep" aria-hidden="true">
+
+    <!-- Example 3 (another widget) -->
+    <section class="example" aria-label="Pricing widget">
+      <button id="qa3" class="trigger" aria-expanded="false" aria-controls="content3">
+        <span class="widget-header">Pricing details</span>
+        <span class="icon" aria-hidden="true">▾</span>
+      </button>
+      <div id="content3" class="details" role="region" aria-labelledby="qa3">
+        <ul>
+          <li>Basic: $0/mo</li>
+          <li>Pro: $9.99/mo</li>
+          <li>Enterprise: contact us for a quote</li>
+        </ul>
+        <p>All plans include core features and regular updates.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    (function () {
+      const examples = document.querySelectorAll('.example');
+      examples.forEach((section) => {
+        const btn = section.querySelector('.trigger');
+        const panel = section.querySelector('.details');
+
+        // Initialize state
+        panel.style.maxHeight = '0px';
+        let isOpen = false;
+
+        btn.addEventListener('click', () => {
+          isOpen = !isOpen;
+          btn.setAttribute('aria-expanded', String(isOpen));
+          const icon = btn.querySelector('.icon');
+          if (icon) {
+            icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+          }
+
+          if (isOpen) {
+            // Open: set to the content height, then remove height to allow dynamic height
+            panel.style.display = 'block';
+            const fullHeight = panel.scrollHeight;
+            panel.style.maxHeight = fullHeight + 'px';
+            panel.classList.add('open');
+            // After transition, allow natural height
+            const onEnd = () => {
+              panel.style.maxHeight = 'none';
+              panel.removeEventListener('transitionend', onEnd);
+            };
+            panel.addEventListener('transitionend', onEnd);
+          } else {
+            // Close: set to current height, then collapse to 0
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+            // Force reflow to ensure the height is applied before collapsing
+            // eslint-disable-next-line no-unused-expressions
+            panel.offsetHeight;
+            panel.style.maxHeight = '0px';
+            panel.classList.remove('open');
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
