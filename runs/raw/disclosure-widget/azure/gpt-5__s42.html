@@ -1,0 +1,308 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widget Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121a34;
+      --text: #eaf0ff;
+      --muted: #b8c0df;
+      --accent: #7aa2ff;
+      --border: #263158;
+      --focus: #ffcc66;
+    }
+    html, body {
+      height: 100%;
+      background: radial-gradient(1200px 600px at 20% 0%, #0b1020 0%, #0e1430 40%, #11173a 70%, #121a34 100%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      margin: 0;
+    }
+    .page {
+      max-width: 72rem;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+    h1 {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 1rem;
+    }
+    p.lead {
+      color: var(--muted);
+      margin: 0 0 2rem;
+    }
+
+    .example {
+      background: rgba(18, 26, 52, 0.6);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem;
+      margin: 1.2rem 0;
+      box-shadow: 0 20px 60px rgba(10, 15, 35, 0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .example h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    /* Shared styles for toggle controls */
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #1a2346 0%, #151e3c 100%);
+      color: var(--text);
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 160ms ease;
+      box-shadow: 0 6px 20px rgba(10, 15, 35, 0.25);
+    }
+    .toggle:hover {
+      transform: translateY(-1px);
+      border-color: #2c3b6b;
+      box-shadow: 0 10px 26px rgba(10, 15, 35, 0.35);
+    }
+    .toggle:active {
+      transform: translateY(0);
+      box-shadow: 0 6px 18px rgba(10, 15, 35, 0.25);
+    }
+    .toggle:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .chevron {
+      width: 1rem;
+      height: 1rem;
+      display: inline-block;
+      transform: rotate(0deg);
+      transition: transform 160ms ease;
+      border-right: 2px solid var(--text);
+      border-bottom: 2px solid var(--text);
+      border-radius: 2px;
+      margin-top: -2px;
+    }
+    .toggle[aria-expanded="true"] .chevron {
+      transform: rotate(45deg);
+    }
+    .toggle[aria-expanded="false"] .chevron {
+      transform: rotate(-45deg);
+    }
+
+    /* Controlled content container (applies to both custom and details element) */
+    .details {
+      margin-top: 0.75rem;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 0.9rem;
+      background: linear-gradient(180deg, rgba(24, 34, 64, 0.6), rgba(22, 30, 60, 0.5));
+    }
+    .details[hidden] {
+      display: none;
+    }
+
+    /* Native <details> styling */
+    details.details {
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    details.details > summary {
+      list-style: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      cursor: pointer;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #1a2346 0%, #151e3c 100%);
+      color: var(--text);
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      user-select: none;
+      box-shadow: 0 6px 20px rgba(10, 15, 35, 0.25);
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 160ms ease;
+    }
+    details.details > summary:hover {
+      transform: translateY(-1px);
+      border-color: #2c3b6b;
+      box-shadow: 0 10px 26px rgba(10, 15, 35, 0.35);
+    }
+    details.details > summary:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    details.details .summary-chevron {
+      width: 1rem;
+      height: 1rem;
+      display: inline-block;
+      border-right: 2px solid var(--text);
+      border-bottom: 2px solid var(--text);
+      border-radius: 2px;
+      transform: rotate(-45deg);
+      transition: transform 160ms ease;
+      margin-top: -2px;
+    }
+    details.details[open] .summary-chevron {
+      transform: rotate(45deg);
+    }
+    details.details .panel {
+      margin-top: 0.75rem;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 0.9rem;
+      background: linear-gradient(180deg, rgba(24, 34, 64, 0.6), rgba(22, 30, 60, 0.5));
+    }
+
+    .small {
+      font-size: 0.925rem;
+      color: var(--muted);
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background: rgba(255,255,255,0.06);
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+    }
+
+    /* Layout helpers */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(280px, 1fr));
+      gap: 1rem;
+      align-items: start;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Expand/Collapse Widgets</h1>
+    <p class="lead">Two approaches: a custom button-controlled region and the native HTML details element. Both examples wrap each widget with a div that has an <code>example</code> class, and use a container for controlled content with a <code>details</code> class.</p>
+
+    <div class="grid">
+      <!-- Custom button-controlled region -->
+      <div class="example" id="example-custom">
+        <h2>Custom button-controlled region</h2>
+        <button class="toggle" id="custom-toggle-1"
+                type="button"
+                aria-expanded="false"
+                aria-controls="custom-details-1"
+                data-toggle="details"
+                data-open-label="Collapse section"
+                data-closed-label="Expand section">
+          <span aria-hidden="true" class="chevron"></span>
+          <span class="toggle-label">Expand section</span>
+        </button>
+
+        <div class="details small" id="custom-details-1" role="region" aria-labelledby="custom-toggle-1" hidden>
+          <p>This is a custom controlled content region. It uses a button with <code>aria-expanded</code> and <code>aria-controls</code> to toggle visibility of this container.</p>
+          <ul>
+            <li>The button shows and hides this region.</li>
+            <li>Screen readers are informed via ARIA attributes.</li>
+            <li>The container has a <code>details</code> class.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Native details element -->
+      <div class="example" id="example-native">
+        <h2>Native details element</h2>
+        <details class="details">
+          <summary>
+            <span aria-hidden="true" class="summary-chevron"></span>
+            Native details summary
+          </summary>
+          <div class="panel small">
+            <p>This uses the native <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements with the <code>details</code> class applied to the container.</p>
+            <ul>
+              <li>Keyboard and accessibility support are built-in.</li>
+              <li>Click the summary to expand/collapse.</li>
+              <li>The controlled content is inside this element.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Another custom example for variety -->
+    <div class="example" id="example-custom-2">
+      <h2>Custom region with focus management</h2>
+      <button class="toggle" id="custom-toggle-2"
+              type="button"
+              aria-expanded="false"
+              aria-controls="custom-details-2"
+              data-toggle="details"
+              data-open-label="Hide tips"
+              data-closed-label="Show tips">
+        <span aria-hidden="true" class="chevron"></span>
+        <span class="toggle-label">Show tips</span>
+      </button>
+
+      <div class="details small" id="custom-details-2" role="region" aria-labelledby="custom-toggle-2" hidden>
+        <p id="tips-intro"><strong>Tips:</strong></p>
+        <ol>
+          <li>Use <code>aria-expanded</code> on the toggle control.</li>
+          <li>Reference the controlled content with <code>aria-controls</code>.</li>
+          <li>Apply a <code>details</code> class to the content container.</li>
+        </ol>
+        <a href="#example-custom-2" class="focus-target">Back to top of example</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      function updateButtonLabel(btn, expanded) {
+        var labelEl = btn.querySelector('.toggle-label');
+        var openLabel = btn.getAttribute('data-open-label') || 'Collapse';
+        var closedLabel = btn.getAttribute('data-closed-label') || 'Expand';
+        labelEl && (labelEl.textContent = expanded ? openLabel : closedLabel);
+      }
+
+      function toggleRegion(button, region, setExpanded) {
+        var expanded = typeof setExpanded === 'boolean' ? setExpanded : button.getAttribute('aria-expanded') === 'false';
+        button.setAttribute('aria-expanded', expanded);
+        region.hidden = !expanded;
+        updateButtonLabel(button, expanded);
+
+        // Optional focus management: focus the first focusable element inside when expanded
+        if (expanded) {
+          var focusable = region.querySelector('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          if (focusable) {
+            // Defer to allow CSS/layout to update
+            setTimeout(function () { focusable.focus(); }, 60);
+          }
+        }
+      }
+
+      document.querySelectorAll('button[data-toggle="details"]').forEach(function (button) {
+        var regionId = button.getAttribute('aria-controls');
+        var region = document.getElementById(regionId);
+        if (!region) return;
+
+        // Initialize
+        button.setAttribute('aria-expanded', 'false');
+        region.hidden = true;
+        updateButtonLabel(button, false);
+
+        button.addEventListener('click', function () {
+          toggleRegion(button, region);
+        });
+
+        // Optional: allow programmatic toggle via custom events
+        button.addEventListener('toggle-details', function (e) {
+          toggleRegion(button, region, !!(e && e.detail && e.detail.expanded));
+        });
+      });
+    }());
+  </script>
+</body>
+</html>

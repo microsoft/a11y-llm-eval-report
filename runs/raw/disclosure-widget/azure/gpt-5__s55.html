@@ -1,0 +1,239 @@
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expand/Collapse Widget Examples</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: Canvas;
+    --fg: CanvasText;
+    --muted: #6b7280;
+    --border: #d1d5db;
+    --accent: #2563eb;
+    --radius: 12px;
+  }
+  html, body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+  }
+  main {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  h1 {
+    font-size: 1.75rem;
+    margin: 0 0 1rem;
+  }
+  .example {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin: 1rem 0;
+    background: color-mix(in oklab, var(--bg) 90%, var(--accent) 2%);
+  }
+  .example h2 {
+    font-size: 1.25rem;
+    margin: 0 0 .75rem;
+  }
+
+  details.details {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .5rem .75rem;
+    background: color-mix(in oklab, var(--bg) 95%, var(--accent) 3%);
+  }
+  details.details > summary {
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  details.details > summary::-webkit-details-marker {
+    display: none;
+  }
+  details.details > summary::before {
+    content: "▸";
+    display: inline-block;
+    transition: transform .2s ease;
+  }
+  details.details[open] > summary::before {
+    content: "▾";
+    transform: rotate(0deg);
+  }
+  details.details .content {
+    margin-top: .5rem;
+    color: var(--fg);
+  }
+
+  .toggle {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: color-mix(in oklab, var(--bg) 95%, var(--accent) 5%);
+    color: var(--fg);
+    border-radius: 999px;
+    padding: .5rem .875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .toggle:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .toggle::after {
+    content: "▸";
+    transition: transform .2s ease;
+  }
+  .toggle[aria-expanded="true"]::after {
+    content: "▾";
+    transform: rotate(0deg);
+  }
+  .details {
+    margin-top: .75rem;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: .75rem;
+  }
+
+  .details[data-animated] {
+    overflow: hidden;
+    transition: grid-template-rows .2s ease, opacity .2s ease;
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  .details[data-animated] > div {
+    min-height: 0;
+  }
+  .details[data-animated][data-open="true"] {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toggle::after,
+    details.details > summary::before,
+    .details[data-animated] {
+      transition: none;
+    }
+  }
+
+  footer {
+    margin-top: 2rem;
+    color: var(--muted);
+    font-size: .875rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Expand/Collapse Widget Demo</h1>
+
+  <div class="example">
+    <h2>Native HTML details/summary</h2>
+    <details class="details">
+      <summary>What is an expand/collapse widget?</summary>
+      <div class="content">
+        <p>An expand/collapse widget lets users reveal or hide additional information on demand. The native HTML details element provides built‑in keyboard and accessibility support across modern browsers.</p>
+        <ul>
+          <li>Keyboard accessible by default</li>
+          <li>Works without JavaScript</li>
+          <li>Can be styled with CSS</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+
+  <div class="example">
+    <h2>Custom button controlling a content container</h2>
+    <button type="button" class="toggle" aria-expanded="false" aria-controls="custom-details-1">Show more</button>
+    <div class="details" id="custom-details-1" hidden>
+      <div>
+        <p>This example uses a button to toggle the visibility of a container with class “details”. It manages the hidden state and updates aria-expanded for screen readers.</p>
+        <p>You can place any content here, including images, lists, and forms.</p>
+        <ul>
+          <li>Explicit control over behavior</li>
+          <li>Custom animations</li>
+          <li>Fine‑grained accessibility</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="example">
+    <h2>Animated custom content</h2>
+    <button type="button" class="toggle" aria-expanded="false" aria-controls="animated-details">Open panel</button>
+    <div class="details" id="animated-details" hidden data-animated>
+      <div>
+        <p>This panel demonstrates a lightweight animated reveal using CSS grid trickery. When opened, the container smoothly transitions from collapsed to expanded.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur vitae libero a nibh placerat commodo.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Tip: Try toggling each example to see different approaches to expand/collapse behavior.
+  </footer>
+</main>
+
+<script>
+  document.querySelectorAll('.toggle[aria-controls]').forEach(function (btn) {
+    var contentId = btn.getAttribute('aria-controls');
+    var content = document.getElementById(contentId);
+    if (!content) return;
+
+    btn.dataset.labelClosed = btn.textContent;
+
+    function setState(open) {
+      btn.setAttribute('aria-expanded', String(open));
+      btn.textContent = open ? 'Show less' : (btn.dataset.labelClosed || 'Show more');
+
+      if (content.hasAttribute('data-animated')) {
+        if (open) {
+          content.hidden = false;
+          // Force reflow before opening to allow transition
+          // eslint-disable-next-line no-unused-expressions
+          content.offsetHeight;
+          content.dataset.open = 'true';
+        } else {
+          // Start close transition while keeping element visible
+          content.dataset.open = 'false';
+          var onEnd = function (e) {
+            // Ensure we act on the container's own transition end
+            if (e.target === content) {
+              content.hidden = true;
+              content.removeEventListener('transitionend', onEnd);
+            }
+          };
+          content.addEventListener('transitionend', onEnd, { once: false });
+        }
+      } else {
+        content.hidden = !open;
+      }
+    }
+
+    btn.addEventListener('click', function () {
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      setState(!expanded);
+    });
+
+    content.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        setState(false);
+        btn.focus();
+      }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widgets Demo</title>
+  <style>
+    :root {
+      --border: #d9d9e3;
+      --bg: #ffffff;
+      --panel-bg: #f7f7fb;
+      --text: #222;
+      --muted: #555;
+      --accent: #0b69ff;
+      --focus: #ff9f0a;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 860px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 16px;
+    }
+
+    p.lead {
+      color: var(--muted);
+      margin: 0 0 24px;
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-block: 16px;
+      background: var(--bg);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+    }
+
+    .example h2 {
+      font-size: 1.1rem;
+      margin: 0 0 12px;
+    }
+
+    /* Native details/summary styling */
+    details.details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 8px;
+      background: var(--panel-bg);
+    }
+    details.details summary {
+      cursor: pointer;
+      font-weight: 600;
+      list-style: none;
+      padding: 8px;
+      border-radius: 6px;
+      outline: none;
+    }
+    details.details summary::-webkit-details-marker {
+      display: none;
+    }
+    details.details summary::before {
+      content: "▸";
+      display: inline-block;
+      margin-right: 8px;
+      transition: transform 150ms ease;
+      color: var(--muted);
+    }
+    details.details[open] summary::before {
+      transform: rotate(90deg);
+      color: var(--accent);
+    }
+    details.details .panel {
+      padding: 8px 8px 10px 28px;
+      border-top: 1px dashed var(--border);
+      margin-top: 4px;
+    }
+
+    /* Button-controlled panels */
+    .control-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .toggle-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--panel-bg);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 120ms ease, background 120ms ease;
+    }
+    .toggle-btn:hover {
+      border-color: var(--accent);
+      background: #eef4ff;
+    }
+    .toggle-btn:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .toggle-btn::after {
+      content: "▸";
+      display: inline-block;
+      margin-left: 8px;
+      color: var(--muted);
+      transition: transform 150ms ease, color 150ms ease;
+    }
+    .toggle-btn[aria-expanded="true"]::after {
+      transform: rotate(90deg);
+      color: var(--accent);
+    }
+
+    /* Controlled content container */
+    .details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-bg);
+      padding: 12px;
+      margin-top: 8px;
+    }
+    .details p {
+      margin: 0 0 10px;
+    }
+
+    /* Accordion layout within an example */
+    .accordion-item {
+      margin-bottom: 8px;
+    }
+    .accordion-item .toggle-btn {
+      width: 100%;
+      text-align: left;
+    }
+
+    /* Code and small text styling */
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background: #f3f3f7;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 4px;
+    }
+    small {
+      color: var(--muted);
+    }
+  </style>
+  <script>
+    // Helper: toggle one controlled panel
+    function togglePanel(button, explicitState) {
+      const targetId = button.getAttribute('aria-controls');
+      if (!targetId) return;
+      const panel = document.getElementById(targetId);
+      if (!panel || !panel.classList.contains('details')) return;
+
+      const isDetailsElement = panel.tagName.toLowerCase() === 'details';
+      let nextExpanded = explicitState;
+      if (typeof nextExpanded !== 'boolean') {
+        nextExpanded = button.getAttribute('aria-expanded') === 'true' ? false : true;
+      }
+
+      button.setAttribute('aria-expanded', String(nextExpanded));
+
+      if (isDetailsElement) {
+        panel.open = nextExpanded;
+      } else {
+        panel.hidden = !nextExpanded;
+      }
+    }
+
+    // Accordion behavior: close siblings in same group
+    function closeAccordionSiblings(currentButton) {
+      const group = currentButton.dataset.accordion;
+      if (!group) return;
+
+      const selector = 'button[aria-controls][data-accordion="' + CSS.escape(group) + '"]';
+      const buttons = document.querySelectorAll(selector);
+      buttons.forEach(btn => {
+        if (btn === currentButton) return;
+        const targetId = btn.getAttribute('aria-controls');
+        const panel = document.getElementById(targetId);
+        if (!panel || !panel.classList.contains('details')) return;
+
+        btn.setAttribute('aria-expanded', 'false');
+        if (panel.tagName.toLowerCase() === 'details') {
+          panel.open = false;
+        } else {
+          panel.hidden = true;
+        }
+      });
+    }
+
+    // Initialize controls
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wire up buttons that control panels
+      document.querySelectorAll('button[aria-controls]').forEach(button => {
+        // Ensure aria-expanded exists
+        if (!button.hasAttribute('aria-expanded')) {
+          button.setAttribute('aria-expanded', 'false');
+        }
+
+        // If the target is already open/visible, sync aria-expanded
+        const targetId = button.getAttribute('aria-controls');
+        const panel = document.getElementById(targetId);
+        if (panel && panel.classList.contains('details')) {
+          const isDetailsElement = panel.tagName.toLowerCase() === 'details';
+          const initiallyExpanded = isDetailsElement ? panel.open : !panel.hidden;
+          button.setAttribute('aria-expanded', String(initiallyExpanded));
+        }
+
+        // Click to toggle
+        button.addEventListener('click', (e) => {
+          closeAccordionSiblings(button);
+          togglePanel(button);
+        });
+
+        // Space/Enter keyboard support is implicit for <button>, but keep for robustness
+        button.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            closeAccordionSiblings(button);
+            togglePanel(button);
+          }
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widgets</h1>
+    <p class="lead">Three examples: native details/summary, a button-controlled panel, and a multi-item accordion. Each content container uses the class <code>details</code>.</p>
+
+    <div class="example">
+      <h2>1) Native details/summary</h2>
+      <details id="native-panel" class="details">
+        <summary>About this section</summary>
+        <div class="panel">
+          <p>This uses the built-in HTML <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements. The content below is the controlled area wrapped by a container with class <code>details</code>.</p>
+          <ul>
+            <li>Click the summary row to expand or collapse.</li>
+            <li>Keyboard accessible by default: Space/Enter toggles.</li>
+            <li>You can nest any HTML content inside.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <h2>2) Button-controlled panel</h2>
+      <div class="control-row">
+        <button type="button" class="toggle-btn" id="btn-controlled" aria-controls="controlled-panel" aria-expanded="false">
+          Toggle more info
+        </button>
+        <small>(ARIA attributes keep assistive tech in sync.)</small>
+      </div>
+      <div id="controlled-panel" class="details" role="region" aria-labelledby="btn-controlled" hidden>
+        <p>This panel is controlled by a button using <code>aria-controls</code> and <code>aria-expanded</code>. The content container is a <code>&lt;div&gt;</code> with class <code>details</code> and the <code>hidden</code> attribute for initial collapse.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vitae tortor dui. Integer efficitur malesuada nunc, non bibendum ligula.</p>
+      </div>
+    </div>
+
+    <div class="example" data-accordion="group-1">
+      <h2>3) Accordion (single open item)</h2>
+
+      <div class="accordion-item">
+        <button type="button" class="toggle-btn" id="acc-btn-1" aria-controls="acc-panel-1" aria-expanded="false" data-accordion="group-1">
+          Section One
+        </button>
+        <div id="acc-panel-1" class="details" role="region" aria-labelledby="acc-btn-1" hidden>
+          <p>Content for section one. When this opens, other items in the same accordion group will close.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button type="button" class="toggle-btn" id="acc-btn-2" aria-controls="acc-panel-2" aria-expanded="false" data-accordion="group-1">
+          Section Two
+        </button>
+        <div id="acc-panel-2" class="details" role="region" aria-labelledby="acc-btn-2" hidden>
+          <p>Content for section two. This panel is also a <code>details</code> container.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button type="button" class="toggle-btn" id="acc-btn-3" aria-controls="acc-panel-3" aria-expanded="false" data-accordion="group-1">
+          Section Three
+        </button>
+        <div id="acc-panel-3" class="details" role="region" aria-labelledby="acc-btn-3" hidden>
+          <p>Content for section three. Add any markup here.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

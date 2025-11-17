@@ -1,0 +1,261 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Example</title>
+  <style>
+    :root {
+      --accent: #0b7dda;
+      --bg: #f7fbff;
+      --border: #d7e9fb;
+      --radius: 8px;
+      --pad-vertical: 12px;
+      --pad-horizontal: 16px;
+      --transition: 260ms cubic-bezier(.2,.9,.3,1);
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 32px;
+      color: #07324a;
+      background: #ffffff;
+    }
+
+    .example {
+      max-width: 720px;
+      margin: 0 auto 20px;
+    }
+
+    .widget {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+      box-shadow: 0 1px 3px rgba(6,24,40,0.04);
+      overflow: hidden;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 14px 16px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      text-align: left;
+      color: inherit;
+    }
+
+    .toggle:focus {
+      outline: 3px solid rgba(11,125,218,0.18);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    .toggle .label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toggle .title {
+      font-weight: 600;
+    }
+
+    .toggle .summary {
+      font-size: 13px;
+      color: #13506b;
+      opacity: 0.85;
+    }
+
+    /* chevron icon */
+    .chev {
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+      transition: transform var(--transition);
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+
+    .chev svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .chev.rotate {
+      transform: rotate(180deg);
+    }
+
+    /* details content (controlled container) */
+    .details {
+      overflow: hidden;
+      max-height: 0;
+      padding: 0 var(--pad-horizontal);
+      transition: max-height var(--transition), padding var(--transition);
+      border-top: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(7,50,74,0.02), transparent 50%);
+    }
+
+    .details.is-open {
+      padding: var(--pad-vertical) var(--pad-horizontal);
+    }
+
+    .details .inner {
+      /* keep content readable; do not animate this */
+      font-size: 14px;
+      line-height: 1.5;
+      color: #083444;
+    }
+
+    /* small helper text */
+    .note {
+      font-size: 13px;
+      color: #2b6a79;
+      margin: 8px 0 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="example">
+    <div class="widget" aria-live="polite">
+      <button class="toggle" id="exp-btn-1" aria-expanded="false" aria-controls="details-1">
+        <span class="label">
+          <span>
+            <div class="title">Project details</div>
+            <div class="summary">Click to see timeline, scope, and contact</div>
+          </span>
+        </span>
+        <span class="chev" aria-hidden="true">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" role="img" focusable="false">
+            <path d="M6 9l6 6 6-6"></path>
+          </svg>
+        </span>
+      </button>
+
+      <div id="details-1" class="details" role="region" aria-labelledby="exp-btn-1" aria-hidden="true" hidden>
+        <div class="inner">
+          <p><strong>Timeline:</strong> We expect the initial phase to complete in 6–8 weeks, followed by iterative releases.</p>
+          <p><strong>Scope:</strong> Includes design, prototyping, and a minimum viable implementation with automated tests.</p>
+          <p><strong>Contact:</strong> pm@example.com</p>
+          <p class="note">Tip: You can toggle this section with the Enter or Space keys when the button is focused.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Find the toggle button and the controlled details element
+      var button = document.getElementById('exp-btn-1');
+      var details = document.getElementById(button.getAttribute('aria-controls'));
+
+      // Sanity check
+      if (!button || !details) return;
+
+      // Helper to open details with smooth height animation
+      function openDetails() {
+        // Remove 'hidden' so it participates in layout and we can measure
+        details.hidden = false;
+        details.setAttribute('aria-hidden', 'false');
+
+        // Add class for padding and visual state
+        details.classList.add('is-open');
+
+        // Measure the full height
+        var fullHeight = details.scrollHeight;
+
+        // Start from 0 (in case)
+        details.style.maxHeight = '0px';
+
+        // Force layout so the browser registers the starting maxHeight
+        // eslint-disable-next-line no-unused-expressions
+        details.offsetHeight;
+
+        // Set to measured height to animate opening
+        details.style.maxHeight = fullHeight + 'px';
+
+        // Update ARIA
+        button.setAttribute('aria-expanded', 'true');
+
+        // Rotate chevron
+        var chev = button.querySelector('.chev');
+        if (chev) chev.classList.add('rotate');
+
+        // After transition, clear max-height to allow internal changes without constraints
+        var clearMax = function (e) {
+          if (e && e.target !== details) return;
+          details.style.maxHeight = '';
+          details.removeEventListener('transitionend', clearMax);
+        };
+        details.addEventListener('transitionend', clearMax);
+      }
+
+      // Helper to close details with smooth height animation
+      function closeDetails() {
+        // Measure current height
+        var fullHeight = details.scrollHeight;
+
+        // Fix the current height so we can animate to zero
+        details.style.maxHeight = fullHeight + 'px';
+
+        // Force layout
+        // eslint-disable-next-line no-unused-expressions
+        details.offsetHeight;
+
+        // Remove padding class so padding animates (if desired)
+        details.classList.remove('is-open');
+
+        // Animate to 0
+        details.style.maxHeight = '0px';
+
+        // Update ARIA
+        button.setAttribute('aria-expanded', 'false');
+        details.setAttribute('aria-hidden', 'true');
+
+        // Rotate chevron back
+        var chev = button.querySelector('.chev');
+        if (chev) chev.classList.remove('rotate');
+
+        // After transition, hide from layout and clear maxHeight
+        var onTransitionEnd = function (e) {
+          if (e && e.target !== details) return;
+          details.hidden = true;
+          details.style.maxHeight = '';
+          details.removeEventListener('transitionend', onTransitionEnd);
+        };
+        details.addEventListener('transitionend', onTransitionEnd);
+      }
+
+      // Toggle handler
+      function toggle() {
+        var expanded = button.getAttribute('aria-expanded') === 'true';
+        if (expanded) {
+          closeDetails();
+        } else {
+          openDetails();
+        }
+      }
+
+      // Wire up click
+      button.addEventListener('click', function (e) {
+        e.preventDefault();
+        toggle();
+      });
+
+      // Respect reduced motion preferences: disable animations if user prefers reduced motion
+      var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (mq && mq.matches) {
+        // Remove transitions via inline style for the details element
+        details.style.transition = 'none';
+      }
+    })();
+  </script>
+</body>
+</html>

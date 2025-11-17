@@ -1,0 +1,325 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --panel: #ffffff;
+      --border: #d9dbe9;
+      --accent: #4b5bdc;
+      --text: #1f2335;
+      --muted: #58607a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 1rem;
+    }
+    .page-desc {
+      margin: 0 0 1.5rem;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      align-items: start;
+    }
+    .example {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 1px 2px rgba(31,35,53,0.05);
+    }
+    .example h2 {
+      font-size: 1.05rem;
+      margin: 0 0 0.75rem;
+    }
+    .example p.desc {
+      margin: 0 0 0.75rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    /* Shared container for controlled content */
+    .details {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: #fafbff;
+    }
+    .details > :first-child { margin-top: 0; }
+    .details > :last-child { margin-bottom: 0; }
+
+    /* Native <details> styling */
+    details.details {
+      padding: 0; /* native element handles its own padding; use inner wrapper */
+      border: 1px solid var(--border);
+      background: #fafbff;
+    }
+    details.details summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.75rem 0.875rem;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    details.details summary::-webkit-details-marker { display: none; }
+    .chevron {
+      width: 1rem;
+      height: 1rem;
+      display: inline-block;
+      transform: rotate(0deg);
+      transition: transform 160ms ease;
+      flex-shrink: 0;
+      border: solid var(--accent);
+      border-width: 0 2px 2px 0;
+      padding: 2px;
+      margin-right: 2px;
+    }
+    details[open] .chevron { transform: rotate(45deg); }
+    details.details .panel {
+      padding: 0.75rem 0.875rem;
+      border-top: 1px dashed var(--border);
+    }
+
+    /* Custom button-controlled widget styles */
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #f4f6ff;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 120ms ease, border-color 120ms ease;
+    }
+    .toggle:hover { background: #eef1ff; border-color: #cfd3ea; }
+    .toggle:focus-visible {
+      outline: 3px solid #c7d0ff;
+      outline-offset: 2px;
+    }
+    .toggle .chev {
+      width: 0.8rem;
+      height: 0.8rem;
+      border: solid var(--accent);
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg); /* expanded icon default, will be toggled */
+      transition: transform 160ms ease;
+      padding: 1px;
+    }
+    .toggle[aria-expanded="false"] .chev { transform: rotate(-135deg); }
+
+    /* Animations for custom container (optional) */
+    .details[data-anim="true"] {
+      overflow: hidden;
+      transition: grid-template-rows 200ms ease;
+      display: grid;
+      grid-template-rows: 0fr;
+    }
+    .details[data-anim="true"] > .anim-wrap {
+      min-height: 0;
+    }
+    .details[data-open="true"][data-anim="true"] {
+      grid-template-rows: 1fr;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 1.25rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+  </style>
+  <script>
+    // Utility to toggle a custom container with accessible state updates
+    function setupToggle(button) {
+      const targetId = button.getAttribute('aria-controls');
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      const collapsedLabel = button.getAttribute('data-collapsed-label') || 'Show more';
+      const expandedLabel = button.getAttribute('data-expanded-label') || 'Show less';
+
+      // If using animation mode, ensure inner wrapper exists
+      if (target.dataset.anim === 'true' && !target.querySelector('.anim-wrap')) {
+        const wrap = document.createElement('div');
+        wrap.className = 'anim-wrap';
+        wrap.append(...Array.from(target.childNodes));
+        target.appendChild(wrap);
+      }
+
+      function setState(expanded) {
+        button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        button.querySelector('[data-label]').textContent = expanded ? expandedLabel : collapsedLabel;
+
+        if (target.dataset.anim === 'true') {
+          target.dataset.open = expanded ? 'true' : 'false';
+          // hidden attribute for non-animated is not used here to allow animation; use aria-hidden
+          target.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+        } else {
+          // Simple toggle via hidden attribute
+          if (expanded) {
+            target.removeAttribute('hidden');
+          } else {
+            target.setAttribute('hidden', '');
+          }
+          target.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+          target.dataset.open = expanded ? 'true' : 'false';
+        }
+      }
+
+      // Initialize collapsed
+      setState(false);
+
+      button.addEventListener('click', () => {
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        setState(!isExpanded);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.toggle[aria-controls]').forEach(setupToggle);
+
+      // Example: expand/collapse all for custom widgets
+      const expandAll = document.getElementById('expand-all');
+      const collapseAll = document.getElementById('collapse-all');
+
+      function setAll(expand) {
+        document.querySelectorAll('.toggle[aria-controls]').forEach((btn) => {
+          const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+          if (isExpanded !== expand) {
+            btn.click();
+          }
+        });
+      }
+
+      expandAll?.addEventListener('click', () => setAll(true));
+      collapseAll?.addEventListener('click', () => setAll(false));
+    });
+  </script>
+</head>
+<body>
+  <h1>Expand/Collapse Widget Examples</h1>
+  <p class="page-desc">Three variations of expand/collapse: native details/summary, a basic custom toggle, and an animated custom toggle. Each widget is wrapped in a div with class "example". The controlled content container uses class "details".</p>
+
+  <div class="grid">
+    <div class="example">
+      <h2>Native details/summary</h2>
+      <p class="desc">Uses the built-in HTML details element for accessibility and minimal scripting.</p>
+
+      <details class="details">
+        <summary>
+          <span class="chevron" aria-hidden="true"></span>
+          Product specifications
+        </summary>
+        <div class="panel">
+          <ul>
+            <li>Material: Recycled aluminum</li>
+            <li>Dimensions: 230 × 150 × 12 mm</li>
+            <li>Weight: 420 g</li>
+            <li>Warranty: 2 years</li>
+          </ul>
+          <p>Note: The details element provides keyboard and screen reader support natively.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <h2>Custom button-controlled</h2>
+      <p class="desc">A button toggles a content container using the hidden attribute and ARIA states.</p>
+
+      <button
+        type="button"
+        class="toggle"
+        aria-expanded="false"
+        aria-controls="custom-details-1"
+        data-collapsed-label="Show more"
+        data-expanded-label="Show less"
+      >
+        <span class="chev" aria-hidden="true"></span>
+        <span data-label>Show more</span>
+      </button>
+
+      <div id="custom-details-1" class="details" aria-hidden="true" hidden>
+        <h3 style="margin-top:0">Order summary</h3>
+        <p>You are purchasing 3 items:</p>
+        <ol>
+          <li>Wireless headset — $79.99</li>
+          <li>USB-C charger — $19.99</li>
+          <li>Protective case — $12.00</li>
+        </ol>
+        <p><strong>Total:</strong> $111.98</p>
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>Custom button-controlled with animation</h2>
+      <p class="desc">Animated expansion using CSS grid row transitions. The content container remains in the DOM to allow smooth animation.</p>
+
+      <button
+        type="button"
+        class="toggle"
+        aria-expanded="false"
+        aria-controls="custom-details-2"
+        data-collapsed-label="Reveal steps"
+        data-expanded-label="Hide steps"
+      >
+        <span class="chev" aria-hidden="true"></span>
+        <span data-label>Reveal steps</span>
+      </button>
+
+      <div id="custom-details-2" class="details" aria-hidden="true" data-anim="true" data-open="false">
+        <!-- anim-wrap will be injected by JS -->
+        <div>
+          <h3 style="margin-top:0">How to connect your device</h3>
+          <ol>
+            <li>Turn on the device and enable pairing mode.</li>
+            <li>Open settings and select “Bluetooth”.</li>
+            <li>Choose your device from the list and confirm pairing.</li>
+            <li>Test audio and mic levels to finalize setup.</li>
+          </ol>
+          <p>If pairing fails, reset the device and try again.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
+        <button id="expand-all" type="button" class="toggle" aria-expanded="false">
+          <span class="chev" aria-hidden="true"></span>
+          <span>Expand all custom widgets</span>
+        </button>
+        <button id="collapse-all" type="button" class="toggle" aria-expanded="false">
+          <span class="chev" aria-hidden="true"></span>
+          <span>Collapse all custom widgets</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Tip: The details element is great for simple disclosure. For custom flows, use a button with aria-expanded and a separate container with class "details".
+  </footer>
+</body>
+</html>

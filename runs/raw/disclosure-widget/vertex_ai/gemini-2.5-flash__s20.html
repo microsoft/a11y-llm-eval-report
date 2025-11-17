@@ -1,0 +1,182 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expand/Collapse Widget</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+            color: #343a40;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .example {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            overflow: hidden; /* Ensures content padding stays within rounded corners */
+        }
+        .toggle-button {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            text-align: left;
+            background-color: #007bff;
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            font-size: 1.1em;
+            cursor: pointer;
+            outline: none;
+            transition: background-color 0.2s ease;
+            font-weight: 600;
+        }
+        .toggle-button:hover {
+            background-color: #0056b3;
+        }
+        .toggle-button::after {
+            content: '▼'; /* Down arrow */
+            font-size: 0.8em;
+            margin-left: 10px;
+            transition: transform 0.2s ease;
+        }
+        .toggle-button.expanded::after {
+            content: '▲'; /* Up arrow */
+            transform: rotate(0deg); /* This effectively makes it point up by changing content */
+        }
+        .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            padding: 0 20px; /* Initial padding, vertical padding will be set when expanded */
+            box-sizing: border-box;
+            background-color: #e9ecef;
+            color: #495057;
+            border-top: 1px solid #ced4da;
+        }
+        .details.expanded {
+            padding: 15px 20px; /* Apply full padding when expanded */
+        }
+        .details p {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .details p:last-child {
+            margin-bottom: 0;
+        }
+        .details ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Expand/Collapse Widgets Demo</h1>
+
+    <div class="example">
+        <button class="toggle-button" aria-expanded="false" aria-controls="details1">
+            Section 1: What is this widget?
+        </button>
+        <div class="details" id="details1" role="region" aria-hidden="true">
+            <p>This is a custom expand/collapse widget built with HTML, CSS, and JavaScript. It allows you to toggle the visibility of content, helping to manage space and focus on key information.</p>
+            <p>It's commonly used for FAQs, accordions, or hiding supplementary details until they are needed by the user.</p>
+        </div>
+    </div>
+
+    <div class="example">
+        <button class="toggle-button" aria-expanded="false" aria-controls="details2">
+            Section 2: How does it work?
+        </button>
+        <div class="details" id="details2" role="region" aria-hidden="true">
+            <p>The core functionality relies on toggling a CSS class (`expanded`) on both the button and the content container.</p>
+            <ul>
+                <li><strong>HTML:</strong> Defines the button and the content area.</li>
+                <li><strong>CSS:</strong> Styles the elements and uses `max-height: 0` with `overflow: hidden` for collapsing, along with `transition` for smooth animation.</li>
+                <li><strong>JavaScript:</strong> Listens for button clicks. When clicked, it dynamically sets the content container's `max-height` to its `scrollHeight` to expand, or to `0` to collapse. It also updates `aria` attributes for accessibility.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="example">
+        <button class="toggle-button" aria-expanded="false" aria-controls="details3">
+            Section 3: Benefits of using such a widget
+        </button>
+        <div class="details" id="details3" role="region" aria-hidden="true">
+            <p>Using expand/collapse widgets offers several advantages:</p>
+            <ul>
+                <li><strong>Space Saving:</strong> Reduces clutter on a page by hiding less important content.</li>
+                <li><strong>Improved UX:</strong> Users can quickly scan headings and expand only the sections they are interested in.</li>
+                <li><strong>Better Organization:</strong> Helps organize large amounts of information into digestible chunks.</li>
+                <li><strong>Accessibility:</strong> With proper ARIA attributes, it improves usability for screen reader users.</li>
+            </ul>
+            <p>Feel free to inspect the code to see how it's implemented!</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleButtons = document.querySelectorAll('.toggle-button');
+
+            toggleButtons.forEach(button => {
+                const detailsContent = button.nextElementSibling; // Get the sibling .details div
+
+                // Initial state setup for accessibility and transition
+                detailsContent.style.maxHeight = '0px';
+                button.setAttribute('aria-expanded', 'false');
+                detailsContent.setAttribute('aria-hidden', 'true');
+
+                button.addEventListener('click', () => {
+                    const isExpanded = button.classList.toggle('expanded'); // Toggle class on button
+
+                    if (isExpanded) {
+                        // Expand the content
+                        detailsContent.classList.add('expanded'); // Add class for padding and other expanded styles
+                        detailsContent.style.maxHeight = detailsContent.scrollHeight + 'px'; // Set max-height to natural height
+                        button.setAttribute('aria-expanded', 'true');
+                        detailsContent.setAttribute('aria-hidden', 'false');
+                    } else {
+                        // Collapse the content
+                        // First, set max-height to its current computed height to ensure smooth transition from current state
+                        detailsContent.style.maxHeight = detailsContent.scrollHeight + 'px';
+                        // Then, after a very short delay, set it to 0. This is a common pattern for collapsing.
+                        // Or, simply set to 0. The CSS transition handles the rest.
+                        detailsContent.classList.remove('expanded'); // Remove expanded padding/styles
+                        detailsContent.style.maxHeight = '0px'; // Set max-height to 0
+                        button.setAttribute('aria-expanded', 'false');
+                        detailsContent.setAttribute('aria-hidden', 'true');
+                    }
+                });
+
+                // Robust resize handler: Recalculate max-height if expanded content reflows
+                let resizeTimeout;
+                const adjustHeightOnResize = () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(() => {
+                        if (button.classList.contains('expanded')) {
+                            // Temporarily set max-height to auto to get the full natural height
+                            detailsContent.style.transition = 'none'; // Disable transition temporarily
+                            detailsContent.style.maxHeight = 'auto';
+                            const actualHeight = detailsContent.scrollHeight;
+                            detailsContent.style.maxHeight = actualHeight + 'px'; // Apply new measured height
+                            // Re-enable transition after a very short delay to avoid flicker
+                            setTimeout(() => {
+                                detailsContent.style.transition = ''; // Reset to CSS defined transition
+                            }, 10);
+                        }
+                    }, 100); // Debounce to avoid excessive recalculations during resize
+                };
+                window.addEventListener('resize', adjustHeightOnResize);
+            });
+        });
+    </script>
+</body>
+</html>

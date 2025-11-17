@@ -1,0 +1,202 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --header: #f3f4f6;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      color: var(--text);
+      background: var(--bg);
+      padding: 28px;
+    }
+
+    h1 { font-size: 1.6rem; margin: 0 0 16px; }
+    p { margin: 8px 0; color: var(--muted); }
+
+    .example {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,.04);
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    /* Header button that toggles details */
+    .widget-header {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--header);
+      border: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      cursor: pointer;
+      text-align: left;
+      color: var(--text);
+    }
+    .widget-header:focus { outline: 2px solid #2563eb; outline-offset: 2px; }
+    .widget-header .title { font-weight: 600; }
+    .widget-header .caret {
+      transition: transform .2s ease;
+      font-size: 14px;
+      line-height: 1;
+    }
+    /* rotate caret when expanded */
+    .widget-header[aria-expanded="true"] .caret { transform: rotate(180deg); }
+
+    /* Controlled content container (needs class="details") */
+    .details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .35s ease;
+      padding: 0 14px;
+      /* start hidden */
+    }
+    .details.open {
+      max-height: 500px; /* enough to show content content comfortably */
+      padding: 12px 14px;
+    }
+
+    /* Two-column feel for the demo layout (optional) */
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 700px) {
+      .demo-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* Subtle header in the second widget area */
+    .control-bar {
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widget Demo</h1>
+
+  <div class="demo-grid">
+    <!-- Widget 1: Uncontrolled expand/collapse -->
+    <div class="example" aria-label="Uncontrolled collapse example">
+      <button class="widget-header" id="btn-basic" aria-expanded="false" aria-controls="details-basic" data-target="details-basic">
+        <span class="title">What is HTML?</span>
+        <span class="caret" aria-hidden="true">▾</span>
+      </button>
+      <div id="details-basic" class="details" role="region" aria-labelledby="btn-basic">
+        <p>HTML is the standard markup language for creating web pages. It structures content by using elements such as headings, paragraphs, links, and lists.</p>
+        <p>Browsers interpret HTML to render the content you see on a webpage.</p>
+      </div>
+    </div>
+
+    <!-- Widget 2: Controlled content with an external master toggle -->
+    <div class="example" aria-label="Controlled collapse example">
+      <div class="control-bar" aria-label="Master control">
+        <strong>External Control</strong>
+        <label style="display:flex; gap:6px; align-items:center;">
+          <input type="checkbox" id="masterToggle" />
+          Open all
+        </label>
+      </div>
+
+      <div class="widget" style="border-top:1px solid var(--border);">
+        <button class="widget-header" id="btn-ctrl" aria-expanded="false" aria-controls="details-ctrl" data-target="details-ctrl" style="width:100%; text-align:left;">
+          <span class="title">CSS Details</span>
+          <span class="caret" aria-hidden="true">▾</span>
+        </button>
+        <div id="details-ctrl" class="details" role="region" aria-labelledby="btn-ctrl">
+          <p>CSS describes how HTML elements are displayed. It controls layout, color, spacing, typography, and responsive behavior of a page.</p>
+          <p>With transitions and animations, you can create smooth state changes that enhance usability.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize interactive widgets
+    document.addEventListener('DOMContentLoaded', function() {
+      // Helper to toggle a details panel via its header button
+      function toggleDetails(button) {
+        const targetId = button.getAttribute('data-target');
+        const details = document.getElementById(targetId);
+        if (!details) return;
+
+        const isOpen = details.classList.contains('open');
+        if (isOpen) {
+          details.classList.remove('open');
+          button.setAttribute('aria-expanded', 'false');
+        } else {
+          details.classList.add('open');
+          button.setAttribute('aria-expanded', 'true');
+        }
+
+        // After toggling, update master toggle state if present
+        updateMasterState();
+      }
+
+      // Update master toggle to reflect if all details are open
+      function updateMasterState() {
+        const master = document.getElementById('masterToggle');
+        if (!master) return;
+        const allDetails = document.querySelectorAll('.details');
+        const allOpen = Array.from(allDetails).every(d => d.classList.contains('open'));
+        master.checked = allOpen;
+      }
+
+      // Attach handlers for all header buttons with class 'widget-header'
+      const headers = document.querySelectorAll('.widget-header');
+      headers.forEach(btn => {
+        btn.addEventListener('click', function() {
+          toggleDetails(btn);
+        });
+        // Ensure initial ARIA and structure
+        btn.setAttribute('aria-expanded', 'false');
+      });
+
+      // Master toggle behavior
+      const master = document.getElementById('masterToggle');
+      if (master) {
+        master.checked = false;
+        master.addEventListener('change', function() {
+          const openAll = master.checked;
+          document.querySelectorAll('.details').forEach(details => {
+            // Find corresponding header for this details
+            const header = document.querySelector(`button[data-target="${details.id}"]`);
+            if (openAll) {
+              details.classList.add('open');
+              if (header) header.setAttribute('aria-expanded', 'true');
+            } else {
+              details.classList.remove('open');
+              if (header) header.setAttribute('aria-expanded', 'false');
+            }
+          });
+        });
+      }
+
+      // Wire up the second widget's specific header to the details (already set via data-target)
+      // Ensure IDs match for accessibility if needed (already done in markup)
+    });
+  </script>
+</body>
+</html>

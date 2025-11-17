@@ -1,0 +1,202 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand / Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #f7f7f7;
+      --card: #ffffff;
+      --accent: #1f6feb;
+      --border: #e5e7eb;
+      --text: #111;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 0;
+      background: #f0f4f8;
+      color: var(--text);
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin: 0 0 12px;
+    }
+
+    /* Layout for widgets */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Each widget wrapper (requirement: div with class "example") */
+    .example {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,.04);
+      display: block;
+    }
+
+    /* Header area inside each widget */
+    .example-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: #f7f8fb;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    .version {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3742ff;
+    }
+
+    /* Toggle button */
+    .toggle {
+      appearance: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 8px 12px;
+      font: inherit;
+      color: var(--accent);
+      border-radius: 6px;
+    }
+
+    .toggle:focus {
+      outline: 2px solid #93c5fd;
+      outline-offset: 2px;
+    }
+
+    /* Controlled content container (required class "details") */
+    .details {
+      padding: 0 16px 16px;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease;
+      border-top: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .details p {
+      margin: 0 0 12px;
+      line-height: 1.5;
+    }
+
+    @media (min-width: 640px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .details { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget Demo</h1>
+
+  <div class="grid">
+    <!-- Widget 1 wrapped in a div with class "example" -->
+    <div class="example" aria-label="Example 1 expand/collapse">
+      <div class="example-header">
+        <div class="title" aria-label="Widget One">
+          <span class="version" aria-label="Plugin version 1">v1</span>
+          <span>Widget One</span>
+        </div>
+        <button id="toggle-1" class="toggle" aria-expanded="false" aria-controls="panel-1">Expand</button>
+      </div>
+
+      <!-- Container for controlled content with class "details" -->
+      <div id="panel-1" class="details" role="region" aria-labelledby="toggle-1">
+        <p>This is the content for the first widget. It demonstrates a simple expand/collapse interaction. The panel uses a smooth height transition for a pleasant user experience.</p>
+        <p>You can place any HTML inside, including lists, images, or forms. The container for this content has a class of <code>details</code>.</p>
+      </div>
+    </div>
+
+    <!-- Widget 2 wrapped in a div with class "example" -->
+    <div class="example" aria-label="Example 2 expand/collapse">
+      <div class="example-header">
+        <div class="title" aria-label="Widget Two">
+          <span class="version" aria-label="Plugin version 2">v2</span>
+          <span>Widget Two</span>
+        </div>
+        <button id="toggle-2" class="toggle" aria-expanded="false" aria-controls="panel-2">Expand</button>
+      </div>
+
+      <!-- Container for controlled content with class "details" -->
+      <div id="panel-2" class="details" role="region" aria-labelledby="toggle-2">
+        <p>Here is a longer example of the second widget. It shows how content can vary in height.</p>
+        <ul>
+          <li>Item A with some details</li>
+          <li>Item B with more information</li>
+          <li>Item C completes the list</li>
+        </ul>
+        <p>Closing this panel will animate the height back to zero.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      function setupWidget(toggleBtn, panel){
+        // initialize collapsed state
+        panel.style.maxHeight = '0px';
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        let isOpen = false;
+
+        toggleBtn.addEventListener('click', function(){
+          isOpen = !isOpen;
+          if (isOpen) {
+            // Expand: measure and set height
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+            toggleBtn.setAttribute('aria-expanded', 'true');
+            toggleBtn.textContent = 'Collapse';
+          } else {
+            // Collapse
+            panel.style.maxHeight = '0px';
+            toggleBtn.setAttribute('aria-expanded', 'false');
+            toggleBtn.textContent = 'Expand';
+          }
+        });
+
+        // Optional: adjust height on resize if content height changes
+        window.addEventListener('resize', function(){
+          if (isOpen) {
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+          }
+        });
+      }
+
+      const w1Btn = document.getElementById('toggle-1');
+      const w1Panel = document.getElementById('panel-1');
+      const w2Btn = document.getElementById('toggle-2');
+      const w2Panel = document.getElementById('panel-2');
+
+      setupWidget(w1Btn, w1Panel);
+      setupWidget(w2Btn, w2Panel);
+    })();
+  </script>
+</body>
+</html>
