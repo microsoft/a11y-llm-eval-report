@@ -1,0 +1,185 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --border: #d9d9e0;
+      --primary: #2b6cb0;
+      --hover: #eef2f7;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: #222;
+      line-height: 1.5;
+      padding: 2rem;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .example {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 1rem 0;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+
+    /* The header button that acts as the expand/collapse control */
+    .toggle {
+      width: 100%;
+      background: #f6f7fb;
+      border: 0;
+      padding: 1rem;
+      font-size: 1rem;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .toggle:hover {
+      background: var(--hover);
+    }
+
+    /* Simple chevron indicator (rotates when expanded) */
+    .chev {
+      transition: transform 0.25s ease;
+      font-size: 1.1em;
+    }
+    .toggle[aria-expanded="true"] .chev {
+      transform: rotate(180deg);
+    }
+
+    /* The container for controlled content (should have class "details") */
+    .details {
+      padding: 0.75rem 1rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Hidden by default (collapsed) */
+    [hidden] {
+      display: none;
+    }
+
+    /* Subtle typography for content inside the panel */
+    .details p {
+      margin: 0.5rem 0;
+    }
+
+    /* Optional: make larger touch targets on small screens */
+    @media (min-width: 600px) {
+      .details { padding: 1rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widget Demo</h1>
+
+  <!-- Widget 1 -->
+  <div class="example">
+    <button id="btn-1" class="toggle" aria-expanded="false" aria-controls="panel-1">
+      <span>What is HTML?</span>
+      <span class="chev" aria-hidden="true">▾</span>
+    </button>
+    <div id="panel-1" class="details" role="region" aria-labelledby="btn-1" hidden>
+      <p>HTML stands for HyperText Markup Language. It is the standard markup language used to create the structure and content of webpages. HTML elements form the building blocks of all websites, such as headings, paragraphs, links, images, and lists.</p>
+      <p>Tip: Use semantic HTML to improve accessibility and SEO.</p>
+    </div>
+  </div>
+
+  <!-- Widget 2 -->
+  <div class="example">
+    <button id="btn-2" class="toggle" aria-expanded="false" aria-controls="panel-2">
+      <span>Tips for writing accessible content</span>
+      <span class="chev" aria-hidden="true">▾</span>
+    </button>
+    <div id="panel-2" class="details" role="region" aria-labelledby="btn-2" hidden>
+      <p>Accessible content uses clear language, descriptive headings, and meaningful landmarks. Provide text alternatives for non-text content, ensure keyboard navigation works, and use appropriate ARIA roles where necessary.</p>
+      <ul>
+        <li>Keep interactive elements reachable via keyboard</li>
+        <li>Provide enough color contrast for readability</li>
+        <li>Use descriptive link text rather than generic phrases</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Widget 3 -->
+  <div class="example">
+    <button id="btn-3" class="toggle" aria-expanded="false" aria-controls="panel-3">
+      <span>Collapse/Expand example with content</span>
+      <span class="chev" aria-hidden="true">▾</span>
+    </button>
+    <div id="panel-3" class="details" role="region" aria-labelledby="btn-3" hidden>
+      <p>This widget demonstrates a simple expand/collapse interaction. The button controls the visibility of the content container labeled by the panel's id. The container has the class "details" as requested.</p>
+      <p>You can add more widgets by duplicating the structure above and changing ids accordingly.</p>
+    </div>
+  </div>
+
+  <script>
+    // Initialize all widgets to collapsed state
+    document.addEventListener('DOMContentLoaded', function() {
+      const widgets = document.querySelectorAll('.example');
+      widgets.forEach((ex, idx) => {
+        const btn = ex.querySelector('.toggle');
+        const panelId = btn.getAttribute('aria-controls');
+        const panel = document.getElementById(panelId);
+
+        // Just in case, ensure aria and IDs are consistent
+        if (!panel) {
+          return;
+        }
+
+        // Ensure initial state
+        panel.hidden = true;
+        btn.setAttribute('aria-expanded', 'false');
+        btn.querySelector('.chev').textContent = '▾';
+        btn.textContent = btn.textContent.trim() + ''; // preserve text, caret is appended via CSS/HTML
+        // The label text needs to be preserved; we will set dynamic text instead
+        // We adjust by wrapping the label in a span already, so we won't override that here.
+      });
+
+      // Attach actual toggle behavior
+      document.querySelectorAll('.toggle').forEach((button) => {
+        // Ensure the text label is wrapped in a span to allow dynamic text change
+        // If not already wrapped, we skip changing text to avoid breaking layout.
+        button.addEventListener('click', function() {
+          const expanded = this.getAttribute('aria-expanded') === 'true';
+          const panel = document.getElementById(this.getAttribute('aria-controls'));
+          if (!panel) return;
+
+          if (!expanded) {
+            panel.hidden = false;
+            this.setAttribute('aria-expanded', 'true');
+            // Change button text to indicate collapse, preserving the chevron
+            // We only change the portion before the chevron by recreating text content
+            const labelSpan = this.querySelector('span');
+            if (labelSpan) {
+              labelSpan.textContent = 'Collapse';
+            }
+            this.querySelector('.chev').setAttribute('aria-hidden', 'true');
+          } else {
+            panel.hidden = true;
+            this.setAttribute('aria-expanded', 'false');
+            const labelSpan = this.querySelector('span');
+            if (labelSpan) {
+              labelSpan.textContent = 'Expand';
+            }
+            this.querySelector('.chev').setAttribute('aria-hidden', 'true');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

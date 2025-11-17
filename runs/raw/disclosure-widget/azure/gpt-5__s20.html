@@ -1,0 +1,371 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expand/Collapse Widgets Demo</title>
+  <style>
+    :root {
+      --bg: #0f1224;
+      --panel: #181b2e;
+      --border: #2a2f4a;
+      --text: #e8ebff;
+      --muted: #b9c0ff;
+      --accent: #7aa2ff;
+      --accent-2: #5ef1bb;
+      --shadow: rgba(0,0,0,0.35);
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      background: radial-gradient(900px 500px at 10% 10%, #161a33 0%, #0f1224 50%, #0c0f1d 100%);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.5;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px 20px 60px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+      place-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 840px;
+    }
+
+    h1 {
+      font-size: 28px;
+      letter-spacing: 0.2px;
+      margin: 0 0 8px;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin: 0 0 26px;
+      font-size: 16px;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 20px 40px var(--shadow);
+      backdrop-filter: saturate(1.2) blur(6px);
+      position: relative;
+    }
+
+    .example + .example { margin-top: 8px; }
+
+    .example h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    /* Shared details container styles */
+    .details {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .details-content {
+      padding: 14px 16px 16px;
+      color: var(--muted);
+    }
+
+    /* Native <details> styling */
+    details.details summary {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      color: var(--text);
+      user-select: none;
+      position: relative;
+    }
+
+    details.details summary::marker { content: ''; }
+
+    details.details summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    .chevron {
+      width: 14px;
+      height: 14px;
+      display: inline-block;
+      border-right: 2px solid var(--muted);
+      border-bottom: 2px solid var(--muted);
+      transform: rotate(-45deg);
+      transition: transform 180ms ease, border-color 180ms ease;
+      margin-left: auto;
+    }
+
+    details.details[open] .chevron {
+      transform: rotate(45deg);
+      border-color: var(--accent-2);
+    }
+
+    .summary-title {
+      font-weight: 600;
+    }
+
+    .summary-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Button-driven panel */
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+    }
+    .toggle-btn:hover { border-color: #394064; }
+    .toggle-btn:active { transform: translateY(1px); }
+    .toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .badge {
+      font-size: 11px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .panel-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 10px 0 0;
+    }
+
+    .control {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .control label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .control input[type="text"], .control select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #394064;
+      background: #12152a;
+      color: var(--text);
+    }
+
+    /* FAQ/Accordion visuals */
+    .faq-item {
+      display: block;
+      border-top: 1px solid var(--border);
+    }
+    .faq-item:first-child { border-top: none; }
+
+    /* Utility spacing */
+    .spaced { margin-top: 10px; }
+
+    /* Footer note */
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Expand/Collapse Widgets</h1>
+    <p class="lead">Examples of native and scripted expand/collapse. Each widget is wrapped in an element with the "example" class and uses a content container with the "details" class.</p>
+
+    <div class="example">
+      <h2>Native details/summary</h2>
+      <details class="details">
+        <summary>
+          <span class="summary-title">Account settings</span>
+          <span class="summary-subtitle">Profile, security, notifications</span>
+          <span aria-hidden="true" class="chevron"></span>
+        </summary>
+        <div class="details-content">
+          <p>Manage how your account behaves across the app. These options are powered by the built-in HTML details/summary elements.</p>
+          <ul>
+            <li>Update display name and avatar</li>
+            <li>Change password and 2FA settings</li>
+            <li>Choose notification preferences</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <h2>Button-controlled panel</h2>
+      <button id="filters-toggle" class="toggle-btn" aria-expanded="false" aria-controls="filters-panel">
+        Show filters
+        <span class="badge" aria-hidden="true">Ctrl+F</span>
+      </button>
+
+      <div id="filters-panel" class="details spaced" role="region" aria-labelledby="filters-toggle" hidden>
+        <div class="details-content">
+          <p>Refine your search using the filters below.</p>
+          <div class="panel-controls">
+            <div class="control">
+              <label for="kw">Keywords</label>
+              <input id="kw" type="text" placeholder="e.g. design systems">
+            </div>
+            <div class="control">
+              <label for="cat">Category</label>
+              <select id="cat">
+                <option>Any</option>
+                <option>Articles</option>
+                <option>Videos</option>
+                <option>Podcasts</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>FAQ item (Accordion group)</h2>
+      <details class="details faq-item" data-accordion="faq-group">
+        <summary>
+          <span class="summary-title">What is an accordion?</span>
+          <span class="summary-subtitle">Expandable sections with only one open at a time</span>
+          <span aria-hidden="true" class="chevron"></span>
+        </summary>
+        <div class="details-content">
+          <p>An accordion is a set of vertically stacked items that expand to reveal content. When one item is opened, others close.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <h2>FAQ item (Accordion group)</h2>
+      <details class="details faq-item" data-accordion="faq-group">
+        <summary>
+          <span class="summary-title">Can I open multiple items?</span>
+          <span class="summary-subtitle">This group allows only one</span>
+          <span aria-hidden="true" class="chevron"></span>
+        </summary>
+        <div class="details-content">
+          <p>In this demo, opening one FAQ item closes the others in the same group for a cleaner experience.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <h2>FAQ item (Accordion group)</h2>
+      <details class="details faq-item" data-accordion="faq-group">
+        <summary>
+          <span class="summary-title">Is native details accessible?</span>
+          <span class="summary-subtitle">Yes, with a proper summary</span>
+          <span aria-hidden="true" class="chevron"></span>
+        </summary>
+        <div class="details-content">
+          <p>Native <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> provide built-in semantics. Styling enhances the presentation.</p>
+        </div>
+      </details>
+    </div>
+
+    <p class="note">Tip: Press Ctrl+F (or Cmd+F on macOS) while focused on the page to toggle the filter panel in the second widget.</p>
+  </div>
+
+  <script>
+    // Button-controlled panel logic
+    (function () {
+      const toggle = document.getElementById('filters-toggle');
+      const panel = document.getElementById('filters-panel');
+
+      function setExpanded(expanded) {
+        toggle.setAttribute('aria-expanded', String(expanded));
+        panel.hidden = !expanded;
+        toggle.textContent = expanded ? 'Hide filters' : 'Show filters';
+        // Re-add badge after textContent replacement
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.setAttribute('aria-hidden', 'true');
+        badge.textContent = 'Ctrl+F';
+        toggle.appendChild(badge);
+      }
+
+      toggle.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        setExpanded(!expanded);
+        if (!panel.hidden) {
+          // Focus first control when opening
+          const first = panel.querySelector('input, select, button, [tabindex]:not([tabindex="-1"])');
+          first && first.focus({ preventScroll: true });
+        }
+      });
+
+      // Keyboard shortcut: Ctrl+F or Cmd+F to toggle
+      document.addEventListener('keydown', (e) => {
+        const isMac = navigator.platform.toUpperCase().includes('MAC');
+        const combo = (isMac && e.metaKey && e.key.toLowerCase() === 'f') ||
+                      (!isMac && e.ctrlKey && e.key.toLowerCase() === 'f');
+        if (combo) {
+          e.preventDefault();
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          setExpanded(!expanded);
+        }
+      });
+    })();
+
+    // Accordion behavior: ensure only one details is open per group
+    (function () {
+      const all = Array.from(document.querySelectorAll('details.details[data-accordion]'));
+      const byGroup = all.reduce((acc, el) => {
+        const g = el.getAttribute('data-accordion');
+        (acc[g] ||= []).push(el);
+        return acc;
+      }, {});
+
+      Object.values(byGroup).forEach((group) => {
+        group.forEach((el) => {
+          el.addEventListener('toggle', () => {
+            if (el.open) {
+              group.forEach((other) => {
+                if (other !== el && other.open) other.open = false;
+              });
+            }
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

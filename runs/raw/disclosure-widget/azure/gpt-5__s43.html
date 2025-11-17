@@ -1,0 +1,192 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widget Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; line-height: 1.5; }
+    main { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+    h1 { font-size: 2rem; margin: 0 0 0.75rem; }
+    p { margin: 0.5rem 0; }
+    .example { border: 1px solid #c8c8c8; background: rgba(0,0,0,0.03); padding: 1rem; border-radius: 10px; margin: 1rem 0; }
+    .example h2 { margin: 0 0 0.5rem; font-size: 1.25rem; }
+    /* Native details/summary styles */
+    details.details { border: 1px solid #bdbdbd; border-radius: 8px; padding: 0.25rem 0.5rem 0.5rem; background: #f9f9fb; }
+    details.details[open] { background: #f0f7ff; }
+    details.details summary { cursor: pointer; font-weight: 600; list-style: none; }
+    details.details summary::-webkit-details-marker { display: none; }
+    details.details summary .caret { display: inline-block; transition: transform 150ms ease; margin-right: 0.25rem; }
+    details.details[open] summary .caret { transform: rotate(90deg); }
+    details.details .content { margin-top: 0.5rem; }
+    /* Custom toggle styles */
+    .toggle { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .toggle button { padding: 0.4rem 0.7rem; border: 1px solid #888; border-radius: 6px; background: #fff; cursor: pointer; font-size: 0.95rem; }
+    .toggle button:hover { background: #f4f7ff; }
+    .toggle button[aria-expanded="true"] { background: #e6f0ff; border-color: #5a8dee; }
+    .caret { display: inline-block; transition: transform 150ms ease; }
+    .toggle button[aria-expanded="true"] .caret { transform: rotate(90deg); }
+    .details { border: 1px solid #bdbdbd; border-radius: 8px; padding: 0.75rem; background: #f9f9fb; margin-top: 0.5rem; }
+    .details[hidden] { display: none; }
+    .visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget Demo</h1>
+    <p>This page shows examples of expand/collapse widgets with accessible controls.</p>
+
+    <div class="example" id="ex1">
+      <h2>Example 1: Native details/summary</h2>
+      <details class="details">
+        <summary><span class="caret">▶</span> What is an expand/collapse widget?</summary>
+        <div class="content" id="ex1-content" role="region" aria-label="Expand/Collapse details">
+          <p>An expand/collapse (also called a disclosure) reveals content on demand while keeping pages concise.</p>
+          <ul>
+            <li>Use it to progressively disclose information.</li>
+            <li>Keep pages tidy by hiding long sections.</li>
+            <li>Maintain accessibility with keyboard and screen reader support.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="example" id="ex2">
+      <h2>Example 2: Custom toggle button</h2>
+      <div class="toggle">
+        <button type="button" id="ex2-button" aria-expanded="false" aria-controls="ex2-details">
+          <span class="caret">▶</span>
+          Show more about performance
+        </button>
+        <span id="ex2-status" aria-live="polite" class="visually-hidden"></span>
+      </div>
+      <div class="details" id="ex2-details" role="region" aria-labelledby="ex2-button" hidden>
+        <p>Loading less content initially can improve performance and focus. When users opt in, you reveal additional content:</p>
+        <ol>
+          <li>Keep initial render fast.</li>
+          <li>Reduce cognitive load.</li>
+          <li>Let users decide when to see more.</li>
+        </ol>
+        <button type="button" id="ex2-close">Collapse</button>
+      </div>
+    </div>
+
+    <div class="example" id="ex3">
+      <h2>Example 3: Multiple independent sections</h2>
+      <div class="toggle">
+        <button type="button" id="ex3-a-button" aria-expanded="false" aria-controls="ex3-a-details">
+          <span class="caret">▶</span>
+          FAQs: Account
+        </button>
+      </div>
+      <div class="details" id="ex3-a-details" role="region" aria-labelledby="ex3-a-button" hidden>
+        <p>Account related questions:</p>
+        <p><strong>How do I reset my password?</strong> Click “Forgot password” on the sign-in page.</p>
+      </div>
+
+      <div class="toggle" style="margin-top:0.75rem;">
+        <button type="button" id="ex3-b-button" aria-expanded="false" aria-controls="ex3-b-details">
+          <span class="caret">▶</span>
+          FAQs: Billing
+        </button>
+      </div>
+      <div class="details" id="ex3-b-details" role="region" aria-labelledby="ex3-b-button" hidden>
+        <p><strong>Where can I download invoices?</strong> Go to Settings → Billing → Invoices.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      // Create an external controller for the native details example (inside its .example container)
+      (function(){
+        var nativeExample = document.querySelector('#ex1 details.details');
+        if (!nativeExample) return;
+        nativeExample.id = nativeExample.id || 'ex1-details';
+        var controller = document.createElement('button');
+        controller.type = 'button';
+        controller.id = 'ex1-button';
+        controller.setAttribute('aria-controls', nativeExample.id);
+        controller.setAttribute('aria-expanded', nativeExample.open ? 'true' : 'false');
+        controller.className = 'external-controller';
+        controller.innerHTML = '<span class="caret">▶</span> Toggle details (external control)';
+        var container = document.getElementById('ex1');
+        container.insertBefore(controller, nativeExample);
+        var style = document.createElement('style');
+        style.textContent = '.external-controller{ margin-bottom:0.5rem; padding:0.4rem 0.7rem; border:1px solid #888; border-radius:6px; background:#fff; cursor:pointer; font-size:0.95rem;} .external-controller:hover{ background:#f4f7ff;} .external-controller[aria-expanded="true"]{ background:#e6f0ff; border-color:#5a8dee; } .external-controller[aria-expanded="true"] .caret{ transform: rotate(90deg); }';
+        document.head.appendChild(style);
+        nativeExample.addEventListener('toggle', function(){
+          controller.setAttribute('aria-expanded', nativeExample.open ? 'true' : 'false');
+        });
+      })();
+
+      function setExpanded(button, panel, expanded) {
+        button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        if (panel.tagName.toLowerCase() === 'details') {
+          panel.open = !!expanded;
+        } else {
+          if (expanded) {
+            panel.removeAttribute('hidden');
+            const focusable = panel.querySelector('button, a, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+            if (focusable) focusable.focus({ preventScroll: true });
+          } else {
+            panel.setAttribute('hidden', '');
+            button.focus({ preventScroll: true });
+          }
+        }
+        const statusId = button.id && button.id.replace('button', 'status');
+        const status = statusId ? document.getElementById(statusId) : null;
+        if (status) status.textContent = expanded ? 'Section expanded' : 'Section collapsed';
+      }
+
+      // Hook up all buttons controlling a container with class "details"
+      document.querySelectorAll('button[aria-controls]').forEach(function(btn){
+        const controlsId = btn.getAttribute('aria-controls');
+        const panel = document.getElementById(controlsId);
+        if (!panel) return;
+
+        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        if (panel.tagName.toLowerCase() === 'details') {
+          panel.open = isExpanded;
+        } else {
+          if (isExpanded) panel.removeAttribute('hidden');
+          else panel.setAttribute('hidden', '');
+        }
+
+        btn.addEventListener('click', function(){
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          setExpanded(btn, panel, !expanded);
+        });
+
+        btn.addEventListener('keydown', function(e){
+          if (e.ctrlKey && e.key === 'ArrowDown') {
+            setExpanded(btn, panel, true);
+          } else if (e.ctrlKey && e.key === 'ArrowUp') {
+            setExpanded(btn, panel, false);
+          }
+        });
+      });
+
+      // Close buttons inside panels
+      document.querySelectorAll('.details button').forEach(function(closeBtn){
+        if (closeBtn.id && closeBtn.id.endsWith('close')) {
+          closeBtn.addEventListener('click', function(){
+            const panel = closeBtn.closest('.details');
+            if (!panel) return;
+            const id = panel.id;
+            let button = id ? document.querySelector('button[aria-controls="' + id + '"]') : null;
+            if (panel.tagName.toLowerCase() === 'details') {
+              if (!button) {
+                const summary = panel.querySelector('summary');
+                if (summary) summary.click();
+                return;
+              }
+            }
+            if (button) setExpanded(button, panel, false);
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

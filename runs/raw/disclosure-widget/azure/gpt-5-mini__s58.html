@@ -1,0 +1,243 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand / Collapse Widget Examples</title>
+  <style>
+    :root{
+      --gap: 1rem;
+      --accent: #2563eb;
+      --bg: #f8fafc;
+      --card: #fff;
+      --muted: #6b7280;
+      --radius: 8px;
+      --transition: 240ms cubic-bezier(.2,.9,.3,1);
+    }
+
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      line-height: 1.45;
+      padding: 2rem;
+      background: linear-gradient(180deg,#eef2ff 0%, #fff 100%);
+      color: #0f172a;
+    }
+
+    h1{
+      font-size: 1.25rem;
+      margin: 0 0 1rem 0;
+    }
+
+    .example{
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 6px 24px rgba(99,102,241,0.06);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      max-width: 780px;
+    }
+
+    .controls{
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+      margin-bottom: .5rem;
+    }
+
+    .expander{
+      appearance: none;
+      border: 1px solid rgba(15,23,42,0.08);
+      background: linear-gradient(180deg,#fff,#f8fafc);
+      color: var(--accent);
+      padding: .45rem .7rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      gap: .5rem;
+      align-items: center;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
+    }
+
+    .expander:focus{
+      outline: 3px solid rgba(37,99,235,0.15);
+      outline-offset: 2px;
+    }
+
+    .expander .chev{
+      display: inline-block;
+      transform-origin: 50% 45%;
+      transition: transform var(--transition);
+      width: 14px;
+      height: 14px;
+    }
+
+    .expander[aria-expanded="true"] .chev{
+      transform: rotate(90deg);
+    }
+
+    .summary{
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    /* Controlled content */
+    .details{
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height var(--transition), opacity 180ms ease;
+      transform-origin: top;
+    }
+
+    .details.open{
+      opacity: 1;
+    }
+
+    .details .inner{
+      padding: .75rem .25rem;
+      border-top: 1px dashed rgba(15,23,42,0.06);
+      margin-top: .5rem;
+    }
+
+    .details p{
+      margin: 0 0 .75rem 0;
+      color: #0f172a;
+    }
+
+    .muted{
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .details{ transition: none !important; }
+      .expander .chev{ transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget</h1>
+
+  <div class="example">
+    <div class="controls">
+      <button class="expander" id="expander-1" aria-expanded="false" aria-controls="details-1" aria-label="Show more">
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" fill="currentColor"></path>
+        </svg>
+        <span>Show details</span>
+      </button>
+      <div class="summary muted">Short description of the first item</div>
+    </div>
+
+    <div class="details" id="details-1" role="region" aria-labelledby="expander-1" aria-hidden="true">
+      <div class="inner">
+        <p><strong>Details for item one</strong></p>
+        <p>This area contains the controlled content. It is revealed or hidden when the button is activated. The button uses aria-expanded and aria-controls to convey state to assistive technologies.</p>
+        <p class="muted">You can place any HTML content here: text, images, forms, lists, etc.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example">
+    <div class="controls">
+      <button class="expander" id="expander-2" aria-expanded="false" aria-controls="details-2" aria-label="Show more about advanced settings">
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" fill="currentColor"></path>
+        </svg>
+        <span>Advanced</span>
+      </button>
+      <div class="summary muted">Configuration and advanced options</div>
+    </div>
+
+    <div class="details" id="details-2" role="region" aria-labelledby="expander-2" aria-hidden="true">
+      <div class="inner">
+        <p><strong>Advanced Options</strong></p>
+        <ul>
+          <li>Option A — explanation and additional text showing a longer content area to demonstrate smooth expansion.</li>
+          <li>Option B — more explanation that wraps to multiple lines so height calculation is tested.</li>
+          <li>Option C — a final option to illustrate variable-height content.</li>
+        </ul>
+        <p class="muted">The script measures content height dynamically to animate to the correct height and then removes the inline height to allow natural resizing.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      function toggleDetails(button){
+        var id = button.getAttribute('aria-controls');
+        var details = document.getElementById(id);
+        if(!details) return;
+
+        var isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+        if(!isExpanded){
+          // Opening
+          button.setAttribute('aria-expanded', 'true');
+          details.setAttribute('aria-hidden', 'false');
+          details.classList.add('open');
+
+          // from 0 to measured height
+          details.style.maxHeight = '0px';
+          // force layout
+          details.offsetHeight;
+          var full = details.scrollHeight + 'px';
+          details.style.maxHeight = full;
+
+          // after transition, allow auto height
+          var cleanupOpen = function onOpenEnd(e){
+            if(e && e.target !== details) return;
+            details.style.maxHeight = '';
+            details.removeEventListener('transitionend', cleanupOpen);
+          };
+          details.addEventListener('transitionend', cleanupOpen);
+        } else {
+          // Closing
+          button.setAttribute('aria-expanded', 'false');
+          details.setAttribute('aria-hidden', 'true');
+
+          // set fixed maxHeight to current height, then collapse to 0
+          var startHeight = details.scrollHeight + 'px';
+          details.style.maxHeight = startHeight;
+          // force layout
+          details.offsetHeight;
+          details.style.maxHeight = '0px';
+
+          var cleanupClose = function onCloseEnd(e){
+            if(e && e.target !== details) return;
+            details.classList.remove('open');
+            // keep maxHeight at 0
+            details.removeEventListener('transitionend', cleanupClose);
+          };
+          details.addEventListener('transitionend', cleanupClose);
+        }
+      }
+
+      // delegate for all expander buttons
+      document.addEventListener('click', function(e){
+        var btn = e.target.closest('.expander');
+        if(btn) {
+          toggleDetails(btn);
+        }
+      });
+
+      // initialize state for any button that might be pre-open (aria-expanded="true")
+      document.querySelectorAll('.expander').forEach(function(btn){
+        var id = btn.getAttribute('aria-controls');
+        var details = document.getElementById(id);
+        if(!details) return;
+        var isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        if(isExpanded){
+          details.classList.add('open');
+          details.setAttribute('aria-hidden','false');
+          details.style.maxHeight = '';
+        } else {
+          details.classList.remove('open');
+          details.setAttribute('aria-hidden','true');
+          details.style.maxHeight = '0';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

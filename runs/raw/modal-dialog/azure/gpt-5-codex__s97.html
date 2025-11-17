@@ -1,0 +1,235 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Modal Dialog Example</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --modal-bg: #ffffff;
+  --modal-border-radius: 12px;
+  --modal-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  --transition-duration: 0.3s;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #f0f4ff, #dce7ff);
+  color: #1e293b;
+}
+
+button {
+  font: inherit;
+  border: none;
+  cursor: pointer;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.25);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-duration) ease, visibility var(--transition-duration) ease;
+  z-index: 1000;
+}
+
+.modal-overlay[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal {
+  background: var(--modal-bg);
+  border-radius: var(--modal-border-radius);
+  box-shadow: var(--modal-shadow);
+  max-width: 480px;
+  width: min(100%, 480px);
+  transform: translateY(30px) scale(0.95);
+  transition: transform var(--transition-duration) ease, opacity var(--transition-duration) ease;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.modal-overlay[data-open="true"] .modal {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.75rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: transparent;
+  color: #64748b;
+  padding: 0.25rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: background var(--transition-duration) ease, color var(--transition-duration) ease;
+}
+
+.close-btn:hover {
+  background: rgba(100, 116, 139, 0.1);
+  color: #1e293b;
+}
+
+.modal-body {
+  padding: 1.75rem;
+  line-height: 1.6;
+}
+
+.modal-footer {
+  padding: 1.25rem 1.75rem 1.75rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #f8fafc;
+}
+
+.secondary-btn {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.secondary-btn:hover {
+  box-shadow: none;
+  transform: none;
+  filter: brightness(0.95);
+}
+</style>
+</head>
+<body>
+<button type="button" class="trigger" aria-haspopup="dialog" aria-controls="demo-modal">Launch Modal</button>
+
+<div class="modal-overlay" data-open="false" role="presentation">
+  <div class="modal" id="demo-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Need a Boost?</h2>
+      <button type="button" class="close-btn" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-description">
+      <p>
+        Modal dialogs are perfect for drawing your user’s attention to important information or actions.
+        This example demonstrates how to build a lightweight, accessible modal using vanilla JavaScript.
+      </p>
+      <p>
+        Focus is moved into the modal when it opens, and returned to the trigger when it closes. You can
+        add any content here—forms, confirmations, promotions, or onboarding messages.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="secondary-btn close-btn">Not now</button>
+      <button type="button">Take action</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const triggerButton = document.querySelector('.trigger');
+  const overlay = document.querySelector('.modal-overlay');
+  const modal = document.getElementById('demo-modal');
+  const closeButtons = modal.querySelectorAll('.close-btn');
+  const focusableSelectors = [
+    'a[href]',
+    'button:not([disabled])',
+    'textarea:not([disabled])',
+    'input[type="text"]:not([disabled])',
+    'input[type="radio"]:not([disabled])',
+    'input[type="checkbox"]:not([disabled])',
+    'select:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])'
+  ];
+
+  let previousActiveElement = null;
+
+  function openModal() {
+    previousActiveElement = document.activeElement;
+    overlay.setAttribute('data-open', 'true');
+    const focusableElements = modal.querySelectorAll(focusableSelectors.join(','));
+    if (focusableElements.length) {
+      focusableElements[0].focus();
+    }
+    document.addEventListener('keydown', handleKeydown);
+  }
+
+  function closeModal() {
+    overlay.setAttribute('data-open', 'false');
+    document.removeEventListener('keydown', handleKeydown);
+    if (previousActiveElement) {
+      previousActiveElement.focus();
+    }
+  }
+
+  function handleKeydown(event) {
+    if (event.key === 'Escape') {
+      closeModal();
+      return;
+    }
+
+    if (event.key === 'Tab') {
+      const focusableElements = Array.from(modal.querySelectorAll(focusableSelectors.join(',')));
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey) {
+        if (document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+      }
+    }
+  }
+
+  triggerButton.addEventListener('click', openModal);
+
+  overlay.addEventListener('click', function (event) {
+    if (event.target === overlay) {
+      closeModal();
+    }
+  });
+
+  closeButtons.forEach((button) => {
+    button.addEventListener('click', closeModal);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --primary: #2563eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: #111;
+    }
+
+    /* Trigger button (the one with class "trigger") */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 14px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #111;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn + .btn { margin-left: 8px; }
+    .btn--primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Modal container (closed by default) */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none; /* closed by default */
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal.open {
+      display: flex;
+    }
+
+    /* Overlay that sits under the dialog content */
+    .modal__overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    /* Dialog panel */
+    .modal__content {
+      position: relative;
+      width: min(92vw, 520px);
+      max-width: 520px;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.25rem 1.25rem 1.5rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,.25);
+      z-index: 1;
+    }
+
+    .modal__close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+    }
+    .modal__close:hover,
+    .modal__close:focus {
+      background: rgba(0,0,0,.05);
+      outline: none;
+    }
+
+    .modal__title {
+      margin: 0 0 0.5rem;
+      font-size: 1.25rem;
+    }
+
+    .modal__body {
+      margin: 0 0 1rem;
+      color: #374151;
+      line-height: 1.5;
+    }
+
+    .modal__footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* Simple page layout to demonstrate the trigger */
+    .hero {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 2rem;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 6px 20px rgba(0,0,0,.05);
+    }
+    .hero h1 { margin: 0 0 0.5rem; font-size: 1.75rem; }
+    .hero p { margin: 0 0 1rem; color: var(--muted); }
+
+    /* Focus outline for keyboard users when modal is open */
+    :focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="hero" aria-label="Demo area">
+    <h1>Modal Dialog Component</h1>
+    <p>This modal is closed by default. Click the button below with the class "trigger" to open it.</p>
+    <button class="btn trigger" type="button">Open modal</button>
+  </div>
+
+  <!-- Modal (closed by default) -->
+  <div class="modal" id="example-modal" aria-hidden="true" role="dialog" aria-label="Example modal dialog" aria-modal="true" tabindex="-1">
+    <div class="modal__overlay" data-close="true"></div>
+
+    <div class="modal__content" role="document">
+      <button class="modal__close" aria-label="Close modal" data-close="true">&times;</button>
+
+      <h2 class="modal__title">Example Modal</h2>
+      <p class="modal__body">
+        This is a lightweight modal dialog component. It starts closed and can be opened by clicking the button with the
+        trigger class. Clicking outside the dialog or pressing Escape will close it.
+      </p>
+
+      <div class="modal__footer">
+        <button class="btn" type="button" data-close="true">Cancel</button>
+        <button class="btn btn--primary" type="button">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const modal = document.getElementById('example-modal');
+      let lastOpenedTrigger = null;
+
+      function openModal(trigger) {
+        lastOpenedTrigger = trigger || lastOpenedTrigger;
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+        // Try to focus the first focusable element inside the modal
+        const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusable) focusable.focus();
+      }
+
+      function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        // Return focus to the triggering element if available
+        if (lastOpenedTrigger && typeof lastOpenedTrigger.focus === 'function') {
+          lastOpenedTrigger.focus();
+        }
+      }
+
+      // Open modal when any element with class "trigger" is clicked
+      document.addEventListener('click', function(e) {
+        const t = e.target;
+        const triggerEl = t.closest('.trigger');
+        if (triggerEl) {
+          e.preventDefault();
+          openModal(triggerEl);
+          return;
+        }
+
+        // If click is on overlay or the close buttons, close the modal
+        if (t.closest('[data-close="true"]')) {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+        // Also close if user clicks on the overlay area
+        if (t.closest('.modal__overlay')) {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+      });
+
+      // Allow closing via Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) {
+          e.preventDefault();
+          closeModal();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

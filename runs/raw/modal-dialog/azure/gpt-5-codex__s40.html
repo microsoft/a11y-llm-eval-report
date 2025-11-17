@@ -1,0 +1,248 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #f4f5f7;
+    }
+
+    .trigger {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 999px;
+      background: #2563eb;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .trigger:hover,
+    .trigger:focus-visible {
+      background: #1d4ed8;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.is-open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      max-width: 32rem;
+      width: 100%;
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 30px 60px -30px rgba(15, 23, 42, 0.45);
+      padding: 2.5rem;
+      transform: translateY(10px);
+      transition: transform 0.25s ease;
+    }
+
+    .modal-backdrop.is-open .modal {
+      transform: translateY(0);
+    }
+
+    .modal header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      gap: 1rem;
+    }
+
+    .modal h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #111827;
+    }
+
+    .modal p {
+      margin: 0 0 1rem;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+
+    .modal footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+
+    .modal button {
+      cursor: pointer;
+      border: none;
+      border-radius: 0.75rem;
+      padding: 0.65rem 1.4rem;
+      font-size: 0.95rem;
+      transition: background 0.2s ease;
+    }
+
+    .modal .btn-close {
+      background: #e5e7eb;
+      color: #1f2937;
+    }
+
+    .modal .btn-close:hover,
+    .modal .btn-close:focus-visible {
+      background: #d1d5db;
+    }
+
+    .modal .btn-primary {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .modal .btn-primary:hover,
+    .modal .btn-primary:focus-visible {
+      background: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <button class="trigger" type="button" aria-haspopup="dialog" aria-expanded="false">
+    Open Modal
+  </button>
+
+  <div class="modal-backdrop" role="presentation" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description" tabindex="-1">
+      <header>
+        <h2 id="modal-title">Stay in the loop</h2>
+        <button type="button" class="btn-close" aria-label="Close dialog">&times;</button>
+      </header>
+      <div>
+        <p id="modal-description">
+          Subscribe to our newsletter for updates on upcoming events, product launches, and exclusive workshops tailored to creative professionals.
+        </p>
+      </div>
+      <footer>
+        <button type="button" class="btn-close">Cancel</button>
+        <button type="button" class="btn-primary">Subscribe</button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const triggerBtn = document.querySelector('.trigger');
+    const backdrop = document.querySelector('.modal-backdrop');
+    const dialog = document.querySelector('.modal');
+    const closeButtons = backdrop.querySelectorAll('.btn-close');
+    let lastFocusedElement = null;
+
+    function openModal() {
+      lastFocusedElement = document.activeElement;
+      backdrop.hidden = false;
+      requestAnimationFrame(() => {
+        backdrop.classList.add('is-open');
+        triggerBtn.setAttribute('aria-expanded', 'true');
+        dialog.focus();
+        trapFocus();
+      });
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    function closeModal() {
+      backdrop.classList.remove('is-open');
+      triggerBtn.setAttribute('aria-expanded', 'false');
+      document.removeEventListener('keydown', handleKeyDown);
+
+      setTimeout(() => {
+        backdrop.hidden = true;
+        if (lastFocusedElement) {
+          lastFocusedElement.focus();
+        }
+      }, 250);
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        closeModal();
+      } else if (event.key === 'Tab') {
+        maintainFocus(event);
+      }
+    }
+
+    function trapFocus() {
+      const focusableSelectors = [
+        'button',
+        '[href]',
+        'input',
+        'select',
+        'textarea',
+        '[tabindex]:not([tabindex="-1"])'
+      ];
+      const focusableElements = dialog.querySelectorAll(focusableSelectors.join(','));
+      if (focusableElements.length) {
+        focusableElements[0].focus();
+      }
+    }
+
+    function maintainFocus(event) {
+      const focusableSelectors = [
+        'button',
+        '[href]',
+        'input',
+        'select',
+        'textarea',
+        '[tabindex]:not([tabindex="-1"])'
+      ];
+      const focusableElements = Array.from(dialog.querySelectorAll(focusableSelectors.join(','))).filter(
+        element => !element.hasAttribute('disabled')
+      );
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    }
+
+    triggerBtn.addEventListener('click', openModal);
+
+    closeButtons.forEach(button => {
+      button.addEventListener('click', closeModal);
+    });
+
+    backdrop.addEventListener('click', event => {
+      if (event.target === backdrop) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>

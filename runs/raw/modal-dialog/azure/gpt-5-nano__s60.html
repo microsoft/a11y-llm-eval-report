@@ -1,0 +1,197 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Component Example</title>
+  <style>
+    :root {
+      --bg: #f7f7f7;
+      --card: #ffffff;
+      --text: #222;
+      --overlay: rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .app {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 40px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .btn, .trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #111;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: transform .05s ease-in-out;
+    }
+
+    .btn:hover, .trigger:hover {
+      background: #f6f6f6;
+    }
+
+    .btn:active { transform: scale(0.99); }
+
+    /* Modal styles */
+    .modal {
+      display: none; /* closed by default */
+      position: fixed;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal.open {
+      display: flex;
+    }
+    .modal__overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--overlay);
+    }
+    .modal__panel {
+      position: relative;
+      z-index: 1;
+      width: min(92vw, 420px);
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.25rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+    .modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+    }
+    .modal__title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    .modal__body {
+      margin: 0.25rem 0 0.75rem;
+    }
+    .modal__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    /* Accessibility focus ring */
+    :focus { outline: 2px solid #4b90ff; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Modal Dialog Component</h1>
+      <p>Closed by default. Open it with the button below that has a trigger class.</p>
+    </header>
+
+    <button class="trigger btn" type="button" aria-controls="example-modal" aria-expanded="false">
+      Open Modal
+    </button>
+
+    <div id="example-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true" aria-hidden="true">
+      <div class="modal__overlay" data-close></div>
+
+      <div class="modal__panel" tabindex="-1" role="document">
+        <div class="modal__header">
+          <h2 id="modal-title" class="modal__title">Example Modal</h2>
+          <button class="btn" type="button" data-close aria-label="Close">Close</button>
+        </div>
+
+        <div class="modal__body">
+          <p>This is a simple modal dialog component. It starts closed and can be opened by clicking the trigger button.</p>
+        </div>
+
+        <div class="modal__actions">
+          <button class="btn" type="button" data-close>Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const trigger = document.querySelector('.trigger');
+      const modal = document.getElementById('example-modal');
+      const closeButtons = modal.querySelectorAll('[data-close]');
+
+      function openModal() {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        trigger.setAttribute('aria-expanded', 'true');
+
+        // Focus the panel, then the first focusable element inside
+        const panel = modal.querySelector('.modal__panel');
+        if (panel) panel.focus();
+
+        const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        const firstFocusable = modal.querySelectorAll(focusableSelector)[0];
+        if (firstFocusable) firstFocusable.focus();
+      }
+
+      function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+      }
+
+      // Open on trigger click
+      trigger.addEventListener('click', openModal);
+
+      // Close on overlay click or any element with data-close
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal || e.target.hasAttribute('data-close')) {
+          closeModal();
+        }
+      });
+
+      // Prevent closing when clicking inside the panel
+      modal.querySelector('.modal__panel').addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+
+      // Close on Escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) {
+          closeModal();
+        }
+      });
+
+      // Initialize
+      modal.setAttribute('aria-hidden', 'true');
+      modal.setAttribute('tabindex', '-1');
+      // Ensure the panel can receive focus when opened
+    });
+  </script>
+</body>
+</html>

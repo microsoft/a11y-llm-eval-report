@@ -1,0 +1,150 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Component Example</title>
+  <style>
+    :root { --bg: #f3f4f6; --card: #fff; --overlay: rgba(0,0,0,.5); --muted: #6b7280; --primary: #2563eb; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; background: var(--bg); color: #111; min-height: 100%; }
+    .container { padding: 2rem; max-width: 800px; margin: 0 auto; }
+    button { font: inherit; padding: .6rem 1rem; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; }
+    button:hover { border-color: #cbd5e1; }
+    .trigger {
+      background: #2563eb; color: #fff; border: none;
+    }
+    .trigger:focus { outline: 2px solid #1e40af; outline-offset: 2px; }
+    .modal-backdrop {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      background: var(--overlay); z-index: 1000;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: white; border-radius: 8px; width: min(90vw, 520px);
+      box-shadow: 0 20px 40px rgba(0,0,0,.25); padding: 1.25rem 1rem;
+      outline: none;
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #e5e7eb; padding-bottom: .5rem; margin-bottom: .75rem;
+    }
+    .modal-title { margin: 0; font-size: 1.25rem; }
+    .close-btn { background: transparent; border: none; font-size: 1.25rem; line-height: 1; cursor: pointer; color: #64748b; }
+    .close-btn:hover { color: #374151; }
+    .modal-content { margin: .5rem 0 0; color: #374151; }
+    .modal-actions {
+      display: flex; justify-content: flex-end; gap: .5rem; padding-top: .75rem;
+      border-top: 1px solid #f1f5f9; margin-top: .75rem;
+    }
+    .modal label { display: block; margin: .5rem 0 0.25rem; font-size: .9rem; color: #374151; }
+    .modal input[type="email"] {
+      width: 100%; padding: .5rem; border: 1px solid #d1d5db; border-radius: 6px;
+    }
+    @media (max-width: 480px){
+      .modal { width: 92vw; padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Modal Dialog Component Demo</h1>
+    <p>This page demonstrates a modal dialog that is closed by default. Click the button below to open it.</p>
+    <button class="trigger" aria-haspopup="dialog" aria-controls="modal1">Open modal</button>
+  </div>
+
+  <!-- Modal structure (hidden by default) -->
+  <div id="modal1" class="modal-backdrop" aria-hidden="true" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal1-title" aria-describedby="modal1-desc" tabindex="-1">
+      <div class="modal-header">
+        <h2 id="modal1-title" class="modal-title">Subscribe to Newsletter</h2>
+        <button class="close-btn" type="button" aria-label="Close modal" data-close>&times;</button>
+      </div>
+      <div id="modal1-desc" class="modal-content">
+        Join our newsletter to receive updates, tips, and exclusive offers.
+      </div>
+      <form aria-label="Newsletter signup" style="margin-top:.75rem;">
+        <label for="email1">Email</label>
+        <input id="email1" type="email" placeholder="you@example.com" required />
+        <div class="modal-actions">
+          <button type="button" data-close>Close</button>
+          <button type="submit">Subscribe</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const openTriggers = document.querySelectorAll('.trigger');
+      const modalBackdrop = document.getElementById('modal1');
+      const closeButtons = modalBackdrop.querySelectorAll('[data-close]');
+
+      let lastActive = null;
+      let currentModal = null;
+
+      function openModal() {
+        lastActive = document.activeElement;
+        modalBackdrop.classList.add('open');
+        modalBackdrop.setAttribute('aria-hidden','false');
+        currentModal = modalBackdrop.querySelector('.modal');
+        // Focus the first focusable element inside the modal, or the modal itself
+        const focusables = modalBackdrop.querySelectorAll('a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusables.length) {
+          focusables[0].focus();
+        } else if (currentModal) {
+          currentModal.focus();
+        }
+      }
+
+      function closeModal() {
+        modalBackdrop.classList.remove('open');
+        modalBackdrop.setAttribute('aria-hidden','true');
+        currentModal = null;
+        if (lastActive) lastActive.focus();
+      }
+
+      openTriggers.forEach(btn => btn.addEventListener('click', openModal));
+
+      closeButtons.forEach(btn => btn.addEventListener('click', closeModal));
+
+      // Clicking on the backdrop closes the modal
+      modalBackdrop.addEventListener('click', function(e){
+        if (e.target === this) closeModal();
+      });
+
+      // Escape and simple Tab trapping
+      document.addEventListener('keydown', function(e){
+        if (!modalBackdrop.classList.contains('open')) return;
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+
+        if (e.key === 'Tab') {
+          const focusables = modalBackdrop.querySelectorAll('a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          if (focusables.length === 0) {
+            e.preventDefault();
+            return;
+          }
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey) {
+            if (document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

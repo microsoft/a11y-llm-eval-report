@@ -1,0 +1,317 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accessible Modal Example</title>
+  <style>
+    :root{
+      --overlay-bg: rgba(0,0,0,0.6);
+      --modal-bg: #fff;
+      --radius: 8px;
+      --max-w: 520px;
+      --accent: #0366d6;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      line-height:1.4;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Page content */
+    main{
+      padding:48px;
+      max-width:900px;
+      margin:0 auto;
+    }
+    .trigger{
+      display:inline-block;
+      padding:10px 16px;
+      font-size:16px;
+      border-radius:6px;
+      background:var(--accent);
+      color:white;
+      border:none;
+      cursor:pointer;
+    }
+    .trigger:focus{outline:3px solid rgba(3,102,214,0.25);}
+
+    /* Overlay & modal */
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      display:none; /* closed by default */
+      align-items:center;
+      justify-content:center;
+      background:var(--overlay-bg);
+      z-index:1000;
+      padding:24px;
+    }
+    .modal-overlay.open{
+      display:flex;
+    }
+    .modal{
+      background:var(--modal-bg);
+      width:100%;
+      max-width:var(--max-w);
+      border-radius:var(--radius);
+      box-shadow:0 10px 30px rgba(2,6,23,0.35);
+      padding:20px;
+      transform-origin:center;
+      transform:translateY(-8px) scale(.99);
+      opacity:0;
+      transition:transform .18s ease, opacity .18s ease;
+    }
+    .modal-overlay.open .modal{
+      transform:translateY(0) scale(1);
+      opacity:1;
+    }
+    .modal header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .modal h2{
+      margin:0;
+      font-size:18px;
+    }
+    .modal .close{
+      background:transparent;
+      border:0;
+      font-size:18px;
+      cursor:pointer;
+      line-height:1;
+      padding:6px;
+      border-radius:6px;
+    }
+    .modal .close:focus{outline:3px solid rgba(3,102,214,0.25);}
+
+    .modal .body{
+      margin-top:12px;
+      color:#111;
+      font-size:15px;
+    }
+    .modal .actions{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      margin-top:18px;
+    }
+    .btn{
+      padding:8px 12px;
+      border-radius:6px;
+      border:1px solid rgba(0,0,0,0.08);
+      background:#f6f7f8;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background:var(--accent);
+      color:white;
+      border-color:transparent;
+    }
+
+    /* Prevent background scroll when modal open */
+    .no-scroll{
+      height:100%;
+      overflow:hidden;
+    }
+
+    /* Small utility for demo */
+    .demo-grid{display:grid; gap:12px; margin-top:16px;}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal dialog example</h1>
+    <p>This page demonstrates an accessible modal dialog. The modal is closed by default. The button that opens it has the class "trigger".</p>
+
+    <button class="trigger" id="openModal">Open modal</button>
+
+    <section class="demo-grid" aria-hidden="false">
+      <button class="btn">Background action</button>
+      <a href="#" class="btn">Background link</a>
+      <input placeholder="Background input" />
+    </section>
+  </main>
+
+  <!-- Modal overlay (closed by default) -->
+  <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc" tabindex="-1">
+      <header>
+        <h2 id="modalTitle">Confirm action</h2>
+        <button class="close" aria-label="Close dialog" title="Close">&times;</button>
+      </header>
+
+      <div class="body" id="modalDesc">
+        <p>Are you sure you want to proceed with this action? This is a demo modal with focus trapping, ESC to close, click outside to close, and focus return to the trigger.</p>
+
+        <form id="demoForm">
+          <label>
+            Reason
+            <input name="reason" placeholder="Optional reason" />
+          </label>
+        </form>
+
+        <div class="actions">
+          <button class="btn" id="cancelBtn">Cancel</button>
+          <button class="btn primary" id="confirmBtn">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const trigger = document.querySelector('.trigger'); // the open button (must have class "trigger")
+      const overlay = document.getElementById('modalOverlay');
+      const modal = overlay.querySelector('.modal');
+      const closeButtons = Array.from(modal.querySelectorAll('.close, #cancelBtn'));
+      const confirmBtn = document.getElementById('confirmBtn');
+
+      let lastFocused = null;
+
+      // Focusable selector
+      const focusableSelector = [
+        'a[href]',
+        'area[href]',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        'button:not([disabled])',
+        'iframe',
+        'object',
+        'embed',
+        '[contenteditable]',
+        '[tabindex]:not([tabindex="-1"])'
+      ].join(',');
+
+      function getFocusableElements(container){
+        return Array.from(container.querySelectorAll(focusableSelector))
+          .filter(el => el.offsetParent !== null || el === document.activeElement); // visible
+      }
+
+      // Manage inert/aria-hidden for background content for screen readers
+      function setBackgroundInert(isInert){
+        const children = Array.from(document.body.children);
+        children.forEach(child => {
+          if(child === overlay) return;
+          if(isInert){
+            child.setAttribute('aria-hidden','true');
+            child.inert = true;
+            child.setAttribute('inert','');
+          } else {
+            child.removeAttribute('aria-hidden');
+            try{ child.inert = false; }catch(e){}
+            child.removeAttribute('inert');
+          }
+        });
+      }
+
+      function openModal(){
+        lastFocused = document.activeElement;
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden','false');
+        modal.setAttribute('aria-modal','true');
+        // Make background inert for assistive tech & keyboard
+        setBackgroundInert(true);
+        // Prevent body scroll
+        document.documentElement.classList.add('no-scroll');
+        // Focus first focusable element inside modal or modal itself
+        const focusable = getFocusableElements(modal);
+        if(focusable.length) {
+          focusable[0].focus();
+        } else {
+          modal.focus();
+        }
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeModal(){
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden','true');
+        modal.removeAttribute('aria-modal');
+        setBackgroundInert(false);
+        document.documentElement.classList.remove('no-scroll');
+        document.removeEventListener('keydown', onKeyDown);
+        // Return focus to the trigger if available
+        if(lastFocused && typeof lastFocused.focus === 'function'){
+          lastFocused.focus();
+        } else if(trigger) {
+          trigger.focus();
+        }
+      }
+
+      function onKeyDown(e){
+        if(e.key === 'Escape' || e.key === 'Esc'){
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+        if(e.key === 'Tab'){
+          // focus trap
+          const focusable = getFocusableElements(modal);
+          if(focusable.length === 0){
+            e.preventDefault();
+            return;
+          }
+          const first = focusable[0];
+          const last = focusable[focusable.length -1];
+          if(e.shiftKey){
+            if(document.activeElement === first || document.activeElement === modal){
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if(document.activeElement === last){
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      }
+
+      // Open via trigger click
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModal();
+      });
+
+      // Close via close buttons
+      closeButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          closeModal();
+        });
+      });
+
+      // Confirm action example
+      confirmBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('Confirmed!');
+        closeModal();
+      });
+
+      // Click outside modal to close
+      overlay.addEventListener('click', (e) => {
+        if(e.target === overlay){
+          closeModal();
+        }
+      });
+
+      // Ensure overlay isn't focusable when closed
+      overlay.addEventListener('focus', (e) => {
+        if(overlay.getAttribute('aria-hidden') === 'true'){
+          // redirect focus to trigger if someone tabs to overlay
+          if(trigger) trigger.focus();
+        }
+      });
+
+      // Close on programmatic window blur (optional)
+      window.addEventListener('blur', () => { /* no-op to allow potential future handling */ });
+    })();
+  </script>
+</body>
+</html>

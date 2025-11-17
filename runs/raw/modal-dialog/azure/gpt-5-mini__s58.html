@@ -1,0 +1,378 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#0ea5a4;
+      --surface:#0f1724;
+      --text:#e6eef6;
+      --muted:#98a2b3;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg,#071029 0%, #071b2b 100%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .container{
+      max-width:900px;
+      margin:6vh auto;
+      padding:32px;
+      text-align:center;
+    }
+
+    h1{ margin:0 0 8px; font-size:1.6rem; letter-spacing:-0.02em; }
+    p.lead{ margin:0 0 22px; color:var(--muted); }
+
+    .trigger{
+      appearance:none;
+      border:0;
+      background:linear-gradient(180deg,var(--accent),#088f8c);
+      color:white;
+      padding:10px 16px;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+      box-shadow:0 6px 18px rgba(8,143,140,0.18);
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .trigger:active{ transform:translateY(1px); box-shadow:0 4px 12px rgba(8,143,140,0.14); }
+
+    /* dialog styling */
+    dialog#modal{
+      width:min(560px, calc(100% - 48px));
+      border:0;
+      border-radius:12px;
+      padding:0;
+      box-shadow:0 20px 50px rgba(2,6,23,0.7);
+      background:linear-gradient(180deg,#071829 0%, #072532 100%);
+      color:var(--text);
+      transform:translateY(-8px) scale(.98);
+      opacity:0;
+      transition:transform .18s cubic-bezier(.2,.9,.3,1), opacity .18s ease;
+    }
+
+    dialog#modal::backdrop{
+      background:linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.75));
+      backdrop-filter: blur(6px) saturate(120%);
+      transition:opacity .18s ease;
+      opacity:0;
+    }
+
+    dialog[open]{
+      transform:none;
+      opacity:1;
+    }
+    dialog[open]::backdrop{ opacity:1; }
+
+    .modal-header{
+      padding:18px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid rgba(255,255,255,0.03);
+    }
+    .modal-title{ margin:0; font-size:1.05rem; font-weight:700; }
+    .close{
+      appearance:none;
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      padding:8px;
+      border-radius:6px;
+      cursor:pointer;
+    }
+    .close:hover{ color:var(--text); background:rgba(255,255,255,0.02); }
+
+    .modal-body{
+      padding:18px 20px;
+      color:var(--muted);
+      font-size:0.96rem;
+      line-height:1.4;
+    }
+
+    .modal-footer{
+      display:flex;
+      gap:10px;
+      padding:14px 20px 20px;
+      justify-content:flex-end;
+      border-top:1px solid rgba(255,255,255,0.02);
+    }
+
+    .btn{
+      appearance:none;
+      border:0;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:0.95rem;
+    }
+    .btn.secondary{
+      background:transparent;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .btn.primary{
+      background:var(--accent);
+      color:white;
+      box-shadow:0 8px 22px rgba(14,165,164,0.12);
+    }
+
+    /* small accessibility helpers */
+    .sr-only{
+      position:absolute;
+      left:-10000px;
+      top:auto;
+      width:1px;
+      height:1px;
+      overflow:hidden;
+    }
+
+    /* fallback when dialog isn't supported (we'll toggle .fallback-open on body) */
+    .fallback-backdrop{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.75));
+      backdrop-filter:blur(6px) saturate(120%);
+      z-index:900;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    body.fallback-open .fallback-backdrop{ display:flex; }
+    .fallback-modal{
+      width:min(560px, calc(100% - 48px));
+      border-radius:12px;
+      overflow:hidden;
+      background:linear-gradient(180deg,#071829 0%, #072532 100%);
+      box-shadow:0 20px 50px rgba(2,6,23,0.7);
+      transform:translateY(0);
+      animation:pop .18s ease;
+      color:var(--text);
+    }
+    @keyframes pop{
+      from{ transform:translateY(-8px) scale(.98); opacity:0; } to{transform:none; opacity:1;}
+    }
+
+    footer.info{
+      margin-top:30px;
+      color:var(--muted);
+      font-size:0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Example Modal Dialog</h1>
+    <p class="lead">This demo shows a modal dialog component (closed by default). Click the button to open it. The opener has the class "trigger".</p>
+
+    <button class="trigger" id="openModal">Open modal</button>
+
+    <p class="info">The modal uses the native &lt;dialog&gt; when available and falls back to a simple ARIA modal if needed.</p>
+  </div>
+
+  <!-- Native dialog element (closed by default) -->
+  <dialog id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+    <div class="modal-header">
+      <h2 id="modalTitle" class="modal-title">Confirm action</h2>
+      <button class="close" aria-label="Close dialog" data-close>&times;</button>
+    </div>
+    <div class="modal-body" id="modalDesc">
+      Are you sure you want to perform this action? This cannot be undone. Choose an option below to continue or cancel to go back.
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" data-close>Cancel</button>
+      <button class="btn primary" id="confirmBtn">Confirm</button>
+    </div>
+  </dialog>
+
+  <!-- Fallback markup (hidden by default) -->
+  <div class="fallback-backdrop" id="fallbackBackdrop" aria-hidden="true">
+    <div class="fallback-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitleFallback" aria-describedby="modalDescFallback">
+      <div class="modal-header">
+        <h2 id="modalTitleFallback" class="modal-title">Confirm action</h2>
+        <button class="close" aria-label="Close dialog" data-close-fallback>&times;</button>
+      </div>
+      <div class="modal-body" id="modalDescFallback">
+        Are you sure you want to perform this action? This cannot be undone. Choose an option below to continue or cancel to go back.
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" data-close-fallback>Cancel</button>
+        <button class="btn primary" id="confirmBtnFallback">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var trigger = document.querySelector('.trigger');
+      var dialog = document.getElementById('modal');
+      var fallbackBackdrop = document.getElementById('fallbackBackdrop');
+      var isDialogSupported = typeof HTMLDialogElement === 'function' && typeof dialog.showModal === 'function';
+      var lastFocused = null;
+
+      function getFocusable(container){
+        var selectors = 'a[href], area[href], input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])';
+        return Array.prototype.slice.call(container.querySelectorAll(selectors)).filter(function(el){
+          return el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length;
+        });
+      }
+
+      function openNative(){
+        lastFocused = document.activeElement;
+        try {
+          dialog.showModal();
+        } catch(e){
+          // Some browsers require appending to document; ignore for now.
+          dialog.setAttribute('open','');
+        }
+        trapFocus(dialog);
+      }
+
+      function closeNative(returnValue){
+        try {
+          dialog.close(returnValue);
+        } catch(e){
+          dialog.removeAttribute('open');
+        }
+        releaseFocus();
+      }
+
+      function openFallback(){
+        lastFocused = document.activeElement;
+        document.body.classList.add('fallback-open');
+        fallbackBackdrop.setAttribute('aria-hidden','false');
+        trapFocus(fallbackBackdrop);
+      }
+
+      function closeFallback(){
+        document.body.classList.remove('fallback-open');
+        fallbackBackdrop.setAttribute('aria-hidden','true');
+        releaseFocus();
+      }
+
+      function trapFocus(container){
+        var focusable = getFocusable(container);
+        if (focusable.length) {
+          focusable[0].focus();
+        } else {
+          // if nothing focusable, focus the container for screen readers
+          container.setAttribute('tabindex','-1');
+          container.focus();
+        }
+
+        function handleKey(e){
+          if (e.key === 'Tab') {
+            var elems = getFocusable(container);
+            if (elems.length === 0) {
+              e.preventDefault();
+              return;
+            }
+            var first = elems[0];
+            var last = elems[elems.length -1];
+            if (!e.shiftKey && document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            } else if (e.shiftKey && document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            if (isDialogSupported && dialog.open) {
+              closeNative();
+            } else {
+              closeFallback();
+            }
+          }
+        }
+        container.__keyHandler = handleKey;
+        document.addEventListener('keydown', handleKey);
+      }
+
+      function releaseFocus(){
+        document.removeEventListener('keydown', document.activeElement && document.activeElement.__keyHandler);
+        // Remove our key handler if present
+        if (dialog.__keyHandler) {
+          document.removeEventListener('keydown', dialog.__keyHandler);
+          delete dialog.__keyHandler;
+        }
+        if (fallbackBackdrop.__keyHandler) {
+          document.removeEventListener('keydown', fallbackBackdrop.__keyHandler);
+          delete fallbackBackdrop.__keyHandler;
+        }
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+          lastFocused.focus();
+        }
+      }
+
+      // Open handler
+      trigger.addEventListener('click', function(){
+        if (isDialogSupported) {
+          openNative();
+        } else {
+          openFallback();
+        }
+      });
+
+      // Close buttons inside native dialog
+      dialog.addEventListener('click', function(event){
+        if (event.target.closest('[data-close]')) {
+          closeNative();
+        } else if (event.target === dialog) {
+          // clicked on backdrop
+          closeNative();
+        }
+      });
+
+      // Close on cancel (native: ESC / close method triggers cancel)
+      dialog.addEventListener('cancel', function(evt){
+        // default behavior: dialog closes; ensure focus restored
+        releaseFocus();
+      });
+
+      // Confirmation button
+      document.getElementById('confirmBtn').addEventListener('click', function(){
+        alert('Confirmed (native dialog)');
+        closeNative();
+      });
+
+      // Fallback controls
+      document.querySelectorAll('[data-close-fallback]').forEach(function(btn){
+        btn.addEventListener('click', function(){ closeFallback(); });
+      });
+      document.getElementById('confirmBtnFallback').addEventListener('click', function(){
+        alert('Confirmed (fallback modal)');
+        closeFallback();
+      });
+
+      // clicking outside the fallback modal closes it
+      fallbackBackdrop.addEventListener('click', function(e){
+        if (e.target === fallbackBackdrop) closeFallback();
+      });
+
+      // Ensure focus is restored if dialog closed programmatically
+      // (native dialog emits close event)
+      dialog.addEventListener('close', function(){
+        releaseFocus();
+      });
+
+      // If dialog element is not supported, hide it from assistive tech
+      if (!isDialogSupported) {
+        dialog.setAttribute('aria-hidden','true');
+        dialog.style.display = 'none';
+      }
+    })();
+  </script>
+</body>
+</html>

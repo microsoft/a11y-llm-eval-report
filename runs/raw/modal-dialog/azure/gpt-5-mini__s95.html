@@ -1,0 +1,266 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --bg: #fff;
+      --overlay: rgba(0,0,0,0.5);
+      --accent: #0366d6;
+      --radius: 8px;
+      --max-width: 520px;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 0;
+      line-height: 1.4;
+      color: #111;
+      padding: 2rem;
+      background: #f6f8fa;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .trigger {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* Backdrop / modal layout */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--overlay);
+      z-index: 1000;
+    }
+
+    /* Hidden by default */
+    .modal-backdrop[hidden] {
+      display: none;
+    }
+
+    .modal {
+      width: 90%;
+      max-width: var(--max-width);
+      background: var(--bg);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      padding: 1rem;
+      outline: none;
+    }
+
+    .modal header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .modal h2 {
+      margin: 0;
+      font-size: 1.125rem;
+    }
+
+    .modal .close {
+      background: transparent;
+      border: none;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 6px;
+    }
+
+    .modal .close:focus {
+      box-shadow: 0 0 0 3px rgba(3,102,214,0.15);
+    }
+
+    .modal .content {
+      margin-top: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .modal footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      border: 1px solid #d0d7de;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    /* Small accessibility focus styles */
+    button:focus, a:focus {
+      outline: 3px solid rgba(3,102,214,0.15);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="page">
+    <h1>Page Title</h1>
+    <p>This page demonstrates a modal dialog. The modal is closed by default. Click the button below to open it.</p>
+    <button class="trigger" id="openA">Open modal</button>
+    <!-- Another trigger to show class can be applied to multiple buttons -->
+    <button class="trigger" id="openB" style="margin-left:0.5rem">Also open modal</button>
+
+    <p style="margin-top:2rem;">Background content remains accessible when the modal is closed. When the modal opens, focus is trapped inside and Escape or clicking outside will close it.</p>
+  </div>
+
+  <!-- Modal (closed by default using hidden attribute) -->
+  <div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" hidden>
+    <div class="modal" role="document" tabindex="-1">
+      <header>
+        <h2 id="modal-title">Example Modal</h2>
+        <button class="close" aria-label="Close modal">&times;</button>
+      </header>
+
+      <div class="content" id="modal-desc">
+        <p>This is a simple, accessible modal dialog example. It is closed by default. Use Tab to navigate between focusable controls inside the modal.</p>
+        <label style="display:block; margin-top:0.5rem;">
+          Your name
+          <input type="text" placeholder="Type your name" style="display:block; margin-top:0.25rem; width:100%; padding:0.4rem;">
+        </label>
+      </div>
+
+      <footer>
+        <button class="btn" type="button">Cancel</button>
+        <button class="btn primary" type="button">Save</button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modalBackdrop = document.getElementById('modal');
+      const modalDialog = modalBackdrop.querySelector('.modal');
+      const page = document.getElementById('page');
+      const triggers = document.querySelectorAll('.trigger');
+      const closeButtons = modalBackdrop.querySelectorAll('.close, footer .btn:first-child');
+
+      let previouslyFocused = null;
+      let keyHandler = null;
+
+      function getFocusable(el) {
+        return Array.from(el.querySelectorAll('a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+          .filter(e => e.offsetWidth > 0 || e.offsetHeight > 0 || e === document.activeElement);
+      }
+
+      function openModal() {
+        if (!modalBackdrop.hasAttribute('hidden')) return;
+        previouslyFocused = document.activeElement;
+        modalBackdrop.removeAttribute('hidden');
+        page.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = 'hidden';
+
+        // Focus the first focusable element inside the dialog, or the dialog container.
+        const focusables = getFocusable(modalBackdrop);
+        if (focusables.length) {
+          focusables[0].focus();
+        } else {
+          modalDialog.focus();
+        }
+
+        // Key handling for Escape and focus trapping
+        keyHandler = function (e) {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            closeModal();
+            return;
+          }
+          if (e.key === 'Tab') {
+            const focusables = getFocusable(modalBackdrop);
+            if (focusables.length === 0) {
+              e.preventDefault();
+              return;
+            }
+            const first = focusables[0];
+            const last = focusables[focusables.length - 1];
+            if (e.shiftKey) {
+              if (document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+              }
+            } else {
+              if (document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+              }
+            }
+          }
+        };
+
+        document.addEventListener('keydown', keyHandler);
+      }
+
+      function closeModal() {
+        if (modalBackdrop.hasAttribute('hidden')) return;
+        modalBackdrop.setAttribute('hidden', '');
+        page.removeAttribute('aria-hidden');
+        document.body.style.overflow = '';
+        if (keyHandler) {
+          document.removeEventListener('keydown', keyHandler);
+          keyHandler = null;
+        }
+        // restore focus
+        if (previouslyFocused && previouslyFocused.focus) {
+          previouslyFocused.focus({ preventScroll: true });
+        }
+      }
+
+      // Open modal for any element with class "trigger"
+      triggers.forEach(t => {
+        t.addEventListener('click', openModal);
+      });
+
+      // Close buttons inside modal
+      closeButtons.forEach(btn => btn.addEventListener('click', closeModal));
+
+      // Clicking backdrop (outside the dialog) closes the modal
+      modalBackdrop.addEventListener('click', function (e) {
+        if (e.target === modalBackdrop) {
+          closeModal();
+        }
+      });
+
+      // Prevent focus leaving when using mouse to click something outside while modal open
+      // (additional protection though key trap exists)
+      document.addEventListener('focusin', function (e) {
+        if (!modalBackdrop.hasAttribute('hidden') && !modalBackdrop.contains(e.target)) {
+          // If focus moved outside while modal open, bring it back
+          const focusables = getFocusable(modalBackdrop);
+          if (focusables.length) {
+            focusables[0].focus();
+          } else {
+            modalDialog.focus();
+          }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

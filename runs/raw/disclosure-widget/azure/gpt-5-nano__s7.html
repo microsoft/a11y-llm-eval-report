@@ -1,0 +1,185 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #eef2f5;
+      --card: #ffffff;
+      --border: #dcdfe4;
+      --accent: #2b6cb0;
+      --text: #1f2937;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      margin: 0;
+    }
+
+    /* Each widget is wrapped in an example container */
+    .example {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,.05);
+    }
+
+    .example h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 0.75rem 0;
+    }
+
+    .widget {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      align-items: stretch;
+    }
+
+    /* Toggle button */
+    .trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .6rem 1rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text);
+      transition: background .2s ease;
+    }
+    .trigger:hover { background: #f9f9f9; }
+    .trigger:focus { outline: 2px solid #6aa9ff; outline-offset: 2px; }
+
+    .icon {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      transition: transform .25s ease;
+      color: currentColor;
+    }
+    /* Arrow rotates when expanded */
+    .trigger[aria-expanded="true"] .icon {
+      transform: rotate(90deg);
+    }
+
+    /* The content container (tagged with class 'details') */
+    .details {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      padding: 0 0;
+      transition: max-height .25s ease-out, opacity .25s ease-out;
+      /* The following keeps content spacing predictable while collapsed */
+      border-left: 0;
+    }
+    .details.open {
+      max-height: 1000px; /* large enough to contain content without clipping */
+      opacity: 1;
+      padding: .25rem 0;
+    }
+
+    .details p,
+    .details ul {
+      margin: 0.25rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Example 1 -->
+  <div class="example" id="example1">
+    <h2>Example 1: Simple Expand/Collapse</h2>
+    <div class="widget" role="group" aria-label="Simple expand/collapse widget">
+      <button class="trigger" aria-expanded="false" aria-controls="content1" type="button">
+        <span class="icon" aria-hidden="true">
+          <!-- right-pointing caret (SVG) for clarity -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"></polyline>
+          </svg>
+        </span>
+        Show details
+      </button>
+
+      <div id="content1" class="details" role="region" aria-label="Details for Example 1">
+        <p>This is the hidden content that becomes visible when the widget is expanded. It can include text, images, or other controls.</p>
+        <p>Use the button again to collapse it.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Example 2 -->
+  <div class="example" id="example2">
+    <h2>Example 2: Collapsible with Animated Height</h2>
+    <div class="widget" role="group" aria-label="Animated expand/collapse widget">
+      <button class="trigger" aria-expanded="false" aria-controls="content2" type="button">
+        <span class="icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">
+            <polyline points="9 6 15 12 9 18"></polyline>
+          </svg>
+        </span>
+        Details
+      </button>
+
+      <div id="content2" class="details" role="region" aria-label="Details for Example 2">
+        <p>This example uses a smooth height transition. The content container has the class <code>details</code> to indicate the controlled content area.</p>
+        <ul>
+          <li>Accessible controls via ARIA attributes</li>
+          <li>Keyboard operable</li>
+          <li>Stylish, responsive</li>
+        </ul>
+        <p>Try expanding and collapsing to see the animation.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // Initialize all widgets
+      function toggleContent(button) {
+        const targetId = button.getAttribute('aria-controls');
+        const content = document.getElementById(targetId);
+        const isOpen = button.getAttribute('aria-expanded') === 'true';
+        if (isOpen) {
+          button.setAttribute('aria-expanded', 'false');
+          content.classList.remove('open');
+        } else {
+          button.setAttribute('aria-expanded', 'true');
+          content.classList.add('open');
+        }
+      }
+
+      document.querySelectorAll('.trigger').forEach(function(btn){
+        // Click handler
+        btn.addEventListener('click', function() {
+          toggleContent(btn);
+        });
+        // Keyboard accessibility: Space/Enter toggles
+        btn.addEventListener('keydown', function(e){
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            toggleContent(btn);
+          }
+        });
+      });
+
+      // Ensure all content are collapsed on load
+      document.querySelectorAll('.details').forEach(function(d){
+        d.classList.remove('open');
+      });
+    })();
+  </script>
+
+</body>
+</html>

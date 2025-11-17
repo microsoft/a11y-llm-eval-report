@@ -1,0 +1,304 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root{
+      --bg:#f7fafc;
+      --card:#fff;
+      --muted:#6b7280;
+      --accent:#2563eb;
+      --radius:8px;
+      --gap:12px;
+    }
+
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 24px;
+      background: linear-gradient(180deg,var(--bg),#fff);
+      color: #111827;
+      line-height: 1.4;
+    }
+
+    h1{
+      margin: 0 0 16px 0;
+      font-size: 20px;
+    }
+
+    .example{
+      background: var(--card);
+      border: 1px solid #e6e9ee;
+      border-radius: var(--radius);
+      padding: 16px;
+      margin: 12px 0;
+      box-shadow: 0 1px 2px rgba(16,24,40,0.02);
+      max-width: 760px;
+    }
+
+    .header-row{
+      display: flex;
+      gap: var(--gap);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .label{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .title{
+      font-weight:600;
+      font-size:16px;
+    }
+
+    .muted{
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toggle{
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1px solid #d1d5db;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 600;
+      color: #0f172a;
+      transition: box-shadow .12s ease, transform .06s ease;
+    }
+
+    .toggle:active{ transform: translateY(1px); }
+    .toggle:focus{ outline: 3px solid rgba(37,99,235,0.15); box-shadow: 0 0 0 4px rgba(37,99,235,0.06); }
+
+    .chev{
+      display:inline-block;
+      width: 14px;
+      height: 14px;
+      transition: transform .22s ease;
+      transform-origin: 50% 50%;
+    }
+
+    /* rotate when expanded */
+    .toggle[aria-expanded="true"] .chev{ transform: rotate(180deg); }
+
+    /* Controlled content container (required class "details") */
+    .details{
+      overflow: hidden;
+      height: 0;
+      transition: height 260ms cubic-bezier(.2,.9,.3,1);
+      margin-top: 12px;
+      border-radius: 6px;
+      background: #fbfafe;
+      border: 1px solid #eef2ff;
+    }
+
+    .details > .content{
+      padding: 14px;
+    }
+
+    .small{
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* when motion is reduced, remove animation */
+    @media (prefers-reduced-motion: reduce){
+      .details{ transition: none; }
+      .chev{ transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget Examples</h1>
+
+  <div class="example">
+    <div class="header-row">
+      <div class="label">
+        <div class="title">Simple details</div>
+        <div class="muted small">Click to expand or collapse</div>
+      </div>
+      <button class="toggle" id="toggle-1" aria-expanded="false" aria-controls="details-1">
+        <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="small">Show</span>
+      </button>
+    </div>
+
+    <div id="details-1" class="details" role="region" aria-labelledby="toggle-1" aria-hidden="true">
+      <div class="content">
+        <p style="margin:0 0 8px 0;">
+          This is a simple expanded area. The container has the class "details" as required. The button controls the area via aria-controls and aria-expanded.
+        </p>
+        <p class="small" style="margin:0;">Tip: Expand and collapse using mouse, touch, or keyboard (Enter/Space).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example">
+    <div class="header-row">
+      <div class="label">
+        <div class="title">Longer content with nested elements</div>
+        <div class="muted small">Animated open/close; accessible attributes present</div>
+      </div>
+      <button class="toggle" id="toggle-2" aria-expanded="false" aria-controls="details-2">
+        <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="small">Details</span>
+      </button>
+    </div>
+
+    <div id="details-2" class="details" role="region" aria-labelledby="toggle-2" aria-hidden="true">
+      <div class="content">
+        <p style="margin:0 0 8px 0;">
+          Here's a larger block of content to illustrate how the widget handles content of changing height. When the panel opens, its height is animated from 0 to the content height; when it closes the animation runs in reverse.
+        </p>
+        <ul style="margin:0 0 8px 18px;">
+          <li>First item in a list</li>
+          <li>Second item with a <a href="#" onclick="event.preventDefault()">link</a></li>
+          <li>Third item</li>
+        </ul>
+        <p class="small" style="margin:0;">This region uses role="region" and aria-labelledby to make its relation to the toggle clear to assistive technologies.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      /**
+       * Simple accessible expand/collapse behavior.
+       * - Buttons must have aria-controls pointing to the controlled element's id.
+       * - Controlled element must have class "details" (per requirement) and role="region" aria-labelledby linking back to the button.
+       */
+
+      function setupToggle(button){
+        var targetId = button.getAttribute('aria-controls');
+        if (!targetId) return;
+        var details = document.getElementById(targetId);
+        if (!details || !details.classList.contains('details')) return;
+
+        // initialize attributes
+        button.setAttribute('aria-expanded', 'false');
+        details.setAttribute('aria-hidden', 'true');
+
+        // Helper to get numeric height
+        function getContentHeight(){
+          // temporarily set height to 'auto' to measure actual content height
+          var prevHeight = details.style.height;
+          details.style.height = 'auto';
+          var h = details.scrollHeight;
+          details.style.height = prevHeight;
+          return h;
+        }
+
+        // Open the details with an animated height transition
+        function open(){
+          button.setAttribute('aria-expanded', 'true');
+          details.setAttribute('aria-hidden', 'false');
+
+          // Make sure element is measurable and not display:none
+          details.style.display = 'block';
+
+          // Start from current computed height (likely 0)
+          details.style.height = '0px';
+          // Force reflow so the starting height is applied
+          details.getBoundingClientRect();
+
+          // Then set to scrollHeight to animate open
+          var targetH = details.scrollHeight + 'px';
+          details.style.height = targetH;
+
+          // After transition, clear inline height to allow natural resizing
+          var tid;
+          function onEnd(ev){
+            if (ev && ev.target !== details) return;
+            details.style.height = '';
+            details.removeEventListener('transitionend', onEnd);
+            clearTimeout(tid);
+          }
+          details.addEventListener('transitionend', onEnd);
+          // Fallback: some browsers may not fire transitionend if duration is 0 or reduced motion
+          tid = setTimeout(function(){ onEnd(); }, 400);
+        }
+
+        function close(){
+          button.setAttribute('aria-expanded', 'false');
+          details.setAttribute('aria-hidden', 'true');
+
+          // To animate from current height to 0, set explicit height equal to current scrollHeight
+          var currentH = details.scrollHeight;
+          details.style.height = currentH + 'px';
+
+          // Force reflow
+          details.getBoundingClientRect();
+
+          // Then set height to 0 to animate collapse
+          details.style.height = '0px';
+
+          // When transition ends, hide element to avoid tab stops inside
+          function onEnd(ev){
+            if (ev && ev.target !== details) return;
+            details.style.display = 'none';
+            details.removeEventListener('transitionend', onEnd);
+          }
+          details.addEventListener('transitionend', onEnd);
+
+          // Fallback
+          setTimeout(function(){
+            if (details.style.display !== 'none') {
+              details.style.display = 'none';
+            }
+          }, 400);
+        }
+
+        // Initialize display to none so it's hidden until opened
+        details.style.display = 'none';
+        details.style.willChange = 'height';
+
+        button.addEventListener('click', function(){
+          var expanded = button.getAttribute('aria-expanded') === 'true';
+          if (expanded) close(); else open();
+        });
+
+        // Keyboard: allow Escape to close when focus is inside the details region
+        details.addEventListener('keydown', function(e){
+          if (e.key === 'Escape' || e.key === 'Esc') {
+            // move focus back to toggle and close
+            button.focus();
+            close();
+          }
+        });
+
+        // Optional: close on Escape when button has focus and open
+        button.addEventListener('keydown', function(e){
+          if ((e.key === 'Escape' || e.key === 'Esc') && button.getAttribute('aria-expanded') === 'true'){
+            close();
+            button.focus();
+          }
+        });
+
+        // Ensure that clicking a link inside the details doesn't unexpectedly keep height locked
+        details.addEventListener('transitionend', function(){
+          // nothing for now; placeholder if additional logic needed
+        });
+
+        // Make sure screen readers get the proper initial state
+        details.setAttribute('tabindex', '-1');
+      }
+
+      // Find all toggles on the page
+      var toggles = document.querySelectorAll('button[aria-controls]');
+      toggles.forEach(setupToggle);
+    })();
+  </script>
+</body>
+</html>

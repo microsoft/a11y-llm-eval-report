@@ -1,0 +1,141 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modal Dialog Example</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .trigger {
+      padding: 0.8rem 1.4rem;
+      border: none;
+      background: #0066ff;
+      color: #fff;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .trigger:hover,
+    .trigger:focus {
+      background: #0054d6;
+      outline: none;
+    }
+
+    dialog {
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+      padding: 2rem;
+      max-width: 400px;
+      width: 90vw;
+    }
+
+    dialog::backdrop {
+      background-color: rgba(0, 0, 0, 0.45);
+    }
+
+    .modal-header {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .modal-content {
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .close-button {
+      padding: 0.6rem 1.2rem;
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+      background: #eee;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <button type="button" class="trigger" aria-haspopup="dialog" aria-controls="example-modal">
+    Open Modal
+  </button>
+
+  <dialog id="example-modal" aria-labelledby="modal-title" aria-modal="true">
+    <h2 class="modal-header" id="modal-title">Modal Dialog</h2>
+    <p class="modal-content">
+      This is an example modal dialog component. It remains closed until you click the trigger button.
+      Use the close button below or press the Escape key to dismiss it.
+    </p>
+    <button type="button" class="close-button" data-close>Close</button>
+  </dialog>
+
+  <script>
+    (function () {
+      const modal = document.getElementById('example-modal');
+      const triggerButton = document.querySelector('.trigger');
+      const closeButton = modal.querySelector('[data-close]');
+      let lastFocusedElement = null;
+
+      if (!modal) return;
+
+      const openModal = () => {
+        lastFocusedElement = document.activeElement;
+        if (typeof modal.showModal === 'function') {
+          modal.showModal();
+        } else {
+          modal.setAttribute('open', '');
+        }
+      };
+
+      const closeModal = () => {
+        if (typeof modal.close === 'function') {
+          modal.close();
+        } else {
+          modal.removeAttribute('open');
+        }
+        if (lastFocusedElement) {
+          lastFocusedElement.focus();
+        }
+      };
+
+      triggerButton.addEventListener('click', openModal);
+      closeButton.addEventListener('click', closeModal);
+
+      modal.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        closeModal();
+      });
+
+      modal.addEventListener('click', (event) => {
+        const rect = modal.getBoundingClientRect();
+        const clickedInDialog = (
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom
+        );
+
+        if (!clickedInDialog) {
+          closeModal();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
