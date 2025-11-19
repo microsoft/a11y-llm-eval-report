@@ -1,0 +1,212 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modal Dialog Example</title>
+<style>
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 2.5rem;
+  background: #f5f5f5;
+  color: #222;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+p {
+  max-width: 60ch;
+  line-height: 1.6;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background: #0066ff;
+  color: white;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+button:focus-visible {
+  outline: 3px solid rgba(0, 102, 255, 0.5);
+  outline-offset: 2px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.modal__dialog {
+  width: min(90vw, 420px);
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+  display: grid;
+  gap: 1rem;
+}
+
+.modal__dialog header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.modal__dialog h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.modal__close {
+  background: transparent;
+  color: #666;
+  padding: 0.35rem;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.modal__close:hover {
+  color: #222;
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+  transform: none;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.modal__actions .secondary {
+  background: #e0e7ff;
+  color: #27337a;
+}
+
+.modal.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+</style>
+</head>
+<body>
+<h1>Standalone Modal Dialog Example</h1>
+<p>This example demonstrates a modal dialog that is hidden by default. Click the button below to open the dialog, interact with its content, and then close it again via the buttons or by pressing the Escape key.</p>
+<button class="trigger" aria-haspopup="dialog">Open Modal</button>
+
+<div class="modal" id="example-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description">
+  <div class="modal__dialog">
+    <header>
+      <h2 id="modal-title">Subscribe to Updates</h2>
+      <button class="modal__close" type="button" aria-label="Close">&times;</button>
+    </header>
+    <p id="modal-description">Join our mailing list to receive the latest news, updates, and exclusive content delivered straight to your inbox.</p>
+    <label>
+      Email address
+      <input type="email" name="email" placeholder="you@example.com" style="margin-top:0.35rem;padding:0.65rem;border-radius:0.4rem;border:1px solid #ccc;width:100%;">
+    </label>
+    <div class="modal__actions">
+      <button class="secondary" type="button">Maybe later</button>
+      <button type="button">Subscribe</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const modal = document.querySelector('#example-modal');
+  const openBtn = document.querySelector('.trigger');
+  const closeBtns = modal.querySelectorAll('.modal__close, .secondary');
+  const dialog = modal.querySelector('.modal__dialog');
+  const trapFocusSelectors = [
+    'a[href]',
+    'button:not([disabled])',
+    'textarea:not([disabled])',
+    'input:not([type="hidden"]):not([disabled])',
+    'select:not([disabled])',
+    '[tabindex]:not([tabindex^="-"])'
+  ];
+  let lastFocusedElement = null;
+
+  const getFocusableElements = () =>
+    Array.from(dialog.querySelectorAll(trapFocusSelectors.join(',')));
+
+  function openModal() {
+    lastFocusedElement = document.activeElement;
+    modal.classList.add('is-visible');
+    const focusable = getFocusableElements();
+    (focusable[0] || dialog).focus();
+    document.addEventListener('keydown', handleKeydown);
+  }
+
+  function closeModal() {
+    modal.classList.remove('is-visible');
+    document.removeEventListener('keydown', handleKeydown);
+    if (lastFocusedElement) {
+      lastFocusedElement.focus();
+      lastFocusedElement = null;
+    }
+  }
+
+  function handleKeydown(event) {
+    if (event.key === 'Escape') {
+      closeModal();
+    }
+    if (event.key === 'Tab') {
+      const focusable = getFocusableElements();
+      if (!focusable.length) {
+        event.preventDefault();
+        return;
+      }
+      const index = focusable.indexOf(document.activeElement);
+      const nextIndex = (index + (event.shiftKey ? -1 : 1) + focusable.length) % focusable.length;
+      focusable[nextIndex].focus();
+      event.preventDefault();
+    }
+  }
+
+  openBtn.addEventListener('click', openModal);
+
+  closeBtns.forEach(btn => {
+    btn.addEventListener('click', closeModal);
+  });
+
+  modal.addEventListener('click', event => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+})();
+</script>
+</body>
+</html>

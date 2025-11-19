@@ -1,0 +1,289 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widgets Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg: #ffffff;
+      --fg: #222;
+      --muted: #666;
+      --accent: #0b6efd;
+      --border: #dcdcdc;
+      --panel: #f7f7f9;
+      --radius: 10px;
+      --shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+    }
+    body {
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      display: grid;
+      place-items: start center;
+    }
+    header {
+      margin: 0 auto 1.5rem;
+      max-width: 860px;
+      padding: 0 0.5rem;
+    }
+    header h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .example {
+      width: min(860px, 95vw);
+      margin: 1rem auto;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      box-shadow: var(--shadow);
+    }
+
+    /* Shared details container styling */
+    .details {
+      margin-top: 0.75rem;
+      padding: 0.75rem 0.875rem;
+      border-left: 3px solid var(--accent);
+      background: var(--panel);
+      border-radius: 6px;
+    }
+    .details p {
+      margin: 0.5rem 0;
+    }
+    .details ul {
+      margin: 0.5rem 0 0.25rem;
+      padding-left: 1.25rem;
+    }
+
+    /* Native <details> styling */
+    details.details {
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    details.details > summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      color: var(--fg);
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      user-select: none;
+    }
+    details.details > summary:focus-visible {
+      outline: 3px solid rgba(11,110,253,0.4);
+    }
+    details.details[open] > summary {
+      background: #eef2ff;
+      border-color: #dbeafe;
+    }
+    details.details > summary::before {
+      content: "▸";
+      display: inline-block;
+      transform: translateY(-1px);
+      color: var(--muted);
+      transition: transform 180ms ease;
+    }
+    details.details[open] > summary::before {
+      transform: rotate(90deg);
+      color: var(--accent);
+    }
+    details.details > div {
+      margin: 0.75rem 0 0;
+      padding: 0.75rem 0.875rem;
+      border-left: 3px solid var(--accent);
+      background: var(--panel);
+      border-radius: 6px;
+    }
+
+    /* Button toggle styling */
+    .toggle-btn {
+      appearance: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .toggle-btn:hover { background: #f1f5f9; }
+    .toggle-btn:focus-visible { outline: 3px solid rgba(11,110,253,0.4); }
+    .toggle-btn .icon {
+      width: 1rem; height: 1rem; display: inline-block;
+      transform-origin: center;
+      transition: transform 180ms ease;
+    }
+    .toggle-btn[aria-expanded="true"] .icon { transform: rotate(90deg); }
+
+    /* CSS-only checkbox toggle */
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0 0 0 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+    .toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #0f172a;
+      font-weight: 600;
+      user-select: none;
+    }
+    .toggle-label:focus-within { outline: 3px solid rgba(11,110,253,0.4); }
+    .toggle-label .icon {
+      width: 1rem; height: 1rem; display: inline-block;
+      transform-origin: center;
+      transition: transform 180ms ease;
+    }
+    /* Text swap for CSS-only label */
+    .toggle-label .open-text,
+    .toggle-label .close-text { display: inline; }
+    #css-toggle-1:not(:checked) ~ .toggle-label .close-text { display: none; }
+    #css-toggle-1:checked ~ .toggle-label .open-text { display: none; }
+    #css-toggle-1:not(:checked) ~ .toggle-label .icon { transform: rotate(0deg); }
+    #css-toggle-1:checked ~ .toggle-label .icon { transform: rotate(90deg); }
+    /* Show/hide the controlled content in CSS-only widget */
+    #css-toggle-1:not(:checked) ~ .details { display: none; }
+    #css-toggle-1:checked ~ .details { display: block; }
+
+    /* Footer note */
+    footer {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: 0.925rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widgets</h1>
+    <p>Examples using native HTML, JavaScript, and pure CSS. Each widget is wrapped in an element with the "example" class and the controlled content container uses the "details" class.</p>
+  </header>
+
+  <div class="example">
+    <h2>Native details/summary</h2>
+    <details class="details">
+      <summary aria-controls="native-details-content">Project brief</summary>
+      <div id="native-details-content" role="region" aria-label="Project brief details">
+        <p>This section uses the built-in HTML details/summary element for an accessible toggle without any JavaScript.</p>
+        <ul>
+          <li>Opens and closes with keyboard and mouse.</li>
+          <li>Works across modern browsers.</li>
+          <li>Can be styled for consistent visuals.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+
+  <div class="example">
+    <h2>Button-controlled region (JavaScript)</h2>
+    <button class="toggle-btn" id="js-toggle-1" aria-expanded="false" aria-controls="js-details-1">
+      <span class="icon" aria-hidden="true">▸</span>
+      <span class="toggle-text">Show details</span>
+    </button>
+    <div class="details" id="js-details-1" role="region" aria-labelledby="js-toggle-1" hidden>
+      <p>This content is shown and hidden by a button. The button updates its aria-expanded state and text as you toggle.</p>
+      <p>Use cases:</p>
+      <ul>
+        <li>When you need a custom trigger that is not a summary element.</li>
+        <li>When you want fine-grained control over animations and state.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="example">
+    <h2>Checkbox toggle (CSS-only)</h2>
+    <input id="css-toggle-1" class="visually-hidden" type="checkbox" aria-controls="css-details-1" aria-expanded="false">
+    <label for="css-toggle-1" class="toggle-label" id="css-toggle-label-1">
+      <span class="icon" aria-hidden="true">▸</span>
+      <span class="open-text">Show more</span>
+      <span class="close-text">Hide</span>
+    </label>
+    <div class="details" id="css-details-1" role="region" aria-labelledby="css-toggle-label-1">
+      <p>This example relies entirely on CSS. Toggling the checkbox controls visibility of the content and swaps the label text.</p>
+      <p>Pros:</p>
+      <ul>
+        <li>No JavaScript required.</li>
+        <li>Simple and performant.</li>
+      </ul>
+      <p>Cons:</p>
+      <ul>
+        <li>Limited dynamic behavior compared to JavaScript.</li>
+        <li>State syncing for aria attributes may need JS for full accessibility.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    Expand/collapse behavior shown across three approaches. Customize styles or interactions as needed.
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // JS-controlled button toggles
+      document.querySelectorAll('button.toggle-btn[aria-controls]').forEach(btn => {
+        const targetId = btn.getAttribute('aria-controls');
+        const content = document.getElementById(targetId);
+        const textSpan = btn.querySelector('.toggle-text');
+
+        const setState = (expanded) => {
+          btn.setAttribute('aria-expanded', String(expanded));
+          if (content) content.hidden = !expanded;
+          if (textSpan) textSpan.textContent = expanded ? 'Hide details' : 'Show details';
+        };
+
+        // Initialize
+        setState(false);
+
+        btn.addEventListener('click', () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          setState(!expanded);
+        });
+      });
+
+      // Keep aria-expanded in sync for CSS-only checkbox
+      document.querySelectorAll('input[type="checkbox"][aria-controls]').forEach(chk => {
+        const updateExpanded = () => {
+          chk.setAttribute('aria-expanded', chk.checked ? 'true' : 'false');
+        };
+        updateExpanded();
+        chk.addEventListener('change', updateExpanded);
+      });
+    });
+  </script>
+</body>
+</html>

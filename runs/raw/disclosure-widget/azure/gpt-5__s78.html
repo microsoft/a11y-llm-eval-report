@@ -1,0 +1,296 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widgets</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --fg: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --border: #e2e8f0;
+      --focus: #93c5fd;
+    }
+    * { box-sizing: border-box }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      margin: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 32px 16px 64px;
+    }
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 12px;
+    }
+    p.lead {
+      color: var(--muted);
+      margin: 0 0 24px;
+    }
+
+    .example {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin: 16px 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    }
+    .example h2 {
+      font-size: 1.1rem;
+      margin: 0 0 12px;
+    }
+
+    /* Native <details> styling */
+    details.details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+    details.details > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+    details.details > summary::-webkit-details-marker { display: none }
+    details.details > summary::before {
+      content: "▶";
+      display: inline-block;
+      transform-origin: center;
+      transition: transform .18s ease;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    details.details[open] > summary::before {
+      transform: rotate(90deg);
+    }
+    details.details .content {
+      border-top: 1px solid var(--border);
+      padding: 12px 14px 16px;
+      color: #0b1220;
+      background: #fafcff;
+    }
+
+    /* Button-controlled region */
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--fg);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    }
+    .toggle:hover { border-color: #cbd5e1 }
+    .toggle:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .toggle .icon {
+      display: inline-block;
+      width: 1ch;
+      text-align: center;
+      margin-right: 6px;
+      transition: transform .18s ease;
+    }
+    .toggle[aria-expanded="true"] .icon {
+      transform: rotate(90deg);
+    }
+    .details {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fafcff;
+      padding: 12px 14px 16px;
+    }
+    [hidden] { display: none !important }
+
+    /* Card-style custom collapse */
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+    }
+    .card-header button {
+      all: unset;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+    .card-header button:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .chevron {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid var(--muted);
+      border-bottom: 2px solid var(--muted);
+      transform: rotate(-45deg);
+      transition: transform .18s ease;
+      margin-right: 4px;
+    }
+    .card-header button[aria-expanded="true"] .chevron {
+      transform: rotate(45deg);
+    }
+    .card .details {
+      border-top: 1px solid var(--border);
+      background: #fafcff;
+      margin-top: 0;
+    }
+
+    /* Footer note */
+    .note {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 24px;
+    }
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      border: 1px solid #d1d5db;
+      border-bottom-width: 3px;
+      border-radius: 4px;
+      padding: 0 4px;
+      background: #f1f5f9;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <main class="container" role="main">
+    <h1>Expand/Collapse Widgets</h1>
+    <p class="lead">Three approaches: native details, button-controlled region, and a card-style toggle.</p>
+
+    <div class="example" aria-label="Native details example">
+      <h2>Native details element</h2>
+      <details class="details">
+        <summary>
+          What is an expand/collapse widget?
+        </summary>
+        <div class="content">
+          <p>An expand/collapse widget reveals additional content on demand. Using the HTML <code>&lt;details&gt;</code> element provides built-in accessibility and keyboard support.</p>
+          <ul>
+            <li>Click the summary to toggle the content.</li>
+            <li>Press Space or Enter when focused to toggle.</li>
+            <li>The open state can be styled via <code>details[open]</code>.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="example" aria-label="Button controlled region example">
+      <h2 id="ex2-title">Button-controlled region</h2>
+      <div class="controls">
+        <button class="toggle" aria-expanded="false" aria-controls="ex2-details">
+          <span class="icon">▶</span>
+          Show answer
+        </button>
+      </div>
+      <div class="details" id="ex2-details" role="region" aria-labelledby="ex2-title" hidden>
+        <p>This region is controlled by the button above via <code>aria-controls</code> and <code>aria-expanded</code>. The content is hidden using the <code>hidden</code> attribute and revealed when the button is activated.</p>
+        <p>Keyboard and screen reader users receive state changes through ARIA attributes. You can customize the appearance and animations freely.</p>
+      </div>
+    </div>
+
+    <div class="example" aria-label="Card toggle example">
+      <h2>Card-style toggle</h2>
+      <div class="card">
+        <div class="card-header">
+          <button type="button" aria-expanded="false" aria-controls="ex3-details" id="ex3-button">
+            <span class="chevron" aria-hidden="true"></span>
+            Product specifications
+          </button>
+        </div>
+        <div class="details" id="ex3-details" role="region" aria-labelledby="ex3-button" hidden>
+          <ul>
+            <li>Dimensions: 120 × 75 × 8 mm</li>
+            <li>Weight: 150 g</li>
+            <li>Battery: 4000 mAh</li>
+            <li>Connectivity: Wi‑Fi 6, Bluetooth 5.3, USB‑C</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="note">Tip: Use the <span class="kbd">Tab</span> key to focus each toggle and press <span class="kbd">Enter</span> or <span class="kbd">Space</span> to activate.</p>
+  </main>
+
+  <script>
+    (function () {
+      function toggleControlled(button) {
+        var controlsId = button.getAttribute('aria-controls');
+        if (!controlsId) return;
+        var region = document.getElementById(controlsId);
+        if (!region) return;
+        var expanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', String(!expanded));
+        if (!expanded) {
+          region.removeAttribute('hidden');
+        } else {
+          region.setAttribute('hidden', '');
+        }
+
+        // Optional: update button label if it contains text "Show/Hide"
+        var text = button.textContent.trim();
+        var isShow = /show/i.test(text);
+        var isHide = /hide/i.test(text);
+        if (isShow || isHide) {
+          var newText = (!expanded ? text.replace(/show/i, 'Hide') : text.replace(/hide/i, 'Show'));
+          button.childNodes.forEach(function (node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+              node.nodeValue = newText.replace(/^\s+|\s+$/g, ' ');
+            }
+          });
+        }
+      }
+
+      // Attach handlers to any button with aria-controls, inside examples
+      var toggles = document.querySelectorAll('.example [aria-controls]');
+      toggles.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          toggleControlled(btn);
+        });
+        btn.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleControlled(btn);
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

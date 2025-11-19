@@ -1,0 +1,149 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #fff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      background: var(--bg);
+      margin: 0;
+      padding: 2rem;
+      color: var(--text);
+    }
+    h1 { font-size: 1.75rem; margin-bottom: 1rem; }
+    .example {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    .example h2 { font-size: 1.1rem; margin: 0 0 0.5rem; }
+    .panel { margin-top: 0.5rem; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+    button.toggle {
+      width: 100%;
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: #f8fafc;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    button.toggle:hover { background: #eef2f7; }
+    button.toggle:focus { outline: 2px solid #93c5fd; outline-offset: 2px; }
+    .icon { width: 1em; height: 1em; display:inline-block; transition: transform .25s ease; }
+    .icon.open { transform: rotate(180deg); }
+
+    .details { padding: 0.75rem 1rem; background: #fff; border-top: 1px solid var(--border); display: none; }
+    .details.open { display: block; }
+
+    .small { font-size: 0.9rem; color: var(--muted); }
+
+    .container { display: grid; grid-template-columns: 1fr; gap: 12px; }
+
+    @media (min-width: 600px) {
+      .container { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget Demo</h1>
+
+  <div class="container">
+    <div class="example" aria-labelledby="ex1-title">
+      <h2 id="ex1-title" style="margin:0 0 0.25rem; font-size:1.05rem;">Basic Expand/Collapse</h2>
+      <p class="small" style="margin:0 0 0.5rem;">Click the header to toggle the content panel.</p>
+      <div class="panel" aria-label="Basic panel">
+        <button class="toggle" aria-expanded="false" aria-controls="ex1-panel" type="button">
+          <span>What is Lorem Ipsum?</span>
+          <span class="icon" aria-hidden="true">▾</span>
+        </button>
+        <div id="ex1-panel" class="details" role="region" aria-labelledby="ex1-title">
+          <p style="margin:.5rem 0 0;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="example" aria-labelledby="ex2-title">
+      <h2 id="ex2-title" style="margin:0 0 0.25rem; font-size:1.05rem;">Controlled Open State</h2>
+      <p class="small" style="margin:0 0 0.5rem;">This widget starts expanded and can be collapsed.</p>
+      <div class="panel" aria-label="Controlled panel">
+        <button class="toggle" aria-expanded="true" aria-controls="ex2-panel" type="button">
+          <span>Overview</span>
+          <span class="icon open" aria-hidden="true">▾</span>
+        </button>
+        <div id="ex2-panel" class="details open" role="region" aria-labelledby="ex2-title">
+          <p style="margin:.5rem 0;">This content is shown by default. Use the button to collapse or expand it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="example" aria-labelledby="ex3-title">
+      <h2 id="ex3-title" style="margin:0 0 0.25rem; font-size:1.05rem;">Accordion Style</h2>
+      <p class="small" style="margin:0 0 0.5rem;">Multiple items can be expanded independently.</p>
+      <div class="panel" aria-label="Accordion panel">
+        <button class="toggle" aria-expanded="false" aria-controls="ex3-panel" type="button">
+          <span>Details about project</span>
+          <span class="icon" aria-hidden="true">▾</span>
+        </button>
+        <div id="ex3-panel" class="details" role="region" aria-labelledby="ex3-title">
+          <p style="margin:.5rem 0;">We aim to deliver a fast and accessible UI with responsive design principles and progressive enhancement.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Initialize all widgets inside elements with class 'example'
+      const examples = document.querySelectorAll('.example');
+      examples.forEach((ex) => {
+        const toggle = ex.querySelector('.toggle');
+        const panelId = toggle ? toggle.getAttribute('aria-controls') : null;
+        const panel = panelId ? document.getElementById(panelId) : null;
+        if (!toggle || !panel) return;
+
+        // If the panel has class 'open', ensure initial state
+        const isOpen = panel.classList.contains('open');
+        if (isOpen) {
+          toggle.setAttribute('aria-expanded', 'true');
+        } else {
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        // Attach click handler
+        toggle.addEventListener('click', function() {
+          const currentlyOpen = panel.classList.toggle('open');
+          const ariaVal = currentlyOpen ? 'true' : 'false';
+          toggle.setAttribute('aria-expanded', ariaVal);
+          // rotate icon
+          const icon = toggle.querySelector('.icon');
+          if (icon) icon.classList.toggle('open', currentlyOpen);
+        });
+
+        // Optional: allow pressing Enter/Space to toggle when focused
+        toggle.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle.click();
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

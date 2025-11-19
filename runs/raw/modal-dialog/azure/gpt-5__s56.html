@@ -1,0 +1,321 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Modal Dialog Component Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --overlay: rgba(0,0,0,.5);
+      --bg: #ffffff;
+      --text: #1f2937;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --primary-contrast: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: #f8fafc;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 1rem;
+    }
+    p.lead {
+      margin: 0 0 1.5rem;
+      color: #4b5563;
+    }
+    .trigger {
+      appearance: none;
+      border: none;
+      border-radius: .5rem;
+      background: var(--primary);
+      color: var(--primary-contrast);
+      padding: .75rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 1px 1px rgba(0,0,0,.04);
+      transition: transform .05s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .trigger:hover { box-shadow: 0 4px 10px rgba(0,0,0,.12); }
+    .trigger:active { transform: translateY(1px); }
+    .trigger:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+
+    /* Modal backdrop and layout */
+    .modal[hidden] { display: none; }
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      background: var(--overlay);
+    }
+    .modal-dialog {
+      position: relative;
+      width: min(95vw, 640px);
+      max-height: min(85vh, 900px);
+      background: var(--bg);
+      border-radius: .75rem;
+      box-shadow: 0 20px 45px rgba(0,0,0,.25);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      animation: scaleIn .15s ease-out;
+    }
+    @keyframes scaleIn {
+      from { transform: translateY(8px) scale(.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      padding: 1rem 1rem .75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    .modal-close {
+      appearance: none;
+      background: transparent;
+      border: none;
+      border-radius: .5rem;
+      padding: .5rem;
+      cursor: pointer;
+      color: #374151;
+    }
+    .modal-close:hover { background: #f3f4f6; }
+    .modal-close:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+
+    .modal-body {
+      padding: 1rem;
+      overflow: auto;
+    }
+    .modal-footer {
+      display: flex;
+      gap: .5rem;
+      justify-content: flex-end;
+      padding: .75rem 1rem 1rem;
+      border-top: 1px solid var(--border);
+      background: #f9fafb;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-radius: .5rem;
+      padding: .5rem .9rem;
+      background: #ffffff;
+      color: #111827;
+      cursor: pointer;
+      transition: background .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .btn:hover { background: #f3f4f6; }
+    .btn:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+    .btn.primary {
+      background: var(--primary);
+      color: var(--primary-contrast);
+      border-color: transparent;
+    }
+    .btn.primary:hover { filter: brightness(1.05); }
+
+    .field {
+      display: grid;
+      gap: .375rem;
+      margin-bottom: .9rem;
+    }
+    .field label {
+      font-weight: 600;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: .5rem;
+      padding: .6rem .7rem;
+      font: inherit;
+      color: inherit;
+      background: #fff;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: 3px solid #93c5fd;
+      outline-offset: 2px;
+      border-color: #93c5fd;
+    }
+
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Modal Dialog Component</h1>
+    <p class="lead">Click the button below to open a modal dialog. It is closed by default.</p>
+    <button class="trigger" aria-haspopup="dialog" aria-controls="example-modal" aria-expanded="false">Open Modal</button>
+  </div>
+
+  <div id="example-modal" class="modal" hidden aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" tabindex="-1">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Example Modal</h2>
+        <button type="button" class="modal-close" aria-label="Close dialog" data-close>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-desc">
+        <p>This is a modal dialog. It traps focus while open and can be closed by clicking outside, pressing Escape, or using the close button.</p>
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" placeholder="Ada Lovelace" required>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="ada@example.com" required>
+        </div>
+        <div class="field">
+          <label for="role">Role</label>
+          <select id="role" name="role">
+            <option value="engineer">Engineer</option>
+            <option value="designer">Designer</option>
+            <option value="product">Product Manager</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" type="button" data-close>Cancel</button>
+        <button class="btn primary" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.getElementById('example-modal');
+      const dialog = modal.querySelector('.modal-dialog');
+      const triggers = document.querySelectorAll('.trigger');
+      const closeButtons = modal.querySelectorAll('[data-close]');
+      let lastFocused = null;
+
+      const focusableSelector = [
+        'a[href]',
+        'area[href]',
+        'button:not([disabled])',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])'
+      ].join(',');
+
+      function getFocusableElements() {
+        const nodes = dialog.querySelectorAll(focusableSelector);
+        return Array.from(nodes).filter(el => el.offsetParent !== null || el === document.activeElement);
+      }
+
+      function openModal() {
+        if (!modal.hidden) return;
+        lastFocused = document.activeElement;
+        modal.hidden = false;
+        modal.setAttribute('aria-hidden', 'false');
+        triggers.forEach(btn => btn.setAttribute('aria-expanded', 'true'));
+        document.body.style.overflow = 'hidden';
+
+        // Focus the dialog or first focusable element
+        const focusables = getFocusableElements();
+        if (focusables.length) {
+          focusables[0].focus();
+        } else {
+          dialog.focus();
+        }
+
+        document.addEventListener('keydown', onKeydown);
+        modal.addEventListener('click', onBackdropClick);
+      }
+
+      function closeModal() {
+        if (modal.hidden) return;
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        triggers.forEach(btn => btn.setAttribute('aria-expanded', 'false'));
+        document.body.style.overflow = '';
+
+        document.removeEventListener('keydown', onKeydown);
+        modal.removeEventListener('click', onBackdropClick);
+
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+          lastFocused.focus();
+        }
+      }
+
+      function onBackdropClick(event) {
+        if (event.target === modal) {
+          closeModal();
+        }
+      }
+
+      function onKeydown(event) {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeModal();
+          return;
+        }
+        if (event.key === 'Tab') {
+          const focusables = getFocusableElements();
+          if (focusables.length === 0) return;
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          const active = document.activeElement;
+
+          if (event.shiftKey) {
+            if (active === first || active === dialog) {
+              event.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (active === last) {
+              event.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      }
+
+      triggers.forEach(btn => btn.addEventListener('click', openModal));
+      closeButtons.forEach(btn => btn.addEventListener('click', closeModal));
+
+      // Optional: close on form submit simulation
+      const saveBtn = modal.querySelector('.btn.primary');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+          // Simulate saving…
+          closeModal();
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

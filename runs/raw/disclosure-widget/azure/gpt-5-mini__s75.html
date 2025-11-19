@@ -1,0 +1,206 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root{
+      --accent:#0366d6;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --text:#0f1724;
+      --muted:#6b7280;
+      --radius:8px;
+      --duration:240ms;
+    }
+    body{
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background: linear-gradient(180deg,var(--bg),#eef2f7);
+      color:var(--text);
+      margin:24px;
+      line-height:1.45;
+    }
+
+    .example{
+      background: var(--card);
+      border: 1px solid rgba(15,23,36,0.06);
+      padding: 16px;
+      border-radius: var(--radius);
+      box-shadow: 0 1px 2px rgba(15,23,36,0.03);
+      max-width:720px;
+      margin-bottom:18px;
+    }
+
+    .summary-row{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .toggle {
+      appearance:none;
+      -webkit-appearance:none;
+      border:1px solid rgba(3,102,214,0.12);
+      background:transparent;
+      color:var(--accent);
+      padding:8px 12px;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .toggle:focus{
+      outline:3px solid rgba(3,102,214,0.12);
+      outline-offset:2px;
+    }
+
+    .chev{
+      display:inline-block;
+      width:14px;
+      height:14px;
+      transform-origin:center;
+      transition: transform var(--duration) ease;
+    }
+    .toggle[aria-expanded="true"] .chev{
+      transform:rotate(90deg);
+    }
+
+    .details{
+      overflow:hidden;
+      transition: max-height var(--duration) ease, opacity var(--duration) ease;
+      max-height:0;
+      opacity:0;
+      margin-top:12px;
+      border-top:1px dashed rgba(15,23,36,0.06);
+      padding-top:12px;
+      pointer-events:none;
+    }
+
+    .details[aria-hidden="false"]{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    /* content inside details */
+    .details p{ margin:0 0 8px 0; color:var(--muted); }
+    .details ul{ margin:8px 0 0 18px; color:var(--muted); }
+
+    /* Small helper text */
+    .hint{ font-size:13px; color:var(--muted); margin-left:auto; }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget</h1>
+
+  <div class="example">
+    <div class="summary-row">
+      <button id="toggle-1" class="toggle" aria-expanded="false" aria-controls="details-1">
+        <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8 5v14l11-7z" fill="currentColor"/>
+        </svg>
+        Show more
+      </button>
+      <div class="hint">Accessible, animated</div>
+    </div>
+
+    <div id="details-1" class="details" role="region" aria-labelledby="toggle-1" aria-hidden="true">
+      <p>
+        This content is controlled by the button above. The button uses aria-expanded and aria-controls to
+        indicate the state and relationship; the content container uses aria-hidden and role="region".
+      </p>
+      <p>
+        Animations are implemented by adjusting max-height to the content's scrollHeight so the transition is smooth.
+      </p>
+    </div>
+  </div>
+
+  <div class="example">
+    <div class="summary-row">
+      <button id="toggle-2" class="toggle" aria-expanded="false" aria-controls="details-2">
+        <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8 5v14l11-7z" fill="currentColor"/>
+        </svg>
+        Ingredients
+      </button>
+      <div class="hint">Tap or press Space/Enter</div>
+    </div>
+
+    <div id="details-2" class="details" role="region" aria-labelledby="toggle-2" aria-hidden="true">
+      <p>For a simple smoothie:</p>
+      <ul>
+        <li>1 banana</li>
+        <li>1 cup frozen berries</li>
+        <li>1/2 cup yogurt</li>
+        <li>1/2 cup milk</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      function initToggle(button){
+        var ctrlId = button.getAttribute('aria-controls');
+        if(!ctrlId) return;
+        var details = document.getElementById(ctrlId);
+        if(!details) return;
+
+        // Ensure initial heights if expanded by default
+        if(button.getAttribute('aria-expanded') === 'true'){
+          details.setAttribute('aria-hidden','false');
+          details.style.maxHeight = details.scrollHeight + 'px';
+        } else {
+          details.setAttribute('aria-hidden','true');
+          details.style.maxHeight = '0';
+        }
+
+        function open(){
+          button.setAttribute('aria-expanded','true');
+          details.setAttribute('aria-hidden','false');
+          // allow the browser to compute before setting maxHeight for transition
+          requestAnimationFrame(function(){
+            details.style.maxHeight = details.scrollHeight + 'px';
+          });
+        }
+
+        function close(){
+          button.setAttribute('aria-expanded','false');
+          // collapse: set to current scrollHeight first to ensure transition
+          details.style.maxHeight = details.scrollHeight + 'px';
+          requestAnimationFrame(function(){
+            details.setAttribute('aria-hidden','true');
+            details.style.maxHeight = '0';
+          });
+        }
+
+        button.addEventListener('click', function(){
+          var expanded = button.getAttribute('aria-expanded') === 'true';
+          if(expanded) close(); else open();
+        });
+
+        // If content height changes (images, dynamic content), adjust maxHeight when open
+        var ro = new ResizeObserver(function(){
+          if(button.getAttribute('aria-expanded') === 'true'){
+            details.style.maxHeight = details.scrollHeight + 'px';
+          }
+        });
+        ro.observe(details);
+
+        // When transition ends and it's open, clear max-height to allow natural growth
+        details.addEventListener('transitionend', function(e){
+          if(e.propertyName === 'max-height' && button.getAttribute('aria-expanded') === 'true'){
+            details.style.maxHeight = 'none';
+          }
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function(){
+        var buttons = document.querySelectorAll('button[aria-controls]');
+        buttons.forEach(initToggle);
+      });
+    })();
+  </script>
+</body>
+</html>

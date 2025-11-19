@@ -1,0 +1,187 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #f7f7f7;
+      --card: #ffffff;
+      --border: #dcdcdc;
+      --text: #333;
+      --accent: #0b79d0;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 8px;
+      padding: 12px 12px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+      margin: 16px 0;
+    }
+
+    .example + .example {
+      margin-top: 14px;
+    }
+
+    .trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      background: #fff;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease;
+    }
+
+    .trigger:hover {
+      background: #f6f6f6;
+      border-color: #999;
+    }
+
+    .trigger:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .details {
+      height: 0;
+      overflow: hidden;
+      transition: height 260ms ease;
+      padding: 0 6px;
+    }
+
+    .details-content {
+      padding: 12px 0;
+      font-size: 14px;
+    }
+
+    .details[aria-hidden="true"] {
+      /* ensure hidden semantics even if height is 0 */
+    }
+
+    @media (min-width: 640px) {
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Expand/Collapse Widget Demo</h1>
+
+    <div class="example" aria-label="Basic collapsible panel">
+      <button class="trigger" id="trigger-1" aria-expanded="false" aria-controls="panel-1">
+        Expand details
+      </button>
+      <div id="panel-1" class="details" role="region" aria-labelledby="trigger-1" aria-hidden="true" style="height:0;">
+        <div class="details-content">
+          <p>
+            This is a simple expand/collapse widget. The content area is wrapped in a container
+            with the class "details" and expands with a smooth height transition. You can put
+            any kind of content here, such as text, lists, images, or other widgets.
+          </p>
+          <ul>
+            <li>Accessible via ARIA attributes</li>
+            <li>Animated height transition</li>
+            <li>Works with multiple instances on the page</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="example" aria-label="Second collapsible panel">
+      <button class="trigger" id="trigger-2" aria-expanded="false" aria-controls="panel-2">
+        Expand more
+      </button>
+      <div id="panel-2" class="details" role="region" aria-labelledby="trigger-2" aria-hidden="true" style="height:0;">
+        <div class="details-content">
+          <p>
+            This second example demonstrates that the same widget pattern can be reused
+            multiple times on a page. The container for the controlled content uses the
+            required "details" class as specified.
+          </p>
+          <p>
+            Tip: Try expanding and collapsing both panels to see independent behavior.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // Initialize all widgets on the page
+      document.querySelectorAll('.example').forEach(function(ex) {
+        var btn = ex.querySelector('.trigger');
+        var panel = ex.querySelector('.details');
+        if (!btn || !panel) return;
+
+        // Ensure initial collapsed state
+        panel.style.height = '0px';
+        panel.style.overflow = 'hidden';
+        panel.setAttribute('aria-hidden', 'true');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.textContent = 'Expand details';
+
+        btn.addEventListener('click', function() {
+          var isExpanded = btn.getAttribute('aria-expanded') === 'true';
+
+          if (isExpanded) {
+            // Collapse
+            // Set a fixed height to start the collapse animation
+            panel.style.height = panel.scrollHeight + 'px';
+            requestAnimationFrame(function() {
+              panel.style.height = '0px';
+            });
+            panel.setAttribute('aria-hidden', 'true');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.textContent = 'Expand details';
+          } else {
+            // Expand
+            // Measure height and animate to that height
+            panel.style.height = panel.scrollHeight + 'px';
+            panel.addEventListener('transitionend', function onEnd() {
+              // After growing, set height to auto to accommodate dynamic content
+              panel.style.height = 'auto';
+              panel.removeEventListener('transitionend', onEnd);
+            });
+            panel.setAttribute('aria-hidden', 'false');
+            btn.setAttribute('aria-expanded', 'true');
+            btn.textContent = 'Collapse';
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

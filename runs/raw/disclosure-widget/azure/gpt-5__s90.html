@@ -1,0 +1,284 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widgets Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #222;
+      --muted: #666;
+      --border: #ddd;
+      --accent: #1e6ad6;
+      --example-bg: #f8f9fb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.5;
+    }
+    h1 {
+      margin: 0 0 1rem;
+      font-size: 1.75rem;
+    }
+    .intro {
+      margin-bottom: 1.5rem;
+      color: var(--muted);
+    }
+    .examples {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 900px) {
+      .examples {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--example-bg);
+      padding: 1rem;
+      min-height: 100%;
+    }
+    .example h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* Common toggle control styles */
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .toggle:hover {
+      background: #f3f5f8;
+      border-color: #cfd8e3;
+    }
+    .toggle:focus-visible {
+      outline: 3px solid rgba(30, 106, 214, 0.25);
+      outline-offset: 2px;
+    }
+    .chevron {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      flex: 0 0 14px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: rotate(-45deg);
+      transition: transform 0.2s ease;
+      opacity: 0.7;
+    }
+
+    /* Native <details> example */
+    .example.native-details details {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      overflow: clip;
+    }
+    .example.native-details summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.625rem 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      user-select: none;
+    }
+    .example.native-details summary::-webkit-details-marker { display: none; }
+    .example.native-details summary:focus-visible {
+      outline: 3px solid rgba(30, 106, 214, 0.25);
+      outline-offset: 2px;
+    }
+    .example.native-details .details {
+      border-top: 1px solid var(--border);
+      padding: 0.75rem;
+      background: #fff;
+    }
+    .example.native-details details:not([open]) .chevron {
+      transform: rotate(-45deg);
+    }
+    .example.native-details details[open] .chevron {
+      transform: rotate(135deg);
+    }
+
+    /* ARIA-controlled example */
+    .example.aria-widget .details {
+      border: 1px solid var(--border);
+      border-radius: 0 0 6px 6px;
+      padding: 0.75rem;
+      background: #fff;
+      margin-top: -1px;
+    }
+    .example.aria-widget .toggle {
+      border-radius: 6px 6px 0 0;
+    }
+    .example.aria-widget .toggle[aria-expanded="false"] + .details {
+      display: none;
+    }
+    .example.aria-widget .toggle[aria-expanded="true"] + .details {
+      display: block;
+    }
+    .example.aria-widget .toggle[aria-expanded="true"] .chevron {
+      transform: rotate(135deg);
+    }
+
+    /* CSS-only checkbox example */
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .example.css-only .details {
+      border: 1px solid var(--border);
+      border-radius: 0 0 6px 6px;
+      padding: 0.75rem;
+      background: #fff;
+      margin-top: -1px;
+      display: none;
+    }
+    .example.css-only label.toggle {
+      border-radius: 6px 6px 0 0;
+    }
+    .example.css-only input:checked ~ .details {
+      display: block;
+    }
+    .example.css-only input:checked ~ label .chevron {
+      transform: rotate(135deg);
+    }
+
+    /* Content styling */
+    .details p {
+      margin: 0 0 0.75rem;
+    }
+    .details ul {
+      margin: 0.25rem 0 0.75rem 1rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      color: #fff;
+      background: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widgets</h1>
+  <p class="intro">Three approaches: native details, ARIA-controlled button, and CSS-only checkbox. Each widget is wrapped with a div using the "example" class, and the collapsible content uses the "details" class.</p>
+
+  <div class="examples">
+    <div class="example native-details">
+      <h2>Native &lt;details&gt;</h2>
+      <details>
+        <summary>
+          Product specifications
+          <span class="chevron" aria-hidden="true"></span>
+        </summary>
+        <div class="details">
+          <p><span class="badge">Specs</span> Technical details for Model X200.</p>
+          <ul>
+            <li>Display: 14" IPS, 1920×1200</li>
+            <li>CPU: 8-core, 3.4 GHz</li>
+            <li>RAM: 16 GB DDR5</li>
+            <li>Storage: 512 GB NVMe SSD</li>
+            <li>Battery: 72 Wh</li>
+          </ul>
+          <p>Warranty: 2 years limited hardware warranty.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="example aria-widget">
+      <h2>ARIA-controlled Button</h2>
+      <button type="button" class="toggle" aria-expanded="false" aria-controls="shipping-details">
+        Shipping and returns
+        <span class="chevron" aria-hidden="true"></span>
+      </button>
+      <div id="shipping-details" class="details" hidden>
+        <p><span class="badge">Shipping</span> Free standard shipping on orders over $50.</p>
+        <ul>
+          <li>Standard: 3–5 business days</li>
+          <li>Expedited: 2 business days</li>
+          <li>Overnight: Next business day</li>
+        </ul>
+        <p><span class="badge">Returns</span> 30-day return policy. Items must be in original condition.</p>
+      </div>
+    </div>
+
+    <div class="example css-only">
+      <h2>CSS-only Checkbox</h2>
+      <input type="checkbox" id="faq-toggle" class="visually-hidden" aria-hidden="true">
+      <label for="faq-toggle" class="toggle">
+        Frequently asked questions
+        <span class="chevron" aria-hidden="true"></span>
+      </label>
+      <div class="details">
+        <p><strong>Q:</strong> Do you ship internationally?</p>
+        <p><strong>A:</strong> Yes, to most countries. Customs fees may apply.</p>
+        <p><strong>Q:</strong> Can I change my order after placing it?</p>
+        <p><strong>A:</strong> Changes are possible within 1 hour of ordering.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var buttons = document.querySelectorAll('.example.aria-widget .toggle[aria-controls]');
+      buttons.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var targetId = btn.getAttribute('aria-controls');
+          var content = document.getElementById(targetId);
+          if (!content) return;
+
+          var expanded = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!expanded));
+
+          if (expanded) {
+            content.setAttribute('hidden', '');
+          } else {
+            content.removeAttribute('hidden');
+          }
+        });
+
+        btn.addEventListener('keydown', function(e){
+          // Optional support for Enter/Space if button role changes; button already handles this by default.
+          if ((e.key === 'Enter' || e.key === ' ') && e.target.tagName.toLowerCase() !== 'button') {
+            e.preventDefault();
+            btn.click();
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

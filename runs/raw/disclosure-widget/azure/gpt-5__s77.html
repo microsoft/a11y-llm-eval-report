@@ -1,0 +1,285 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expand/Collapse Widgets Demo</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #0f172a;
+      --muted-fg: #475569;
+      --border: #e5e7eb;
+      --panel-bg: #f8fafc;
+      --accent: #2563eb;
+      --accent-contrast: #ffffff;
+      color-scheme: light dark;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220;
+        --fg: #e2e8f0;
+        --muted-fg: #94a3b8;
+        --border: #1f2937;
+        --panel-bg: #0f172a;
+        --accent: #60a5fa;
+        --accent-contrast: #0b1220;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      padding: 2rem;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.6;
+    }
+
+    h1 {
+      margin: 0 0 1rem;
+      font-size: 1.75rem;
+      letter-spacing: -0.02em;
+    }
+    p.lead {
+      margin: 0 0 1.5rem;
+      color: var(--muted-fg);
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      background: rgba(0,0,0,0.02);
+      backdrop-filter: saturate(1.2);
+    }
+    @media (prefers-color-scheme: dark) {
+      .example {
+        background: rgba(255,255,255,0.03);
+      }
+    }
+
+    .example h2 {
+      margin: 0 0 .5rem;
+      font-size: 1.125rem;
+    }
+    .example .hint {
+      margin: 0 0 .75rem;
+      color: var(--muted-fg);
+      font-size: .95rem;
+    }
+
+    /* Shared container styling for controlled content */
+    .details {
+      margin-top: .5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel-bg);
+      padding: .75rem .9rem;
+    }
+
+    /* Native <details> formatting */
+    details.details {
+      padding: 0; /* summary provides its own spacing */
+      overflow: clip;
+    }
+    details.details > summary {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      list-style: none;
+      cursor: pointer;
+      padding: .75rem .9rem;
+      font-weight: 600;
+      user-select: none;
+      outline: none;
+    }
+    details.details > summary::-webkit-details-marker {
+      display: none;
+    }
+    details.details > summary::before {
+      content: "▸";
+      display: inline-block;
+      width: 1em;
+      text-align: center;
+      color: var(--muted-fg);
+      transition: transform 150ms ease;
+    }
+    details.details[open] > summary::before {
+      content: "▾";
+    }
+    details.details > .panel {
+      border-top: 1px solid var(--border);
+      padding: .75rem .9rem;
+    }
+    details.details:focus-within > summary {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
+    /* Custom button toggle styling */
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--panel-bg);
+      color: var(--fg);
+      border-radius: 999px;
+      padding: .5rem .75rem;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .toggle::after {
+      content: "▸";
+      color: var(--muted-fg);
+    }
+    .toggle[aria-expanded="true"]::after {
+      content: "▾";
+    }
+    .toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Optional transition for custom content visibility */
+    .details[data-animate] {
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .details[hidden][data-animate] {
+      opacity: 0;
+      transform: translateY(-2px);
+    }
+    .details:not([hidden])[data-animate] {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Small helpers */
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .9em;
+      background: rgba(127,127,127,.12);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 .3em;
+    }
+    ul {
+      margin: .5rem 0 .25rem;
+      padding-left: 1.25rem;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: rgba(127,127,127,.12);
+      border-radius: 6px;
+      padding: .1em .35em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widgets</h1>
+  <p class="lead">Examples of both native and custom expand/collapse interactions. Each widget is wrapped in a container with the class “example”, and the controlled content container uses the class “details”.</p>
+
+  <div class="example">
+    <h2>Native HTML Details</h2>
+    <p class="hint">Uses the built-in <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements.</p>
+    <details class="details">
+      <summary>What is an expand/collapse widget?</summary>
+      <div class="panel">
+        <p>An expand/collapse widget toggles the visibility of additional content. The native <code>&lt;details&gt;</code> element is an accessible, semantic solution provided by HTML.</p>
+        <ul>
+          <li>Keyboard-accessible by default</li>
+          <li>Works without JavaScript</li>
+          <li>Can be nested or grouped</li>
+        </ul>
+        <p>Try clicking the summary line above or pressing the <span class="kbd">Enter</span> or <span class="kbd">Space</span> keys when it’s focused.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="example">
+    <h2>Custom Button Toggle</h2>
+    <p class="hint">A button controls a separate region. ARIA properties convey state.</p>
+    <button id="toggle-1" class="toggle" aria-expanded="false" aria-controls="custom-section-1">More about widgets</button>
+    <div id="custom-section-1" class="details" role="region" aria-labelledby="toggle-1" hidden data-animate>
+      <p>This custom widget uses a button to toggle a content region. The button’s <code>aria-expanded</code> state reflects whether the content is shown, and the region references the controlling button with <code>aria-labelledby</code>.</p>
+      <ul>
+        <li>Button remains focusable and operable via keyboard</li>
+        <li>State change announced by screen readers</li>
+        <li>Fine-grained control via JavaScript</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="example">
+    <h2>FAQ Group (Multiple Expanders)</h2>
+    <p class="hint">Multiple independent sections using native details elements.</p>
+    <details class="details">
+      <summary>Can I open more than one section at a time?</summary>
+      <div class="panel">
+        <p>Yes. Each <code>&lt;details&gt;</code> element is independent, so you may open multiple sections simultaneously.</p>
+      </div>
+    </details>
+    <details class="details">
+      <summary>Should I use native details or a custom button?</summary>
+      <div class="panel">
+        <p>Prefer native <code>&lt;details&gt;</code> for simple disclosure patterns. Use a custom button when you need bespoke behavior or styling beyond what <code>&lt;details&gt;</code> offers.</p>
+      </div>
+    </details>
+    <details class="details">
+      <summary>How do I make custom toggles accessible?</summary>
+      <div class="panel">
+        <ul>
+          <li>Use an actual <code>&lt;button&gt;</code> element</li>
+          <li>Update <code>aria-expanded</code> correctly</li>
+          <li>Relate the button and region via <code>aria-controls</code> and <code>aria-labelledby</code></li>
+          <li>Manage focus appropriately</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+
+  <script>
+    // Custom button toggles
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggles = document.querySelectorAll('.toggle[aria-controls]');
+      toggles.forEach(btn => {
+        const targetId = btn.getAttribute('aria-controls');
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        const setHidden = (hidden) => {
+          target.hidden = hidden;
+          btn.setAttribute('aria-expanded', String(!hidden));
+        };
+
+        // Initialize hidden state from button's aria-expanded
+        setHidden(btn.getAttribute('aria-expanded') !== 'true');
+
+        btn.addEventListener('click', () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          setHidden(expanded);
+          if (!expanded) {
+            // Move focus into the region if appropriate
+            const focusable = target.querySelector('a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+            (focusable || target).focus?.();
+          }
+        });
+
+        // Optional: close with Escape when region is focused
+        target.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            setHidden(true);
+            btn.focus();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

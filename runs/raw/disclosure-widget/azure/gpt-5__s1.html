@@ -1,0 +1,385 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widgets Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121826;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+      --accent-2: #22d3ee;
+      --focus: #a78bfa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 2rem;
+      font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: linear-gradient(180deg, #0b0f14 0%, #0d1420 100%);
+      color: var(--text);
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 1rem;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0 0 2rem;
+      color: var(--muted);
+    }
+
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .example h2 {
+      font-size: 1.1rem;
+      margin: 0 0 0.75rem;
+      color: #cfe3ff;
+    }
+
+    /* Native details */
+    details.details {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    details.details + details.details {
+      margin-top: 0.75rem;
+    }
+
+    details.details summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      outline: none;
+    }
+
+    details.details summary::-webkit-details-marker { display: none; }
+
+    details.details summary::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--accent);
+      border-radius: 3px;
+      transform: rotate(0deg);
+      transition: transform 200ms ease, border-color 200ms ease;
+      display: inline-block;
+    }
+
+    details[open].details summary::before {
+      transform: rotate(90deg);
+      border-color: var(--accent-2);
+    }
+
+    details.details .content {
+      padding: 0 1rem 1rem;
+      color: var(--muted);
+    }
+
+    /* Custom controlled content */
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    button.toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #1a2433, #141b29);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 80ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    button.toggle:hover {
+      border-color: #324156;
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.15);
+    }
+
+    button.toggle[aria-expanded="true"] {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.18);
+      background: linear-gradient(180deg, #1d2840, #162036);
+    }
+
+    button.toggle:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.35);
+      border-color: var(--focus);
+    }
+
+    .details {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      color: var(--muted);
+      padding: 0.75rem 1rem;
+    }
+
+    .details[hidden] {
+      display: none;
+    }
+
+    .details p {
+      margin: 0.25rem 0;
+    }
+
+    /* Accordion styles */
+    .accordion-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--panel);
+    }
+
+    .accordion-item + .accordion-item { margin-top: 0.75rem; }
+
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      background: linear-gradient(180deg, rgba(96,165,250,0.08), rgba(34,211,238,0.05));
+      border: none;
+    }
+
+    .accordion-header .label {
+      flex: 1;
+      text-align: left;
+    }
+
+    .chevron {
+      width: 12px;
+      height: 12px;
+      border-right: 2px solid var(--accent);
+      border-bottom: 2px solid var(--accent);
+      transform: rotate(-45deg);
+      transition: transform 200ms ease, border-color 200ms ease;
+    }
+
+    .accordion-header[aria-expanded="true"] .chevron {
+      transform: rotate(45deg);
+      border-color: var(--accent-2);
+    }
+
+    .accordion-content.details {
+      border-top: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      color: var(--muted);
+    }
+
+    footer {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .sr-only {
+      position: absolute !important;
+      height: 1px; width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widgets</h1>
+  <p class="lead">Three approaches: native details/summary, a custom toggle, and a single-open accordion. Each widget is wrapped in a container with class "example", and the controlled content container uses class "details".</p>
+
+  <div class="examples-grid">
+
+    <!-- Example 1: Native details/summary -->
+    <div class="example" id="example-native">
+      <h2>Native details/summary</h2>
+
+      <details class="details">
+        <summary>What is an expand/collapse widget?</summary>
+        <div class="content">
+          <p>An expand/collapse widget lets users reveal or hide additional information on demand. The native HTML details/summary element provides built-in accessibility and keyboard support.</p>
+          <p>Use this when you want to keep pages concise while allowing deeper dives into specific topics.</p>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Why use the native element?</summary>
+        <div class="content">
+          <p>It requires no JavaScript, is accessible out-of-the-box, and respects user expectations for disclosure controls.</p>
+        </div>
+      </details>
+    </div>
+
+    <!-- Example 2: Custom button controlling a content region -->
+    <div class="example" id="example-custom">
+      <h2>Custom toggle with button</h2>
+
+      <div class="control-row">
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="custom-details-1" id="custom-toggle-1">
+          Toggle explanation
+        </button>
+        <span class="sr-only" id="custom-toggle-1-desc">Press to expand or collapse the explanation.</span>
+      </div>
+
+      <div class="details" id="custom-details-1" role="region" aria-labelledby="custom-toggle-1" aria-describedby="custom-toggle-1-desc" hidden>
+        <p>This region is controlled by the button above. When opened, the button reflects its state via aria-expanded="true".</p>
+        <p>The container for the controlled content uses a "details" class, even though it is a div.</p>
+      </div>
+
+      <div class="control-row" style="margin-top:0.75rem;">
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="custom-details-2" id="custom-toggle-2">
+          Show more tips
+        </button>
+      </div>
+
+      <div class="details" id="custom-details-2" role="region" aria-labelledby="custom-toggle-2" hidden>
+        <p>Tip 1: Provide meaningful labels on toggle controls.</p>
+        <p>Tip 2: Keep content concise and scannable.</p>
+        <p>Tip 3: Preserve state when possible on navigation.</p>
+      </div>
+    </div>
+
+    <!-- Example 3: Accordion (single-open) -->
+    <div class="example" id="example-accordion">
+      <h2>Accordion (single section open)</h2>
+
+      <div class="accordion-item">
+        <button class="accordion-header toggle" type="button" aria-expanded="false" aria-controls="acc-panel-1" id="acc-btn-1" data-accordion="group-a">
+          <span class="label">Section 1 — Overview</span>
+          <span class="chevron"></span>
+        </button>
+        <div class="accordion-content details" id="acc-panel-1" role="region" aria-labelledby="acc-btn-1" hidden>
+          <p>Accordions organize related content into collapsible sections. This version ensures only one section is open at a time.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header toggle" type="button" aria-expanded="false" aria-controls="acc-panel-2" id="acc-btn-2" data-accordion="group-a">
+          <span class="label">Section 2 — Accessibility</span>
+          <span class="chevron"></span>
+        </button>
+        <div class="accordion-content details" id="acc-panel-2" role="region" aria-labelledby="acc-btn-2" hidden>
+          <p>Buttons expose aria-expanded and aria-controls. Panels identify their label with aria-labelledby.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header toggle" type="button" aria-expanded="false" aria-controls="acc-panel-3" id="acc-btn-3" data-accordion="group-a">
+          <span class="label">Section 3 — Styling</span>
+          <span class="chevron"></span>
+        </button>
+        <div class="accordion-content details" id="acc-panel-3" role="region" aria-labelledby="acc-btn-3" hidden>
+          <p>Visual affordances (chevrons, hover states, focus rings) help users discover interaction and maintain orientation.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    Controlled content containers use class "details". Widgets are wrapped with a div that has an "example" class.
+  </footer>
+
+  <script>
+    (function () {
+      function setExpanded(btn, expanded) {
+        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      }
+
+      function toggleRegion(btn, panel, makeOpen) {
+        var open = typeof makeOpen === 'boolean' ? makeOpen : panel.hasAttribute('hidden');
+        if (open) {
+          panel.removeAttribute('hidden');
+        } else {
+          panel.setAttribute('hidden', '');
+        }
+        setExpanded(btn, open);
+      }
+
+      // Initialize controlled regions and bind events
+      var toggles = document.querySelectorAll('button.toggle[aria-controls]');
+      toggles.forEach(function(btn) {
+        var id = btn.getAttribute('aria-controls');
+        var panel = document.getElementById(id);
+        if (!panel) return;
+
+        // Sync initial state
+        var initiallyHidden = panel.hasAttribute('hidden');
+        setExpanded(btn, !initiallyHidden);
+
+        btn.addEventListener('click', function() {
+          var group = btn.getAttribute('data-accordion');
+          if (group) {
+            var groupButtons = document.querySelectorAll('button.toggle[data-accordion="' + group + '"]');
+            groupButtons.forEach(function(otherBtn) {
+              var otherId = otherBtn.getAttribute('aria-controls');
+              var otherPanel = document.getElementById(otherId);
+              if (!otherPanel) return;
+              var isSelf = otherBtn === btn;
+              toggleRegion(otherBtn, otherPanel, isSelf ? otherPanel.hasAttribute('hidden') : false);
+            });
+          } else {
+            toggleRegion(btn, panel);
+          }
+        });
+
+        // Optional: close panel with Escape key when focused inside
+        panel.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            toggleRegion(btn, panel, false);
+            btn.focus();
+          }
+        });
+      });
+
+      // Enhance summary focus ring for keyboard users
+      var summaries = document.querySelectorAll('details.details > summary');
+      summaries.forEach(function(s) {
+        s.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            var details = s.parentElement;
+            if (details && details.open) details.open = false;
+            s.blur();
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

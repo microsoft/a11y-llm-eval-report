@@ -1,0 +1,215 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root{
+      --accent:#0b66ff;
+      --bg:#f7f8fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --radius:8px;
+      --transition:240ms cubic-bezier(.2,.9,.3,1);
+    }
+
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 32px;
+      background: linear-gradient(180deg,var(--bg),#ffffff);
+      color:#111827;
+      line-height:1.4;
+    }
+
+    h1{
+      margin:0 0 18px 0;
+      font-size:20px;
+    }
+
+    .example{
+      background:var(--card);
+      border:1px solid #e6e9ef;
+      border-radius:var(--radius);
+      padding:16px;
+      margin:12px 0;
+      box-shadow: 0 1px 2px rgba(16,24,40,0.03);
+      max-width:720px;
+    }
+
+    .example + .example{
+      margin-top:20px;
+    }
+
+    .toggle{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      font-size:14px;
+      background:transparent;
+      color:var(--accent);
+      border:1px solid transparent;
+      border-radius:8px;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .toggle:focus{
+      outline:2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+      outline-offset:3px;
+    }
+
+    .toggle .chev{
+      display:inline-block;
+      width:14px;
+      height:14px;
+      transform-origin:50% 50%;
+      transition:transform var(--transition);
+      color:var(--accent);
+    }
+
+    .toggle[aria-expanded="true"] .chev{
+      transform:rotate(180deg);
+    }
+
+    .details{
+      overflow:hidden;
+      transition:max-height var(--transition), opacity var(--transition);
+      max-height:0;
+      opacity:0;
+      margin-top:12px;
+      border-radius:6px;
+      background:linear-gradient(180deg, rgba(11,102,255,0.03), transparent);
+      padding:0 12px;
+      box-sizing:border-box;
+    }
+
+    .details.open{
+      opacity:1;
+      /* max-height will be set inline to the scrollHeight for smooth animation */
+      padding:12px;
+    }
+
+    .details p{
+      margin:0 0 10px 0;
+      color:#111827;
+    }
+
+    .meta{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:8px;
+    }
+
+    /* small helper to show keyboard hint */
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget</h1>
+  <p class="hint">Click the button or press Space/Enter while focused to toggle the content.</p>
+
+  <div class="example">
+    <button class="toggle" id="toggle-1" aria-expanded="false" aria-controls="details-1" type="button">
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+      </svg>
+      Show details
+    </button>
+
+    <div id="details-1" class="details" role="region" aria-labelledby="toggle-1">
+      <p><strong>Overview:</strong> This panel contains additional information that is hidden by default. Use the button above to reveal it.</p>
+      <p>Accessibility notes: the button uses aria-expanded and aria-controls to connect it to this content region. The content area has role="region" and aria-labelledby pointing back to the controlling button.</p>
+      <div class="meta">Example 1 — closed by default</div>
+    </div>
+  </div>
+
+  <div class="example">
+    <button class="toggle" id="toggle-2" aria-expanded="true" aria-controls="details-2" type="button">
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+      </svg>
+      Details (open)
+    </button>
+
+    <div id="details-2" class="details open" role="region" aria-labelledby="toggle-2">
+      <p><strong>Open by default:</strong> This example demonstrates the widget with the content visible initially. The script below will pick up the initial state and animate correctly when toggled.</p>
+      <p>Resize the window to see the script recalculate the max-height for open panels so transitions remain smooth.</p>
+      <div class="meta">Example 2 — open by default</div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Initialize all examples
+      const toggles = Array.from(document.querySelectorAll('.example .toggle'));
+
+      function setMaxHeight(details, isOpen){
+        if(isOpen){
+          // Set to scrollHeight to allow transition from 0 -> height
+          details.style.maxHeight = details.scrollHeight + 'px';
+        } else {
+          details.style.maxHeight = details.scrollHeight + 'px'; // set current height to allow transition
+          // Force reflow to ensure transition starts (reading offsetHeight)
+          details.offsetHeight;
+          details.style.maxHeight = '0';
+        }
+      }
+
+      toggles.forEach(btn => {
+        const id = btn.getAttribute('aria-controls');
+        const details = document.getElementById(id);
+        if(!details) return;
+
+        // Reflect initial state
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        if(expanded){
+          details.classList.add('open');
+          // Set explicit maxHeight so transitions will work when closing later
+          details.style.maxHeight = details.scrollHeight + 'px';
+        } else {
+          details.classList.remove('open');
+          details.style.maxHeight = '0';
+        }
+
+        // Click handler
+        btn.addEventListener('click', () => {
+          const isOpen = btn.getAttribute('aria-expanded') === 'true';
+          if(isOpen){
+            // close
+            btn.setAttribute('aria-expanded','false');
+            details.classList.remove('open');
+            setMaxHeight(details, false);
+          } else {
+            // open
+            btn.setAttribute('aria-expanded','true');
+            details.classList.add('open');
+            setMaxHeight(details, true);
+          }
+        });
+
+        // Keep max-height accurate when content transition ends (remove inline maxHeight for natural flow)
+        details.addEventListener('transitionend', (ev) => {
+          if(ev.propertyName !== 'max-height') return;
+          if(details.classList.contains('open')){
+            // allow content to size naturally after transition
+            details.style.maxHeight = details.scrollHeight + 'px';
+          } else {
+            details.style.maxHeight = '0';
+          }
+        });
+
+        // Update heights on window resize for open panels
+        window.addEventListener('resize', () => {
+          if(details.classList.contains('open')){
+            details.style.maxHeight = details.scrollHeight + 'px';
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

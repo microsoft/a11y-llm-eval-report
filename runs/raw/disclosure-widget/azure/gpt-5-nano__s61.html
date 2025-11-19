@@ -1,0 +1,191 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand / Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #f7f9fb;
+      --card: #ffffff;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --accent: #2563eb;
+      --accent-dark: #1e40af;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 2rem;
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 1rem; }
+    .example {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    }
+    .example header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+    }
+    .example h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      border: none;
+      border-radius: 6px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s ease;
+    }
+    .toggle:hover { background: var(--accent-dark); }
+    .toggle[aria-expanded="true"] { background: var(--accent-dark); }
+    .chev {
+      width: 0; height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #fff;
+      display: inline-block;
+      vertical-align: middle;
+      transform-origin: 50% 60%;
+      transition: transform .2s ease;
+    }
+    .toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+    .contents {
+      padding: 0 1rem 1rem;
+      overflow: hidden;
+    }
+    .details {
+      padding: 0;
+      /* The container that holds the controlled content; its visibility is toggled via JS */
+    }
+    .hidden { display: none; }
+    /* Subtle typography for content inside the panel */
+    .contents p, .contents ul { margin: 0.5rem 0 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget Demo</h1>
+
+  <!-- Widget 1 -->
+  <div class="example" aria-label="Example: Basic expand/collapse">
+    <header>
+      <h3 id="title-1">What is an expand/collapse widget?</h3>
+      <button class="toggle" aria-expanded="false" aria-controls="details-1" title="Expand">
+        Read more
+        <span class="chev" aria-hidden="true"></span>
+      </button>
+    </header>
+    <div id="details-1" class="details hidden" aria-labelledby="title-1">
+      <div class="contents" role="region" aria-label="Expanded content for example 1">
+        <p>This widget shows or hides content on demand. It helps manage dense information by letting users reveal details only when needed.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Widget 2 -->
+  <div class="example" aria-label="Example: Accessible toggling">
+    <header>
+      <h3 id="title-2">Accessible by keyboard?</h3>
+      <button class="toggle" aria-expanded="false" aria-controls="details-2" title="Toggle">
+        Expand
+        <span class="chev" aria-hidden="true"></span>
+      </button>
+    </header>
+    <div id="details-2" class="details hidden" aria-labelledby="title-2">
+      <div class="contents" role="region" aria-label="Expanded content for example 2">
+        <ul>
+          <li>Focus the button and press Enter or Space to toggle.</li>
+          <li>Ensure the content can be navigated and read by assistive technologies.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Enhance: a lightweight expand/collapse widget
+    (function () {
+      const widgets = document.querySelectorAll('.example');
+      widgets.forEach((widget) => {
+        const btn = widget.querySelector('.toggle');
+        const details = widget.querySelector('.details');
+        const inner = details.querySelector('.contents');
+
+        // Initialize
+        details.style.display = ''; // ensure element participates in layout when shown
+        inner.style.maxHeight = '0px';
+        details.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+
+        // Expand function
+        const expand = () => {
+          btn.setAttribute('aria-expanded', 'true');
+          details.classList.remove('hidden');
+          details.style.display = ''; // ensure visible
+          // Let the browser render before measuring height
+          requestAnimationFrame(() => {
+            const fullHeight = inner.scrollHeight;
+            inner.style.maxHeight = fullHeight + 'px';
+          });
+        };
+
+        // Collapse function
+        const collapse = () => {
+          btn.setAttribute('aria-expanded', 'false');
+          inner.style.maxHeight = '0px';
+          // After transition, hide to collapse layout and screen readers
+          setTimeout(() => {
+            details.classList.add('hidden');
+            details.style.display = '';
+          }, 220);
+        };
+
+        // Toggle handler
+        const toggle = () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          if (expanded) {
+            collapse();
+          } else {
+            expand();
+          }
+        };
+
+        // Event listeners
+        btn.addEventListener('click', toggle);
+        // Allow Enter/Space keys when focusing the button (native on button, but keep explicit)
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            toggle();
+          }
+        });
+
+        // Optional: allow clicking the header to toggle (for usability)
+        const header = widget.querySelector('header');
+        header.addEventListener('click', (e) => {
+          if (e.target === btn) return;
+          toggle();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

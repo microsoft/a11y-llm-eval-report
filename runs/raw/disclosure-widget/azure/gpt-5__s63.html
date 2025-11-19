@@ -1,0 +1,417 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --border: #1f2937;
+      --accent: #60a5fa;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --focus: #93c5fd;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    header h1 {
+      font-size: 1.75rem;
+      margin: 0 0 0.5rem;
+      letter-spacing: 0.02em;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .example {
+      background: rgba(17, 24, 39, 0.75);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem;
+      margin: 1rem 0 1.25rem;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.02), 0 20px 30px -15px rgba(0,0,0,0.5);
+    }
+    .example h2 {
+      font-size: 1.1rem;
+      margin: 0 0 0.75rem;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .example h2 .tag {
+      font-size: 0.75rem;
+      color: var(--accent);
+      background: rgba(96,165,250,0.12);
+      border: 1px solid rgba(96,165,250,0.35);
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+    }
+
+    /* Shared details container styling */
+    .details {
+      background: rgba(2, 6, 23, 0.5);
+      border: 1px solid rgba(96,165,250,0.25);
+      border-radius: 12px;
+      color: var(--text);
+    }
+    .details p, .details ul {
+      margin: 0.75rem 0 0.5rem;
+    }
+    .details-content {
+      padding: 0.75rem 0.75rem 0.9rem;
+    }
+
+    /* Native <details> styling */
+    details.details {
+      padding: 0.25rem;
+      overflow: hidden;
+    }
+    details.details summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.65rem 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      user-select: none;
+      position: relative;
+    }
+    details.details summary::-webkit-details-marker {
+      display: none;
+    }
+    details.details summary::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid var(--accent);
+      border-bottom: 2px solid var(--accent);
+      transform: rotate(-45deg);
+      transition: transform 160ms ease;
+      display: inline-block;
+      margin-right: 0.2rem;
+    }
+    details.details[open] summary::before {
+      transform: rotate(45deg);
+    }
+    details.details[open] summary {
+      border-bottom: 1px solid rgba(96,165,250,0.25);
+      margin-bottom: 0.25rem;
+    }
+
+    /* Button-based disclosure */
+    .disclosure-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #0b1220;
+      color: var(--text);
+      padding: 0.55rem 0.8rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, transform 70ms ease;
+    }
+    .btn:hover {
+      border-color: rgba(96,165,250,0.4);
+      background: #0c1730;
+    }
+    .btn:active {
+      transform: translateY(1px);
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .btn.secondary {
+      background: transparent;
+      border-color: rgba(96,165,250,0.25);
+    }
+
+    .status {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* Group example */
+    .group-controls {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .group {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    /* Small utilities */
+    .muted { color: var(--muted); }
+    .spacer { height: 0.5rem; }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Smooth reveal for non-native container */
+    .reveal {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 180ms ease;
+    }
+    .reveal[data-open="true"] {
+      grid-template-rows: 1fr;
+    }
+    .reveal > .details {
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Expand/Collapse Widget Examples</h1>
+      <p>Demonstrations of native details/summary and ARIA-controlled disclosure patterns.</p>
+    </header>
+
+    <div class="example" id="ex-native">
+      <h2>
+        Native details/summary
+        <span class="tag">Built-in</span>
+      </h2>
+      <details class="details">
+        <summary>Project overview</summary>
+        <div class="details-content">
+          <p>
+            This panel uses the HTML details/summary elements for an accessible and keyboard-friendly expand/collapse control.
+            It requires no JavaScript for basic behavior and is supported by most modern browsers.
+          </p>
+          <ul>
+            <li>Keyboard: Space/Enter toggles the summary.</li>
+            <li>Screen readers announce expanded/collapsed state.</li>
+            <li>Can be styled with CSS while preserving semantics.</li>
+          </ul>
+          <p class="muted">Tip: You can nest content, such as lists, code samples, and images inside the details container.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="example" id="ex-aria">
+      <h2>
+        ARIA disclosure button
+        <span class="tag">Custom</span>
+      </h2>
+      <div class="disclosure-header">
+        <button class="btn" id="toggle-aria" aria-expanded="false" aria-controls="aria-panel">Show details</button>
+        <span class="status" id="aria-status" aria-live="polite">Collapsed</span>
+      </div>
+      <div class="spacer"></div>
+      <div class="reveal" id="aria-reveal" data-open="false">
+        <div id="aria-panel" class="details" role="region" aria-label="Additional details" hidden>
+          <div class="details-content">
+            <p>
+              This panel is controlled via a button with <code>aria-expanded</code> and <code>aria-controls</code>.
+              Toggling updates ARIA attributes and shows/hides the content container with the <span class="muted">details</span> class.
+            </p>
+            <p>
+              Use cases include custom animations, advanced layout needs, or when you cannot use native details/summary.
+            </p>
+            <ul>
+              <li>ARIA-compliant with status updates.</li>
+              <li>Works with screen readers and keyboard navigation.</li>
+              <li>Easy to integrate with custom transitions.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example" id="ex-group">
+      <h2>
+        Grouped sections with controls
+        <span class="tag">Multiple</span>
+      </h2>
+      <div class="group-controls">
+        <button class="btn secondary" id="expand-all">Expand all</button>
+        <button class="btn secondary" id="collapse-all">Collapse all</button>
+      </div>
+      <div class="group" id="group-sections">
+        <details class="details">
+          <summary>Section A: Introduction</summary>
+          <div class="details-content">
+            <p>Learn the basics of the topic, including terminology and key concepts.</p>
+          </div>
+        </details>
+        <details class="details">
+          <summary>Section B: Configuration</summary>
+          <div class="details-content">
+            <p>Step-by-step configuration guidance and common pitfalls to avoid.</p>
+          </div>
+        </details>
+        <details class="details">
+          <summary>Section C: Advanced Tips</summary>
+          <div class="details-content">
+            <p>Performance tuning, debugging strategies, and expert recommendations.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="example" id="ex-nested">
+      <h2>
+        Nested disclosure example
+        <span class="tag">Nested</span>
+      </h2>
+      <details class="details">
+        <summary>Parent topic</summary>
+        <div class="details-content">
+          <p>This parent section contains a nested, button-controlled panel inside.</p>
+
+          <div class="disclosure-header" style="margin-top:0.5rem;">
+            <button class="btn" id="nested-toggle" aria-expanded="false" aria-controls="nested-panel">Show nested details</button>
+            <span class="status" id="nested-status" aria-live="polite">Collapsed</span>
+          </div>
+          <div class="reveal" id="nested-reveal" data-open="false" style="margin-top:0.4rem;">
+            <div id="nested-panel" class="details" role="region" aria-label="Nested details" hidden>
+              <div class="details-content">
+                <p>
+                  Nested disclosures can be useful for progressively revealing complex information without overwhelming the user.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    // Utility to update button text based on expanded state
+    function updateButtonLabel(btn, expanded) {
+      const showLabel = btn.getAttribute('data-label-show') || 'Show details';
+      const hideLabel = btn.getAttribute('data-label-hide') || 'Hide details';
+      btn.textContent = expanded ? hideLabel : showLabel;
+    }
+
+    // Initialize ARIA disclosure example
+    (function setupAriaDisclosure() {
+      const btn = document.getElementById('toggle-aria');
+      const panel = document.getElementById('aria-panel');
+      const reveal = document.getElementById('aria-reveal');
+      const status = document.getElementById('aria-status');
+
+      btn.setAttribute('data-label-show', 'Show details');
+      btn.setAttribute('data-label-hide', 'Hide details');
+
+      function toggle() {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        const next = !expanded;
+
+        btn.setAttribute('aria-expanded', String(next));
+        updateButtonLabel(btn, next);
+
+        if (next) {
+          panel.hidden = false;
+          reveal.dataset.open = 'true';
+          status.textContent = 'Expanded';
+        } else {
+          panel.hidden = true;
+          reveal.dataset.open = 'false';
+          status.textContent = 'Collapsed';
+        }
+      }
+
+      btn.addEventListener('click', toggle);
+      // Optional: toggle with Space/Enter if not recognized by some environments
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle();
+        }
+      });
+    })();
+
+    // Initialize grouped sections controls
+    (function setupGroupControls() {
+      const group = document.getElementById('group-sections');
+      const expandAll = document.getElementById('expand-all');
+      const collapseAll = document.getElementById('collapse-all');
+
+      function setAll(open) {
+        group.querySelectorAll('details.details').forEach(d => {
+          d.open = open;
+        });
+      }
+
+      expandAll.addEventListener('click', () => setAll(true));
+      collapseAll.addEventListener('click', () => setAll(false));
+    })();
+
+    // Initialize nested disclosure inside a native details
+    (function setupNestedDisclosure() {
+      const btn = document.getElementById('nested-toggle');
+      const panel = document.getElementById('nested-panel');
+      const reveal = document.getElementById('nested-reveal');
+      const status = document.getElementById('nested-status');
+
+      btn.setAttribute('data-label-show', 'Show nested details');
+      btn.setAttribute('data-label-hide', 'Hide nested details');
+
+      function toggle() {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        const next = !expanded;
+
+        btn.setAttribute('aria-expanded', String(next));
+        updateButtonLabel(btn, next);
+
+        if (next) {
+          panel.hidden = false;
+          reveal.dataset.open = 'true';
+          status.textContent = 'Expanded';
+        } else {
+          panel.hidden = true;
+          reveal.dataset.open = 'false';
+          status.textContent = 'Collapsed';
+        }
+      }
+
+      btn.addEventListener('click', toggle);
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

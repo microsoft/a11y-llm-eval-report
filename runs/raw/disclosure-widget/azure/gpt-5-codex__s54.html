@@ -1,0 +1,399 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --background: #f5f7fb;
+      --surface: #ffffff;
+      --border: #d4d9e2;
+      --border-strong: #9aa4b9;
+      --text: #1f2a3d;
+      --muted: #516079;
+      --accent: #3a6df0;
+      --accent-bg: rgba(58, 109, 240, 0.1);
+      font-family: "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #0f1420;
+        --surface: #161d2b;
+        --border: #2a3244;
+        --border-strong: #546180;
+        --text: #edf1ff;
+        --muted: #9aa6c3;
+        --accent: #7999ff;
+        --accent-bg: rgba(121, 153, 255, 0.18);
+      }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 5vw, 4rem);
+      background: linear-gradient(135deg, rgba(58, 109, 240, 0.12), rgba(58, 109, 240, 0));
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.75rem, 2.5vw, 2.5rem);
+    }
+
+    header p {
+      max-width: 60ch;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    main {
+      flex: 1;
+      padding: clamp(1.5rem, 4vw, 4rem);
+      display: grid;
+      gap: clamp(1.5rem, 3vw, 2.5rem);
+      align-content: start;
+    }
+
+    .example {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: clamp(1.5rem, 3vw, 2rem);
+      box-shadow: 0 15px 40px rgba(15, 20, 32, 0.08);
+    }
+
+    .example h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.35rem;
+    }
+
+    .example .description {
+      margin: 0 0 1.5rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      border: 1px solid var(--border-strong);
+      background: linear-gradient(135deg, rgba(58, 109, 240, 0.18), rgba(58, 109, 240, 0.05));
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    }
+
+    .toggle:hover,
+    .toggle:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-bg);
+    }
+
+    .toggle:active {
+      transform: scale(0.99);
+    }
+
+    .toggle .indicator {
+      font-size: 1.1rem;
+      transition: transform 0.3s ease;
+    }
+
+    .toggle[aria-expanded="true"] .indicator {
+      transform: rotate(90deg);
+    }
+
+    .toggle .label {
+      white-space: nowrap;
+    }
+
+    .details {
+      margin-top: 1rem;
+      padding: 1.1rem 1.25rem;
+      border-left: 3px solid var(--accent);
+      border-radius: 0.85rem;
+      background: var(--accent-bg);
+      color: var(--text);
+      line-height: 1.65;
+      transition: opacity 0.25s ease;
+    }
+
+    .details:not(.open) {
+      opacity: 0;
+    }
+
+    .details.open {
+      opacity: 1;
+    }
+
+    .details ul,
+    .details ol {
+      margin: 0.75rem 0 0;
+      padding-left: 1.5rem;
+    }
+
+    .accordion {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .accordion-item {
+      border: 1px solid var(--border);
+      border-radius: 0.9rem;
+      background: rgba(58, 109, 240, 0.05);
+      overflow: hidden;
+    }
+
+    .accordion-item h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .accordion-item .toggle {
+      width: 100%;
+      justify-content: space-between;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 0.9rem 1.1rem;
+    }
+
+    .accordion-item:last-of-type .toggle {
+      border-bottom: 1px solid transparent;
+    }
+
+    .accordion-item .details {
+      margin: 0;
+      border-left: none;
+      border-radius: 0;
+      background: rgba(58, 109, 240, 0.08);
+    }
+
+    .accordion-item .details.open {
+      opacity: 1;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(58, 109, 240, 0.15);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      .toggle {
+        font-size: 0.95rem;
+      }
+
+      .example {
+        padding: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Accessible Expand/Collapse Widgets</h1>
+    <p>
+      These examples showcase two different approaches to building an expand/collapse interaction using semantic markup,
+      WAI-ARIA attributes, and a touch of JavaScript to synchronize state. Each widget is wrapped in an <code>example</code>
+      container and the controlled regions share the <code>details</code> class for styling.
+    </p>
+  </header>
+  <main>
+    <div class="example">
+      <h2>Basic Expand/Collapse Panel</h2>
+      <p class="description">
+        A single button reveals and hides additional content. The button updates its label dynamically and keeps the controlled
+        region in sync with <code>aria-expanded</code>.
+      </p>
+      <button
+        type="button"
+        class="toggle"
+        id="toggle-basic"
+        aria-controls="details-basic"
+        aria-expanded="false"
+        data-target="details-basic"
+        data-label-expand="Show more"
+        data-label-collapse="Hide details"
+      >
+        <span class="indicator" aria-hidden="true">▸</span>
+        <span class="label">Show more</span>
+      </button>
+      <div class="details" id="details-basic" role="region" aria-labelledby="toggle-basic" hidden>
+        <span class="badge">Overview</span>
+        <p>
+          This panel illustrates a straightforward expand/collapse pattern. Key features include synchronized
+          <code>aria-expanded</code>, toggling the <code>hidden</code> attribute on the controlled region, and label swapping on the toggle button.
+        </p>
+        <ul>
+          <li>Keyboard friendly &ndash; buttons are fully focusable.</li>
+          <li>ARIA relationships connect the toggle to the content.</li>
+          <li>Minimal JavaScript keeps state consistent.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>Accordion with Single-Open Behavior</h2>
+      <p class="description">
+        This accordion demonstrates how to coordinate multiple toggles. Opening one panel closes the rest, ensuring only a single
+        section is visible at any time.
+      </p>
+      <div class="accordion">
+        <div class="accordion-item">
+          <h3>
+            <button
+              type="button"
+              class="toggle"
+              id="toggle-accordion-1"
+              aria-controls="details-accordion-1"
+              aria-expanded="true"
+              data-target="details-accordion-1"
+              data-group="accordion-demo"
+              data-label-expand="Discover getting started tips"
+              data-label-collapse="Hide getting started tips"
+            >
+              <span class="label">Hide getting started tips</span>
+              <span class="indicator" aria-hidden="true">▸</span>
+            </button>
+          </h3>
+          <div class="details open" id="details-accordion-1" role="region" aria-labelledby="toggle-accordion-1">
+            <p>
+              Each accordion header is a button. A shared <code>data-group</code> attribute enforces single-open behavior by closing siblings on interaction.
+            </p>
+            <ol>
+              <li>Click any header to expand its content.</li>
+              <li>Focus indicators make navigation clear for keyboard users.</li>
+              <li>State changes update <code>aria-expanded</code> and the toggle label.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3>
+            <button
+              type="button"
+              class="toggle"
+              id="toggle-accordion-2"
+              aria-controls="details-accordion-2"
+              aria-expanded="false"
+              data-target="details-accordion-2"
+              data-group="accordion-demo"
+              data-label-expand="Show accessibility checklist"
+              data-label-collapse="Hide accessibility checklist"
+            >
+              <span class="label">Show accessibility checklist</span>
+              <span class="indicator" aria-hidden="true">▸</span>
+            </button>
+          </h3>
+          <div class="details" id="details-accordion-2" role="region" aria-labelledby="toggle-accordion-2" hidden>
+            <ul>
+              <li>Use semantic buttons for triggers.</li>
+              <li>Maintain two-way linkage with <code>aria-controls</code> and <code>aria-labelledby</code>.</li>
+              <li>Mirror the open state with <code>aria-expanded</code>.</li>
+              <li>Ensure focus styles are visible and high contrast.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3>
+            <button
+              type="button"
+              class="toggle"
+              id="toggle-accordion-3"
+              aria-controls="details-accordion-3"
+              aria-expanded="false"
+              data-target="details-accordion-3"
+              data-group="accordion-demo"
+              data-label-expand="Reveal implementation notes"
+              data-label-collapse="Hide implementation notes"
+            >
+              <span class="label">Reveal implementation notes</span>
+              <span class="indicator" aria-hidden="true">▸</span>
+            </button>
+          </h3>
+          <div class="details" id="details-accordion-3" role="region" aria-labelledby="toggle-accordion-3" hidden>
+            <p>
+              Controlled regions share the <code>details</code> class, making it easy to apply consistent styling or transitions.
+              The script that powers these widgets is minimal and reusable across different layouts.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggleButtons = document.querySelectorAll("button.toggle");
+
+      const setButtonState = (button, expand) => {
+        const targetId = button.dataset.target;
+        if (!targetId) return;
+
+        const content = document.getElementById(targetId);
+        button.setAttribute("aria-expanded", expand ? "true" : "false");
+
+        const labelSpan = button.querySelector(".label");
+        const expandLabel = button.dataset.labelExpand || "Show";
+        const collapseLabel = button.dataset.labelCollapse || "Hide";
+
+        if (labelSpan) {
+          labelSpan.textContent = expand ? collapseLabel : expandLabel;
+        }
+
+        if (content) {
+          if (expand) {
+            content.hidden = false;
+            content.classList.add("open");
+          } else {
+            content.classList.remove("open");
+            content.hidden = true;
+          }
+        }
+      };
+
+      toggleButtons.forEach((button) => {
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        setButtonState(button, expanded);
+
+        button.addEventListener("click", () => {
+          const currentlyExpanded = button.getAttribute("aria-expanded") === "true";
+          const group = button.dataset.group;
+
+          if (group) {
+            document.querySelectorAll(`button.toggle[data-group="${group}"]`).forEach((otherButton) => {
+              if (otherButton !== button) {
+                setButtonState(otherButton, false);
+              }
+            });
+          }
+
+          setButtonState(button, !currentlyExpanded);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

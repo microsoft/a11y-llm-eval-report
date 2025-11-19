@@ -1,0 +1,342 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widget Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --surface: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #22d3ee;
+      --accent-dim: #0891b2;
+      --ring: rgba(34, 211, 238, 0.35);
+      --radius: 12px;
+      --space: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --transition: 240ms cubic-bezier(.2,.8,.2,1);
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --surface: #f8fafc;
+        --text: #0b1220;
+        --muted: #4b5563;
+        --accent: #2563eb;
+        --accent-dim: #1e40af;
+        --ring: rgba(37, 99, 235, 0.35);
+      }
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(34, 211, 238, 0.08), transparent 60%) no-repeat,
+                  radial-gradient(1200px 600px at 90% 10%, rgba(168, 85, 247, 0.08), transparent 60%) no-repeat,
+                  var(--bg);
+      color: var(--text);
+      font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      padding: 40px 16px;
+    }
+
+    .page {
+      max-width: 840px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 32px;
+      line-height: 1.2;
+      margin: 0 0 20px;
+      letter-spacing: -0.02em;
+    }
+    .lead {
+      margin: 0 0 28px;
+      color: var(--muted);
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0)) padding-box,
+                  radial-gradient(800px 300px at 0% 0%, rgba(34, 211, 238, 0.12), transparent 65%) border-box,
+                  var(--panel);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin: 18px 0 24px;
+      backdrop-filter: blur(6px);
+    }
+
+    .example-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--muted);
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .example-title .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: linear-gradient(180deg, var(--accent), var(--accent-dim));
+      box-shadow: 0 0 12px var(--accent);
+      display: inline-block;
+    }
+
+    /* Native details/summary widget */
+    details.details {
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: calc(var(--radius) - 6px);
+      background: var(--surface);
+      overflow: clip;
+    }
+    details.details summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+      outline: none;
+      position: relative;
+    }
+    details.details summary::-webkit-details-marker { display: none; }
+    details.details summary .chev {
+      width: 18px; height: 18px; flex: 0 0 auto;
+      display: inline-grid; place-items: center;
+      color: var(--accent);
+      transition: transform var(--transition);
+    }
+    details.details[open] summary .chev { transform: rotate(90deg); }
+    details.details summary:focus-visible {
+      box-shadow: 0 0 0 2px var(--ring);
+      border-radius: 8px;
+    }
+    details.details .panel {
+      border-top: 1px solid rgba(255,255,255,0.10);
+      padding: 14px 16px;
+      animation: fadeIn var(--transition);
+    }
+
+    /* Button-controlled disclosure */
+    .disclosure .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .disclosure .toggle {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.16);
+      background:
+        radial-gradient(120% 120% at 10% 10%, rgba(34, 211, 238, 0.18), transparent 40%) no-repeat,
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)) no-repeat,
+        var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform .08s ease, box-shadow .08s ease, border-color .2s ease;
+    }
+    .disclosure .toggle:hover {
+      border-color: rgba(255,255,255,0.24);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      transform: translateY(-1px);
+    }
+    .disclosure .toggle:active { transform: translateY(0); }
+    .disclosure .toggle:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--ring);
+    }
+    .disclosure .toggle .chev {
+      width: 16px; height: 16px;
+      display: inline-grid; place-items: center;
+      color: var(--accent);
+      transition: transform var(--transition);
+    }
+    .disclosure .toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
+
+    .disclosure .details {
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: calc(var(--radius) - 6px);
+      background: var(--surface);
+      overflow: hidden;
+      transition: height var(--transition);
+    }
+    .disclosure .details > .panel {
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,0.10);
+    }
+    .small {
+      font-size: 13px; color: var(--muted);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-3px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(34, 211, 238, 0.5);
+    }
+    a:hover { color: var(--accent-dim); border-bottom-color: rgba(8, 145, 178, 0.7); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95em;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 6px;
+      padding: 2px 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Expand/Collapse Widgets</h1>
+    <p class="lead">Two approaches: native <code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> and a button-controlled disclosure with animation.</p>
+
+    <div class="example">
+      <div class="example-title"><span class="dot"></span> Native details/summary</div>
+      <details class="details">
+        <summary>
+          <span class="chev" aria-hidden="true">▸</span>
+          What is an expand/collapse widget?
+        </summary>
+        <div class="panel">
+          <p>An expand/collapse widget lets you reveal or hide content on demand. The native HTML pattern uses the <code>&lt;details&gt;</code> element with a <code>&lt;summary&gt;</code> for the clickable header.</p>
+          <ul>
+            <li>Keyboard accessible by default</li>
+            <li>Works without JavaScript</li>
+            <li>Can be styled for custom look and feel</li>
+          </ul>
+          <p class="small">Tip: The element gets an <code>open</code> attribute when expanded, which you can target in CSS—e.g., <code>details[open] summary</code>.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="example disclosure">
+      <div class="example-title"><span class="dot"></span> Button-controlled disclosure</div>
+      <div class="header">
+        <button
+          type="button"
+          class="toggle"
+          aria-expanded="false"
+          aria-controls="shipping-details"
+          id="toggle-shipping"
+          data-open-label="Hide details"
+          data-closed-label="Show details">
+          <span class="chev" aria-hidden="true">▸</span>
+          <span class="label">Show details</span>
+        </button>
+        <span class="small" id="shipping-hint">Press the button to reveal more information</span>
+      </div>
+
+      <div class="details"
+           id="shipping-details"
+           role="region"
+           aria-labelledby="toggle-shipping"
+           hidden>
+        <div class="panel">
+          <h3 style="margin:0 0 8px;">Shipping & Returns</h3>
+          <p>Orders are processed within 24 hours. Standard shipping typically arrives in 3–5 business days.</p>
+          <p><strong>Returns:</strong> Unused items may be returned within 30 days for a full refund. See our <a href="#" aria-label="Read full return policy">return policy</a> for details.</p>
+          <details class="details" style="margin-top:12px">
+            <summary>
+              <span class="chev" aria-hidden="true">▸</span>
+              International shipping notes
+            </summary>
+            <div class="panel">
+              <p>Customs and import duties may apply depending on your region. Delivery times can vary outside domestic carriers.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <p class="small">Note: In the second example, the container for controlled content uses the <code>details</code> class and is toggled via a button with <code>aria-expanded</code> and <code>aria-controls</code>.</p>
+  </div>
+
+  <script>
+    (function () {
+      const btn = document.getElementById('toggle-shipping');
+      const region = document.getElementById('shipping-details');
+      if (!btn || !region) return;
+
+      const updateLabel = (expanded) => {
+        const labelEl = btn.querySelector('.label');
+        if (!labelEl) return;
+        const openLabel = btn.dataset.openLabel || 'Hide';
+        const closedLabel = btn.dataset.closedLabel || 'Show';
+        labelEl.textContent = expanded ? openLabel : closedLabel;
+      };
+
+      const animateOpen = (el) => {
+        el.hidden = false;
+        const start = 0;
+        const end = el.scrollHeight;
+        el.style.height = start + 'px';
+        el.style.willChange = 'height';
+        requestAnimationFrame(() => {
+          el.style.height = end + 'px';
+        });
+        const done = () => {
+          el.style.height = '';
+          el.style.willChange = '';
+          el.removeEventListener('transitionend', done);
+        };
+        el.addEventListener('transitionend', done);
+      };
+
+      const animateClose = (el) => {
+        const start = el.scrollHeight;
+        el.style.height = start + 'px';
+        el.style.willChange = 'height';
+        requestAnimationFrame(() => {
+          el.style.height = '0px';
+        });
+        const done = () => {
+          el.hidden = true;
+          el.style.height = '';
+          el.style.willChange = '';
+          el.removeEventListener('transitionend', done);
+        };
+        el.addEventListener('transitionend', done);
+      };
+
+      btn.addEventListener('click', () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        const next = !expanded;
+
+        btn.setAttribute('aria-expanded', String(next));
+        updateLabel(next);
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          region.hidden = !next;
+          return;
+        }
+        if (next) animateOpen(region); else animateClose(region);
+      });
+
+      // Initialize label text from aria-expanded
+      updateLabel(btn.getAttribute('aria-expanded') === 'true');
+    })();
+  </script>
+</body>
+</html>

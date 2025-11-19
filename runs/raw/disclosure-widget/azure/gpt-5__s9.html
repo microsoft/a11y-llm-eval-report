@@ -1,0 +1,358 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widgets Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #222;
+      --muted: #666;
+      --border: #e0e0e0;
+      --accent: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.5;
+    }
+    body {
+      margin: 0;
+      padding: 2rem 1rem;
+      display: grid;
+      justify-content: center;
+    }
+    .container {
+      width: min(900px, 100%);
+    }
+    h1 {
+      font-size: 1.625rem;
+      margin: 0 0 1rem 0;
+    }
+    .lead {
+      margin: 0 0 1.25rem 0;
+      color: var(--muted);
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      background: #fafafa;
+    }
+    .example > .title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Native <details> styling */
+    details {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 0.5rem 0.75rem;
+    }
+    details summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+    }
+    /* Remove default marker in Safari */
+    details summary::-webkit-details-marker {
+      display: none;
+    }
+    details summary::before {
+      content: "▶";
+      display: inline-block;
+      margin-right: 0.5rem;
+      transition: transform 0.2s ease;
+      color: var(--muted);
+    }
+    details[open] summary::before {
+      content: "▼";
+      color: var(--accent);
+    }
+    details summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    /* Shared controlled content container */
+    .details {
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      border-left: 3px solid var(--border);
+      background: #fcfcfc;
+      border-radius: 8px;
+    }
+    .details p {
+      margin: 0.5rem 0;
+    }
+
+    /* Custom disclosure button */
+    .disclosure {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: inherit;
+      border-radius: 999px;
+      padding: 0.5rem 0.75rem 0.5rem 2rem;
+      font: inherit;
+      cursor: pointer;
+      position: relative;
+    }
+    .disclosure::before {
+      content: "▶";
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+    .disclosure[aria-expanded="true"]::before {
+      content: "▼";
+      color: var(--accent);
+    }
+    .disclosure:hover {
+      border-color: #d4d4d4;
+      background: #fdfdfd;
+    }
+    .disclosure:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Hide controlled content when collapsed */
+    .details[hidden] {
+      display: none;
+    }
+
+    /* Accordion styling */
+    .accordion {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .accordion-item {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 10px;
+      padding: 0.5rem;
+    }
+    .accordion-item .disclosure {
+      width: 100%;
+      text-align: left;
+    }
+
+    /* Animations for custom panels (respect reduced motion) */
+    @media (prefers-reduced-motion: no-preference) {
+      .details[data-animate="true"] {
+        overflow: clip;
+        transition: grid-template-rows 180ms ease, opacity 180ms ease;
+        display: grid;
+        grid-template-rows: 0fr;
+        opacity: 0;
+      }
+      .details[data-animate="true"] > * {
+        overflow: hidden;
+      }
+      .details[data-animate="true"][data-open="true"] {
+        grid-template-rows: 1fr;
+        opacity: 1;
+      }
+    }
+
+    /* Utility */
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #f6f6f6;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 0.25rem;
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 0.925rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Expand/Collapse Widgets</h1>
+    <p class="lead">Examples include a native HTML disclosure, a custom button-controlled panel, and a basic accordion. Each controlled content container uses the class <code>details</code>.</p>
+
+    <div class="example">
+      <div class="title">Example 1: Native HTML <details></div>
+      <details>
+        <summary>Project Overview</summary>
+        <div class="details">
+          <p>This section uses the native HTML <code>&lt;details&gt;</code> element with a <code>&lt;summary&gt;</code> trigger. It provides built-in accessibility and keyboard support.</p>
+          <ul>
+            <li>Keyboard toggle with Enter or Space on the summary</li>
+            <li>Built-in open/close state via the <code>open</code> attribute</li>
+            <li>Minimal scripting required</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <div class="title">Example 2: Custom Disclosure Button</div>
+      <button class="disclosure" id="btn-custom-1" aria-expanded="false" aria-controls="panel-custom-1">Order Summary</button>
+      <div id="panel-custom-1" class="details" role="region" aria-labelledby="btn-custom-1" hidden data-animate="true">
+        <div>
+          <p><strong>Items:</strong> 3</p>
+          <p><strong>Subtotal:</strong> $74.97</p>
+          <p><strong>Shipping:</strong> $6.95</p>
+          <p><strong>Total:</strong> $81.92</p>
+          <p class="muted">Click the button again to collapse.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="example" data-accordion>
+      <div class="title">Example 3: Accordion</div>
+      <div class="accordion" role="presentation">
+        <div class="accordion-item">
+          <button class="disclosure" id="acc-btn-1" aria-expanded="false" aria-controls="acc-panel-1">Shipping Information</button>
+          <div id="acc-panel-1" class="details" role="region" aria-labelledby="acc-btn-1" hidden>
+            <p>Standard shipping delivers in 3–5 business days. Expedited options are available at checkout.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="disclosure" id="acc-btn-2" aria-expanded="false" aria-controls="acc-panel-2">Return Policy</button>
+          <div id="acc-panel-2" class="details" role="region" aria-labelledby="acc-btn-2" hidden>
+            <p>Returns accepted within 30 days of delivery. Items must be in original condition with tags attached.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="disclosure" id="acc-btn-3" aria-expanded="false" aria-controls="acc-panel-3">Support Contacts</button>
+          <div id="acc-panel-3" class="details" role="region" aria-labelledby="acc-btn-3" hidden>
+            <ul>
+              <li>Email: support@example.com</li>
+              <li>Phone: +1 (800) 555-0199</li>
+              <li>Chat: Mon–Fri, 9am–5pm</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <p class="muted">Only one section opens at a time.</p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Utility to find associated panel by aria-controls
+      function getPanel(button) {
+        var panelId = button.getAttribute('aria-controls');
+        return panelId ? document.getElementById(panelId) : null;
+      }
+
+      // Toggle a panel's visibility and button state
+      function toggle(button, panel, nextStateOpen, opts) {
+        if (!panel) return;
+
+        var willOpen = typeof nextStateOpen === 'boolean'
+          ? nextStateOpen
+          : button.getAttribute('aria-expanded') !== 'true';
+
+        button.setAttribute('aria-expanded', String(willOpen));
+        // Hidden toggling
+        panel.hidden = !willOpen;
+
+        // Optional animation for custom panels
+        if (panel.dataset.animate === 'true') {
+          panel.dataset.open = String(willOpen);
+        }
+
+        // If part of an accordion and opening, close siblings
+        if (willOpen && opts && opts.accordionRoot) {
+          var root = opts.accordionRoot;
+          var buttons = root.querySelectorAll('button[aria-controls]');
+          buttons.forEach(function (b) {
+            if (b === button) return;
+            var p = getPanel(b);
+            if (p && !p.hidden) {
+              b.setAttribute('aria-expanded', 'false');
+              p.hidden = true;
+              if (p.dataset.animate === 'true') {
+                p.dataset.open = 'false';
+              }
+            }
+          });
+        }
+
+        // Manage focus if requested
+        if (willOpen && opts && opts.focusPanel) {
+          panel.setAttribute('tabindex', '-1');
+          panel.focus({ preventScroll: true });
+          // Clean up tabindex after focus
+          setTimeout(function () { panel.removeAttribute('tabindex'); }, 200);
+        }
+      }
+
+      // Click handling for disclosure buttons
+      document.addEventListener('click', function (event) {
+        var button = event.target.closest('button[aria-controls]');
+        if (!button) return;
+
+        var panel = getPanel(button);
+        var exampleRoot = button.closest('.example');
+        var isAccordion = exampleRoot && exampleRoot.hasAttribute('data-accordion');
+
+        toggle(button, panel, undefined, {
+          accordionRoot: isAccordion ? exampleRoot : null,
+          focusPanel: true
+        });
+      });
+
+      // Keyboard navigation within accordions
+      document.addEventListener('keydown', function (event) {
+        var button = event.target.closest('button[aria-controls]');
+        if (!button) return;
+
+        var exampleRoot = button.closest('.example');
+        var isAccordion = exampleRoot && exampleRoot.hasAttribute('data-accordion');
+        var key = event.key;
+
+        // Toggle with Space/Enter
+        if (key === ' ' || key === 'Enter') {
+          var panel = getPanel(button);
+          toggle(button, panel, undefined, {
+            accordionRoot: isAccordion ? exampleRoot : null,
+            focusPanel: true
+          });
+          event.preventDefault();
+          return;
+        }
+
+        // Arrow navigation within accordion buttons
+        if (isAccordion && (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Home' || key === 'End')) {
+          var buttons = Array.from(exampleRoot.querySelectorAll('button[aria-controls]'));
+          var index = buttons.indexOf(button);
+          var nextIndex = index;
+
+          if (key === 'ArrowDown') nextIndex = Math.min(buttons.length - 1, index + 1);
+          if (key === 'ArrowUp') nextIndex = Math.max(0, index - 1);
+          if (key === 'Home') nextIndex = 0;
+          if (key === 'End') nextIndex = buttons.length - 1;
+
+          buttons[nextIndex].focus();
+          event.preventDefault();
+        }
+      });
+
+      // Improve animation handling by syncing data-open with initial hidden state
+      document.querySelectorAll('.details[data-animate="true"]').forEach(function (panel) {
+        panel.dataset.open = String(!panel.hidden);
+      });
+    })();
+  </script>
+</body>
+</html>

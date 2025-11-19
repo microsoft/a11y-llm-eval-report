@@ -1,0 +1,304 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root{
+      --bg:#f7f8fb;
+      --card:#fff;
+      --accent:#2563eb;
+      --muted:#6b7280;
+      --border:#e6e9ef;
+      --radius:8px;
+    }
+    body{
+      font-family: Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+      background:var(--bg);
+      color:#0f172a;
+      margin:24px;
+      line-height:1.45;
+    }
+
+    h1{font-size:18px;margin:0 0 16px 0}
+    p.lead{color:var(--muted);margin:6px 0 18px 0}
+
+    .example{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px;
+      margin:12px 0;
+      box-shadow:0 1px 2px rgba(15,23,42,0.03);
+    }
+
+    .row{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .toggle{
+      background:transparent;
+      border:1px solid var(--border);
+      padding:8px 12px;
+      border-radius:6px;
+      font-weight:600;
+      color:var(--accent);
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .toggle:focus{
+      outline:3px solid rgba(37,99,235,0.15);
+      outline-offset:2px;
+    }
+
+    .toggle .icon{
+      width:12px;height:12px;display:inline-block;border-radius:2px;
+      transition: transform 180ms ease;
+      background:currentColor;
+      transform-origin:center;
+    }
+    .toggle[aria-expanded="true"] .icon{ transform: rotate(90deg); }
+
+    .details{
+      margin-top:12px;
+      padding:12px;
+      border-radius:6px;
+      background:#fbfdff;
+      border:1px dashed #e8eefc;
+      color: #0b1220;
+    }
+
+    .details[hidden]{
+      display:none;
+    }
+
+    /* Animated details: start closed */
+    .details.animated{
+      overflow:hidden;
+      height:0;
+      padding-top:0;
+      padding-bottom:0;
+      border-style:solid;
+      transition: height 260ms ease, padding 180ms ease, border-color 180ms ease;
+      border-color:transparent;
+    }
+    .details.animated.open{
+      border-color:#e6eefc;
+      padding-top:12px;
+      padding-bottom:12px;
+      height:auto; /* JS will animate height */
+    }
+
+    .muted{color:var(--muted); font-size:13px}
+    .accordion-note{font-size:13px;color:var(--muted);margin-top:8px}
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget Examples</h1>
+  <p class="lead">Demonstrations of accessible expand/collapse controls. Each widget is wrapped with a div.example and the controlled content uses a details class.</p>
+
+  <!-- Example 1: Basic toggle -->
+  <div class="example" id="example-1">
+    <div class="row">
+      <button id="toggle-1" class="toggle" aria-expanded="false" aria-controls="details-1">
+        <span class="icon" aria-hidden="true"></span>
+        Show details
+      </button>
+      <span class="muted">Basic expand/collapse</span>
+    </div>
+
+    <div id="details-1" class="details" role="region" aria-labelledby="toggle-1" hidden>
+      <p style="margin:0">This is the controlled content for the basic example. The button above toggles visibility and updates aria-expanded on the button and the hidden attribute on this element.</p>
+    </div>
+  </div>
+
+  <!-- Example 2: Accordion (only one open at a time) -->
+  <div class="example" id="example-2" data-accordion="true">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <strong>Accordion</strong>
+        <div class="accordion-note">Only one panel may be open at a time.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <div style="margin-bottom:8px;">
+        <button id="toggle-2a" class="toggle" aria-expanded="false" aria-controls="details-2a">
+          <span class="icon" aria-hidden="true"></span>
+          Panel A
+        </button>
+        <div id="details-2a" class="details" role="region" aria-labelledby="toggle-2a" hidden>
+          <p style="margin:0">Content for Panel A. When this opens, other panels in the same example close automatically.</p>
+        </div>
+      </div>
+
+      <div>
+        <button id="toggle-2b" class="toggle" aria-expanded="false" aria-controls="details-2b">
+          <span class="icon" aria-hidden="true"></span>
+          Panel B
+        </button>
+        <div id="details-2b" class="details" role="region" aria-labelledby="toggle-2b" hidden>
+          <p style="margin:0">Content for Panel B. Accordion behavior ensures only one panel is visible.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Example 3: Animated expand/collapse -->
+  <div class="example" id="example-3">
+    <div class="row">
+      <button id="toggle-3" class="toggle" aria-expanded="false" aria-controls="details-3">
+        <span class="icon" aria-hidden="true"></span>
+        Animated details
+      </button>
+      <span class="muted">Smooth height animation</span>
+    </div>
+
+    <div id="details-3" class="details animated" role="region" aria-labelledby="toggle-3" aria-hidden="true">
+      <p style="margin:0">This panel animates open and closed smoothly. The JS manages explicit heights to produce a smooth transition while preserving accessible attributes like aria-expanded and aria-hidden.</p>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Utility to find the button for a given details element
+      function buttonFor(details){
+        var id = details.id;
+        if(!id) return null;
+        return document.querySelector('[aria-controls="' + id + '"]');
+      }
+
+      // Toggle for non-animated panels
+      function toggleSimple(btn, details, willOpen){
+        if(willOpen){
+          details.removeAttribute('hidden');
+          details.setAttribute('aria-hidden','false');
+          btn.setAttribute('aria-expanded','true');
+        } else {
+          details.setAttribute('hidden','');
+          details.setAttribute('aria-hidden','true');
+          btn.setAttribute('aria-expanded','false');
+        }
+      }
+
+      // Animated open/close
+      function toggleAnimated(btn, details, willOpen){
+        // details uses class 'animated'
+        if(willOpen){
+          // measure
+          details.classList.add('open'); // allows border/padding to apply
+          details.style.height = 'auto';
+          var full = details.scrollHeight + 'px';
+          details.style.height = '0px';
+          // force frame
+          requestAnimationFrame(function(){
+            details.style.transition = 'height 260ms ease, padding 180ms ease, border-color 180ms ease';
+            details.style.height = full;
+          });
+          var onEnd = function(){
+            details.style.height = 'auto';
+            details.removeEventListener('transitionend', onEnd);
+          };
+          details.addEventListener('transitionend', onEnd);
+          details.setAttribute('aria-hidden','false');
+          btn.setAttribute('aria-expanded','true');
+        } else {
+          // collapse
+          var current = details.scrollHeight + 'px';
+          details.style.height = current;
+          // force frame
+          requestAnimationFrame(function(){
+            details.style.transition = 'height 260ms ease, padding 180ms ease, border-color 180ms ease';
+            details.style.height = '0px';
+          });
+          var onEnd = function(){
+            details.classList.remove('open');
+            details.removeEventListener('transitionend', onEnd);
+          };
+          details.addEventListener('transitionend', onEnd);
+          details.setAttribute('aria-hidden','true');
+          btn.setAttribute('aria-expanded','false');
+        }
+      }
+
+      // Main handler for toggle buttons
+      function handleToggleClick(e){
+        var btn = e.currentTarget;
+        var controlsId = btn.getAttribute('aria-controls');
+        if(!controlsId) return;
+        var details = document.getElementById(controlsId);
+        if(!details) return;
+
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        var willOpen = !expanded;
+
+        // If this belongs to an accordion container, close siblings when opening
+        var example = btn.closest('.example');
+        if(willOpen && example && example.dataset.accordion === "true"){
+          var others = example.querySelectorAll('.details');
+          others.forEach(function(other){
+            if(other === details) return;
+            var otherBtn = buttonFor(other);
+            if(otherBtn){
+              // if animated, use animated close; else simple
+              if(other.classList.contains('animated')){
+                toggleAnimated(otherBtn, other, false);
+              } else {
+                toggleSimple(otherBtn, other, false);
+              }
+            }
+          });
+        }
+
+        // If details is animated, use animated toggle, otherwise simple toggle
+        if(details.classList.contains('animated')){
+          toggleAnimated(btn, details, willOpen);
+        } else {
+          toggleSimple(btn, details, willOpen);
+        }
+      }
+
+      // Attach handlers to all toggle buttons
+      document.addEventListener('DOMContentLoaded', function(){
+        var toggles = document.querySelectorAll('.toggle');
+        toggles.forEach(function(btn){
+          btn.addEventListener('click', handleToggleClick);
+        });
+
+        // Initialize: ensure aria-hidden matches hidden attribute for non-animated
+        var detailsElems = document.querySelectorAll('.details:not(.animated)');
+        detailsElems.forEach(function(d){
+          var btn = buttonFor(d);
+          if(d.hasAttribute('hidden')){
+            d.setAttribute('aria-hidden','true');
+            if(btn) btn.setAttribute('aria-expanded','false');
+          } else {
+            d.setAttribute('aria-hidden','false');
+            if(btn) btn.setAttribute('aria-expanded','true');
+          }
+        });
+
+        // For animated elements initialize aria-hidden and collapsed height
+        var animated = document.querySelectorAll('.details.animated');
+        animated.forEach(function(d){
+          // start collapsed by default unless class 'open' present
+          var btn = buttonFor(d);
+          if(!d.classList.contains('open')){
+            d.style.height = '0px';
+            d.setAttribute('aria-hidden','true');
+            if(btn) btn.setAttribute('aria-expanded','false');
+          } else {
+            d.style.height = 'auto';
+            d.setAttribute('aria-hidden','false');
+            if(btn) btn.setAttribute('aria-expanded','true');
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

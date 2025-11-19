@@ -1,0 +1,396 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widget Examples</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --fg: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --border: #e2e8f0;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      line-height: 1.5;
+      color: var(--fg);
+      background: linear-gradient(120deg, #f8fafc, #f1f5f9);
+      padding: 2rem 1rem 4rem;
+    }
+
+    h1 {
+      margin: 0 0 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: clamp(1.75rem, 2vw + 1rem, 2.25rem);
+    }
+    .lead {
+      margin: 0 0 2rem;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .example {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow:
+        0 1px 1px rgba(15, 23, 42, 0.03),
+        0 8px 24px rgba(15, 23, 42, 0.05);
+      padding: 1rem;
+    }
+
+    .example h2 {
+      margin: 0 0 .75rem;
+      font-size: 1.125rem;
+    }
+
+    .example .desc {
+      margin: 0 0 .75rem;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .toggle {
+      appearance: none;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--fg);
+      font-weight: 600;
+      padding: .6rem .9rem;
+      border-radius: 8px;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .05s ease;
+    }
+    .toggle:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+    }
+    .toggle:active { transform: translateY(1px); }
+    .toggle[aria-expanded="true"] {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #0b3ea8;
+    }
+
+    .details {
+      margin-top: .75rem;
+      border-left: 4px solid var(--accent);
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: .75rem .9rem;
+    }
+    .details[hidden] { display: none !important; }
+
+    /* Accordion styles */
+    .accordion {
+      display: grid;
+      gap: .5rem;
+    }
+    .accordion-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .accordion-item .toggle {
+      width: 100%;
+      text-align: left;
+      border: none;
+      border-bottom: 1px solid transparent;
+      border-radius: 0;
+      background: #fff;
+      padding: .8rem 1rem;
+    }
+    .accordion-item .toggle[aria-expanded="true"] {
+      background: #f8fafc;
+      border-bottom-color: var(--border);
+    }
+    .accordion-item .details {
+      margin: 0;
+      border-left: none;
+      border-radius: 0;
+      padding: .8rem 1rem;
+      background: #f8fafc;
+    }
+
+    /* Native <details> styling */
+    details.details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      padding: .25rem .5rem .5rem;
+    }
+    details.details[open] {
+      border-color: #bfdbfe;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+    }
+    details.details summary {
+      cursor: pointer;
+      list-style: none;
+      font-weight: 600;
+      padding: .6rem .5rem;
+      border-radius: 6px;
+      outline: none;
+    }
+    details.details summary::-webkit-details-marker { display: none; }
+    details.details summary::before {
+      content: "▸";
+      display: inline-block;
+      margin-right: .5rem;
+      transition: transform .2s ease;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    details.details[open] summary::before { transform: rotate(90deg); }
+
+    /* Utilities */
+    .muted { color: var(--muted); }
+    .code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      padding: .15rem .35rem;
+      border-radius: 6px;
+    }
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widget Examples</h1>
+    <p class="lead">Three approaches to expand/collapse content. Each widget is wrapped in a <span class="code">div.example</span> and the controlled content container uses the <span class="code">details</span> class.</p>
+  </header>
+
+  <main class="grid">
+    <div class="example" id="example-1">
+      <h2>Basic Toggle Button</h2>
+      <p class="desc">A button toggles a content region using the <span class="code">hidden</span> attribute and ARIA semantics.</p>
+      <button type="button"
+              class="toggle"
+              id="ex1-toggle"
+              aria-expanded="false"
+              aria-controls="ex1-details"
+              data-collapsed-label="Show details"
+              data-expanded-label="Hide details">
+        Show details
+      </button>
+
+      <div class="details"
+           id="ex1-details"
+           role="region"
+           aria-labelledby="ex1-toggle"
+           hidden>
+        <p>This is the controlled content. It is initially hidden and becomes visible when the button indicates it is expanded.</p>
+        <ul>
+          <li>Uses a button with <span class="code">aria-expanded</span>.</li>
+          <li>Targets by <span class="code">aria-controls</span>.</li>
+          <li>Hides and shows via the <span class="code">hidden</span> attribute.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="example" id="example-2">
+      <h2>Accordion (Single-open)</h2>
+      <p class="desc">An accordion where only one section opens at a time. Buttons share a common group identifier.</p>
+      <div class="accordion" role="presentation">
+        <div class="accordion-item">
+          <button type="button"
+                  class="toggle"
+                  id="ex2-item1-btn"
+                  aria-controls="ex2-item1-details"
+                  aria-expanded="false"
+                  data-accordion="group-ex2">
+            Overview
+          </button>
+          <div class="details"
+               id="ex2-item1-details"
+               role="region"
+               aria-labelledby="ex2-item1-btn"
+               hidden>
+            <p>This section gives a quick summary. Opening this will close any other open section in the same group.</p>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button type="button"
+                  class="toggle"
+                  id="ex2-item2-btn"
+                  aria-controls="ex2-item2-details"
+                  aria-expanded="false"
+                  data-accordion="group-ex2">
+            Specifications
+          </button>
+          <div class="details"
+               id="ex2-item2-details"
+               role="region"
+               aria-labelledby="ex2-item2-btn"
+               hidden>
+            <ul>
+              <li>Feature A: Enabled</li>
+              <li>Feature B: Optional</li>
+              <li>Feature C: Experimental</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button type="button"
+                  class="toggle"
+                  id="ex2-item3-btn"
+                  aria-controls="ex2-item3-details"
+                  aria-expanded="false"
+                  data-accordion="group-ex2">
+            FAQ
+          </button>
+          <div class="details"
+               id="ex2-item3-details"
+               role="region"
+               aria-labelledby="ex2-item3-btn"
+               hidden>
+            <p><strong>Q:</strong> How does this work?</p>
+            <p><strong>A:</strong> Click a section button to expand. Arrow keys navigate between section headers.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example" id="example-3">
+      <h2>Native details/summary</h2>
+      <p class="desc">Leverages the built-in HTML <span class="code">&lt;details&gt;</span> element with a <span class="code">details</span> class applied.</p>
+
+      <details class="details">
+        <summary>Native expandable content</summary>
+        <p>This uses the browser's native expand/collapse behavior. It works without JavaScript and is fully keyboard accessible by default.</p>
+        <p class="muted">Tip: You can style the summary marker and open state as shown here.</p>
+      </details>
+    </div>
+  </main>
+
+  <footer style="margin-top: 2rem; text-align: center; color: var(--muted);">
+    <small>Demonstration of expand/collapse widgets with containers using the "details" class.</small>
+  </footer>
+
+  <script>
+    (function () {
+      const buttons = Array.from(document.querySelectorAll('button.toggle[aria-controls]'));
+
+      function getTarget(btn) {
+        const id = btn.getAttribute('aria-controls');
+        return id ? document.getElementById(id) : null;
+      }
+
+      function setExpanded(btn, target, expanded) {
+        btn.setAttribute('aria-expanded', String(expanded));
+        if (expanded) {
+          target.hidden = false;
+        } else {
+          target.hidden = true;
+        }
+        const collapsedLabel = btn.dataset.collapsedLabel;
+        const expandedLabel = btn.dataset.expandedLabel;
+        if (collapsedLabel && expandedLabel) {
+          btn.textContent = expanded ? expandedLabel : collapsedLabel;
+        }
+      }
+
+      function closeGroup(group, exceptBtn) {
+        if (!group) return;
+        const groupBtns = buttons.filter(b => b.dataset.accordion === group);
+        for (const b of groupBtns) {
+          if (b === exceptBtn) continue;
+          const t = getTarget(b);
+          if (!t) continue;
+          setExpanded(b, t, false);
+        }
+      }
+
+      function onClick(event) {
+        const btn = event.currentTarget;
+        const target = getTarget(btn);
+        if (!target) return;
+
+        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        const group = btn.dataset.accordion;
+
+        if (!isExpanded) {
+          closeGroup(group, btn);
+        }
+        setExpanded(btn, target, !isExpanded);
+      }
+
+      function onKeydown(event) {
+        const btn = event.currentTarget;
+        const group = btn.dataset.accordion;
+        if (!group) return;
+
+        const groupBtns = buttons.filter(b => b.dataset.accordion === group);
+        const idx = groupBtns.indexOf(btn);
+        if (idx === -1) return;
+
+        const key = event.key;
+        let nextIndex = null;
+
+        if (key === 'ArrowDown' || key === 'ArrowRight') {
+          nextIndex = (idx + 1) % groupBtns.length;
+        } else if (key === 'ArrowUp' || key === 'ArrowLeft') {
+          nextIndex = (idx - 1 + groupBtns.length) % groupBtns.length;
+        } else if (key === 'Home') {
+          nextIndex = 0;
+        } else if (key === 'End') {
+          nextIndex = groupBtns.length - 1;
+        } else if (key === 'Enter' || key === ' ') {
+          event.preventDefault();
+          btn.click();
+        }
+
+        if (nextIndex !== null) {
+          event.preventDefault();
+          groupBtns[nextIndex].focus();
+        }
+      }
+
+      for (const btn of buttons) {
+        btn.addEventListener('click', onClick);
+        btn.addEventListener('keydown', onKeydown);
+      }
+
+      // Optional: Respect URL hash for initial expansion
+      const hash = location.hash.replace('#', '');
+      if (hash) {
+        const target = document.getElementById(hash);
+        if (target && target.classList.contains('details')) {
+          const btn = buttons.find(b => b.getAttribute('aria-controls') === hash);
+          if (btn) setExpanded(btn, target, true);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

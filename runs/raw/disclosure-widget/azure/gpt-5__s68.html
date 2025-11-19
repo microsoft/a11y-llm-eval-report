@@ -1,0 +1,298 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widget Examples</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card-bg: #fff;
+      --text: #222;
+      --muted: #666;
+      --border: #ddd;
+      --accent: #3b82f6;
+      --accent-ink: #174ea6;
+      --shadow: 0 1px 2px rgba(0,0,0,0.08), 0 6px 16px rgba(0,0,0,0.06);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg), #ececf3);
+      line-height: 1.55;
+    }
+
+    header {
+      max-width: 920px;
+      margin: 32px auto 12px;
+      padding: 0 16px;
+    }
+    header h1 {
+      font-size: 1.75rem;
+      margin: 0 0 6px;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .example {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin: 16px 0;
+    }
+
+    /* Shared styles for the controlled content container */
+    .details {
+      border-left: 3px solid var(--accent);
+      padding: 12px 12px 12px 16px;
+      margin-top: 12px;
+      background: #fafbff;
+      border-radius: 0 8px 8px 0;
+    }
+    .details[hidden] {
+      display: none;
+    }
+
+    /* Native <details> styling */
+    details.details {
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    details.details > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f8f9fd;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.details > summary:hover {
+      background: #f1f4ff;
+    }
+    details.details > summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    /* Custom disclosure arrow */
+    details.details > summary::before {
+      content: "▸";
+      color: var(--accent-ink);
+      transition: transform 160ms ease;
+      transform-origin: center;
+    }
+    details.details[open] > summary::before {
+      transform: rotate(90deg);
+    }
+    details.details > .details-content {
+      margin-top: 10px;
+    }
+
+    /* Button-based toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toggle-row button {
+      border: 1px solid var(--border);
+      background: #f8f9fd;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+    .toggle-row button:hover {
+      background: #eef2ff;
+      border-color: #cdd4ff;
+    }
+    .toggle-row button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+      background: #f3f5f9;
+      border: 1px solid #e5e7ef;
+      border-radius: 6px;
+      padding: 2px 6px;
+    }
+
+    /* Optional smooth expand effect for JS-based widgets */
+    .details[data-animate="true"] {
+      overflow: hidden;
+      transition: grid-template-rows 180ms ease, padding-top 180ms ease, padding-bottom 180ms ease, margin-top 180ms ease;
+      display: grid;
+      grid-template-rows: 0fr;
+      padding-top: 0;
+      padding-bottom: 0;
+      margin-top: 0;
+    }
+    .details[data-animate="true"] > .inner {
+      overflow: hidden;
+    }
+    .details[data-open="true"][data-animate="true"] {
+      grid-template-rows: 1fr;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      margin-top: 12px;
+    }
+  </style>
+  <script>
+    // Button-based toggle logic with accessibility best practices
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggles = document.querySelectorAll('button[data-controls]');
+      toggles.forEach(btn => {
+        const targetId = btn.getAttribute('data-controls');
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        // Initialize aria-expanded from target visibility
+        const isVisible = !target.hasAttribute('hidden');
+        btn.setAttribute('aria-expanded', String(isVisible));
+
+        // Optional animated mode for nicer open/close
+        const animated = target.dataset.animate === 'true';
+        if (animated) {
+          // Move existing children into a wrapper to limit overflow
+          if (!target.querySelector('.inner')) {
+            const inner = document.createElement('div');
+            inner.className = 'inner';
+            while (target.firstChild) inner.appendChild(target.firstChild);
+            target.appendChild(inner);
+          }
+          // Start closed by default unless visible
+          target.dataset.open = String(isVisible);
+        }
+
+        btn.addEventListener('click', () => {
+          const currentlyExpanded = btn.getAttribute('aria-expanded') === 'true';
+          const next = !currentlyExpanded;
+
+          btn.setAttribute('aria-expanded', String(next));
+
+          if (animated) {
+            target.dataset.open = String(next);
+            target.toggleAttribute('hidden', false); // keep in layout for animation
+            if (!next) {
+              // After animation completes, hide for semantics
+              const duration = 200;
+              setTimeout(() => target.toggleAttribute('hidden', true), duration);
+            }
+          } else {
+            target.toggleAttribute('hidden', !next);
+          }
+
+          // Update button label text if it contains data-open-label/data-close-label
+          const openLabel = btn.getAttribute('data-open-label');
+          const closeLabel = btn.getAttribute('data-close-label');
+          if (openLabel && closeLabel) {
+            btn.textContent = next ? closeLabel : openLabel;
+          }
+        });
+      });
+
+      // Allow pressing Enter/Space on summary to focus content
+      const summaries = document.querySelectorAll('details.details > summary');
+      summaries.forEach(summary => {
+        summary.addEventListener('click', () => {
+          const parent = summary.parentElement;
+          if (parent && parent.open) {
+            // move focus into content region for keyboard users
+            const focusable = parent.querySelector('.details-content');
+            if (focusable) focusable.setAttribute('tabindex', '-1'), focusable.focus();
+          }
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widgets</h1>
+    <p>Examples showing native and custom expandable sections. Each widget is wrapped with a div.example and uses a container with a details class.</p>
+  </header>
+
+  <main>
+    <div class="example">
+      <h2>Example 1: Native details/summary</h2>
+      <details class="details">
+        <summary aria-controls="native-details-panel" aria-expanded="false">
+          Project Overview
+        </summary>
+        <div id="native-details-panel" class="details-content">
+          <p>This section uses the built-in HTML <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements. It requires no JavaScript and is accessible out of the box.</p>
+          <ul>
+            <li>Toggle via mouse, keyboard, or touch.</li>
+            <li>Preserves user state across page refreshes in some browsers.</li>
+            <li>Can be styled to fit your design system.</li>
+          </ul>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse potenti. Curabitur dictum nisl sed mauris bibendum, nec aliquam augue tempor.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <h2>Example 2: Button-controlled content</h2>
+      <div class="toggle-row">
+        <button
+          type="button"
+          aria-expanded="false"
+          aria-controls="custom-panel"
+          data-controls="custom-panel"
+          data-open-label="Show details"
+          data-close-label="Hide details">
+          Show details
+        </button>
+        <span class="hint" aria-hidden="true" style="color: var(--muted);">Keyboard: Space/Enter on the button</span>
+      </div>
+      <div id="custom-panel" class="details" hidden>
+        <p>This area is controlled by a button that updates <code>aria-expanded</code> and the visibility of the content.</p>
+        <p>Use this approach when you need custom controls, analytics hooks, or animations.</p>
+        <ol>
+          <li>Works across browsers without relying on <code>&lt;details&gt;</code>.</li>
+          <li>Fully customizable behavior.</li>
+          <li>Simple to integrate with frameworks.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>Example 3: Animated expand/collapse</h2>
+      <div class="toggle-row">
+        <button
+          type="button"
+          aria-expanded="false"
+          aria-controls="animated-panel"
+          data-controls="animated-panel">
+          Toggle panel
+        </button>
+      </div>
+      <div id="animated-panel" class="details" hidden data-animate="true">
+        <p>This panel uses a simple CSS grid-based animation for a smoother open/close experience.</p>
+        <p>Animation is optional and progressively enhances the base behavior.</p>
+        <p>Note: When collapsing, the content is visually animated and then hidden for semantics.</p>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

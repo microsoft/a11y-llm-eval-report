@@ -1,0 +1,156 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    /* Basic page styling */
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 2rem;
+      background: #f6f7fb;
+      color: #1f2937;
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+    /* Each widget wrapper */
+    .example {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+
+    /* Native details widget styling (the container also gets a subtle card look) */
+    details {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 8px 12px;
+      background: #ffffff;
+      /* Let browser handle the expansion animation for native details */
+    }
+    details > summary {
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    /* Container for controlled content (the content area) gets class="details" as required */
+    .details {
+      padding: 8px 4px;
+    }
+
+    /* Second widget: a custom expand/collapse with a button */
+    .panel {
+      display: block;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 12px;
+      background: #fff;
+    }
+    .btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn:focus {
+      outline: 2px solid #1e3a8a;
+    }
+
+    /* The container for controlled content in the custom widget uses class="details" */
+    /* Initial collapsed state: height 0 to hide content smoothly */
+    #content1 {
+      height: 0;
+      padding: 0 6px;
+      overflow: hidden;
+      transition: height 0.25s ease, padding 0.25s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widget Demo</h1>
+
+  <!-- 1) Native details widget -->
+  <div class="example" aria-label="Native details widget example">
+    <details>
+      <summary>1. Native details widget (click to expand)</summary>
+      <div class="details" aria-label="Details content">
+        <p>This content is inside a native HTML details element. The browser provides the expand/collapse behavior without extra JavaScript.</p>
+        <p>You can include any HTML content here, such as paragraphs, lists, images, or forms.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- 2) Custom widget with a button controlling a collapsible panel -->
+  <div class="example" aria-label="Custom expand/collapse widget example">
+    <div class="panel" role="region" aria-label="Custom expand/collapse panel">
+      <button class="btn" id="toggleBtn" aria-expanded="false" aria-controls="content1">Expand</button>
+      <div id="content1" class="details" aria-hidden="true">
+        <p>This content is controlled by a button. The container holding the content uses the class name <code>details</code>.</p>
+        <p>Click the button again to collapse. This panel uses a small amount of JavaScript to animate the height for a smooth transition.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Lightweight toggle for the custom widget with height animation
+    (function() {
+      var btn = document.getElementById('toggleBtn');
+      var content = document.getElementById('content1');
+      var isOpen = false;
+
+      // Initialize ARIA state
+      btn.setAttribute('aria-expanded', 'false');
+      content.setAttribute('aria-hidden', 'true');
+
+      function openContent() {
+        // Start from current height, set to computed height for animation
+        var endHeight = content.scrollHeight;
+        content.style.height = endHeight + 'px';
+        content.style.padding = '0 6px';
+        // After the transition ends, let height auto-adjust to content
+        content.addEventListener('transitionend', function onEnd(e) {
+          if (e.propertyName === 'height') {
+            content.style.height = 'auto';
+            content.removeEventListener('transitionend', onEnd);
+          }
+        });
+        content.setAttribute('aria-hidden', 'false');
+        btn.setAttribute('aria-expanded', 'true');
+        btn.textContent = 'Collapse';
+      }
+
+      function closeContent() {
+        // Set height to current computed height to enable a smooth collapse
+        var currentHeight = content.scrollHeight;
+        content.style.height = currentHeight + 'px';
+        // Force reflow to apply the height before collapsing
+        content.offsetHeight;
+        content.style.height = '0px';
+        content.style.padding = '0 6px';
+        content.setAttribute('aria-hidden', 'true');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.textContent = 'Expand';
+      }
+
+      btn.addEventListener('click', function() {
+        if (isOpen) {
+          closeContent();
+        } else {
+          openContent();
+        }
+        isOpen = !isOpen;
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand / Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #f7f9fb;
+      --card: #fff;
+      --border: #e4e7eb;
+      --text: #1f2937;
+      --muted: #64748b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 { margin: 0 0 0.5rem; font-size: 1.75rem; }
+    .subtitle { color: var(--muted); font-size: .95rem; margin-bottom: 1.5rem; }
+    .example { background: #fff; border: 1px solid var(--border); border-radius: 8px;
+               margin-bottom: 1.25rem; box-shadow: 0 1px 2px rgba(0,0,0,.04); overflow: hidden; }
+    .example + .example { margin-top: 0.75rem; }
+    .toggle {
+      width: 100%; background: #fff; border: 0; padding: 0; margin: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; padding: 1rem 1rem; font: inherit; color: var(--text);
+    }
+    .toggle:focus { outline: 2px solid #4c9aff; outline-offset: 2px; }
+    .indicator { font-size: 0.95rem; transition: transform .2s ease; color: #333; }
+    .toggle[aria-expanded="true"] .indicator { transform: rotate(180deg); }
+    .details { display: none; padding: 0 1rem 1rem; border-top: 1px solid var(--border); }
+    .details.open { display: block; }
+    .details p { margin: .5rem 0; line-height: 1.5; color: #374151; }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget Demo</h1>
+  <p class="subtitle">Two examples: a simple toggle and an accordion-style panel group. The collapsible content uses the class "details". Each widget wrapper uses the class "example".</p>
+
+  <!-- Simple expand/collapse widget -->
+  <div class="example">
+    <button id="btn-1" class="toggle" aria-expanded="false" aria-controls="details-1" type="button">
+      <span class="label">What is HTML?</span>
+      <span class="indicator" aria-hidden="true">▾</span>
+    </button>
+    <div id="details-1" class="details" role="region" aria-labelledby="btn-1">
+      <p>HTML (HyperText Markup Language) is the standard language for creating web pages. It provides the basic structure of a webpage using elements and tags.</p>
+      <p>Click the header again to collapse.</p>
+    </div>
+  </div>
+
+  <!-- Accordion-style widget inside a single example wrapper -->
+  <div class="example">
+    <div class="accordion" aria-label="Example accordion" role="region">
+      <button id="acc-1" class="toggle" aria-expanded="false" aria-controls="panel-1" type="button">What is CSS?</button>
+      <div id="panel-1" class="details" role="region" aria-labelledby="acc-1">
+        <p>CSS (Cascading Style Sheets) describes how HTML elements are to be displayed on screen, on paper, or in other media.</p>
+      </div>
+
+      <button id="acc-2" class="toggle" aria-expanded="false" aria-controls="panel-2" type="button">What is JavaScript?</button>
+      <div id="panel-2" class="details" role="region" aria-labelledby="acc-2">
+        <p>JavaScript adds interactivity and dynamic behavior to web pages, enabling features like animations, form validation, and asynchronous requests.</p>
+      </div>
+
+      <button id="acc-3" class="toggle" aria-expanded="false" aria-controls="panel-3" type="button">What is Accessibility?</button>
+      <div id="panel-3" class="details" role="region" aria-labelledby="acc-3">
+        <p>Accessibility is designing products to be usable by people with a wide range of abilities. It includes proper semantics, keyboard support, and readable content.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple expand/collapse behavior for all widgets
+    document.addEventListener('DOMContentLoaded', function() {
+      // Attach handlers to all toggle buttons inside .example containers
+      const toggles = document.querySelectorAll('.example .toggle');
+      toggles.forEach(function(btn){
+        btn.addEventListener('click', function() {
+          const detailsId = btn.getAttribute('aria-controls');
+          const details = document.getElementById(detailsId);
+          const isOpen = details.classList.contains('open');
+          // If opening, in an accordion-style group, close siblings within the same .example
+          const container = btn.closest('.example');
+          if (container) {
+            container.querySelectorAll('.details.open').forEach(function(d){
+              if (d !== details) {
+                d.classList.remove('open');
+                // Update corresponding button ARIA
+                const relatedBtn = container.querySelector('button[aria-controls="' + d.id + '"]');
+                if (relatedBtn) relatedBtn.setAttribute('aria-expanded', 'false');
+              }
+            });
+          }
+
+          if (isOpen) {
+            details.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          } else {
+            details.classList.add('open');
+            btn.setAttribute('aria-expanded', 'true');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

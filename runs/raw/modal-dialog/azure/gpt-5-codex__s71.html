@@ -1,0 +1,200 @@
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Modal Dialog Example</title>
+<style>
+:root {
+  color-scheme: light dark;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+body {
+  margin: 0;
+  padding: 2.5rem;
+  background: radial-gradient(circle at top, #f8fafc 0%, #e2e8f0 35%, #cbd5f5 100%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+button {
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  padding: 0.85rem 1.8rem;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 18px 30px -15px rgba(99, 102, 241, 0.65);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 35px -12px rgba(99, 102, 241, 0.55);
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.42);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+.modal[hidden] {
+  display: none;
+}
+.modal-panel {
+  position: relative;
+  max-width: 28rem;
+  width: min(100%, 28rem);
+  background: linear-gradient(160deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 1.5rem;
+  padding: 2.25rem;
+  box-shadow:
+    0 30px 60px -25px rgba(15, 23, 42, 0.45),
+    0 18px 40px -28px rgba(99, 102, 241, 0.45);
+  animation: slideUp 0.25s ease;
+  color: #0f172a;
+}
+.modal h2 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.modal p {
+  margin: 0 0 1.5rem;
+  line-height: 1.6;
+  color: #475569;
+}
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+.modal-actions button.secondary {
+  background: #e2e8f0;
+  color: #1e293b;
+  box-shadow: none;
+}
+.close-icon {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  background: transparent;
+  color: #94a3b8;
+  padding: 0.35rem;
+  border-radius: 50%;
+  box-shadow: none;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.close-icon:hover {
+  background: rgba(148, 163, 184, 0.15);
+  color: #0f172a;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(18px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+</style>
+<script defer>
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("example-modal");
+  const trigger = document.querySelector(".trigger");
+  const closeButtons = modal.querySelectorAll("[data-close]");
+  const focusableSelector = [
+    "a[href]",
+    "button:not([disabled])",
+    "textarea:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])"
+  ].join(", ");
+  let lastFocusedElement = null;
+
+  function openModal() {
+    lastFocusedElement = document.activeElement;
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    const focusableElements = modal.querySelectorAll(focusableSelector);
+    if (focusableElements.length) {
+      focusableElements[0].focus();
+    }
+    document.addEventListener("keydown", trapFocus);
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.removeEventListener("keydown", trapFocus);
+    if (lastFocusedElement) {
+      lastFocusedElement.focus();
+    }
+  }
+
+  function trapFocus(event) {
+    if (event.key === "Escape") {
+      closeModal();
+      return;
+    }
+    if (event.key !== "Tab") {
+      return;
+    }
+    const focusableElements = Array.from(modal.querySelectorAll(focusableSelector));
+    if (!focusableElements.length) {
+      event.preventDefault();
+      return;
+    }
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  }
+
+  trigger.addEventListener("click", openModal);
+
+  closeButtons.forEach(button => {
+    button.addEventListener("click", closeModal);
+  });
+
+  modal.addEventListener("click", event => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+});
+</script>
+</head>
+<body>
+<button type="button" class="trigger" aria-haspopup="dialog" aria-controls="example-modal">
+  Launch Modal Dialog
+</button>
+
+<div class="modal" id="example-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title" hidden>
+  <div class="modal-panel" role="document">
+    <button type="button" class="close-icon" aria-label="Close dialog" data-close>&times;</button>
+    <h2 id="modal-title">Enable Smart Notifications</h2>
+    <p>
+      Stay ahead with instant updates on the projects and teams you follow. Choose the frequency and channels that work best for you, then fine-tune anytime from your dashboard.
+    </p>
+    <div class="modal-actions">
+      <button type="button" class="secondary" data-close>Maybe Later</button>
+      <button type="button">Turn On Alerts</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
