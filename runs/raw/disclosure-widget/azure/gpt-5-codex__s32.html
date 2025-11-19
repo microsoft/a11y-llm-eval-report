@@ -1,0 +1,508 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expand/Collapse Widget Demo</title>
+<style>
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light;
+  font-size: 16px;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --border: rgba(99, 102, 241, 0.18);
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --accent: #6366f1;
+  --accent-soft: rgba(99, 102, 241, 0.08);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Roboto", sans-serif;
+  background: radial-gradient(circle at top left, rgba(99,102,241,0.08), transparent 55%),
+              radial-gradient(circle at bottom right, rgba(14,165,233,0.08), transparent 60%),
+              #eef2f8;
+  color: var(--text-primary);
+  line-height: 1.65;
+}
+
+main.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem 4rem;
+  display: grid;
+  gap: 2.75rem;
+}
+
+header.page-intro {
+  display: grid;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+header.page-intro h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 5vw, 3.25rem);
+  letter-spacing: -0.04em;
+}
+
+header.page-intro p {
+  margin: 0 auto;
+  max-width: 48ch;
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+}
+
+.example {
+  background: var(--surface);
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 2rem;
+  box-shadow: 0 25px 60px -44px rgba(30, 41, 59, 0.66);
+  display: grid;
+  gap: 1.25rem;
+}
+
+.example h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+}
+
+.example .description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.details {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+  color: var(--text-primary);
+}
+
+details.details {
+  padding: 0.2rem 0.9rem;
+  position: relative;
+  overflow: hidden;
+}
+
+details.details::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+details.details > summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 0;
+}
+
+details.details > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.details > summary::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+details.details > summary::after {
+  content: "▸";
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--accent);
+  transition: transform 0.25s ease;
+}
+
+details.details[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+.details-content {
+  margin: 0.75rem 0 0.5rem;
+  display: grid;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.details-content p {
+  margin: 0;
+}
+
+.details-content ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.25rem;
+  list-style: disc;
+}
+
+.details.collapsible-panel,
+.details.accordion-panel {
+  padding: 1.15rem 1.2rem;
+  display: grid;
+  gap: 0.9rem;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.details.collapsible-panel[hidden],
+.details.accordion-panel[hidden] {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.details.collapsible-panel:not([hidden]),
+.details.accordion-panel:not([hidden]) {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.collapsible-toggle {
+  appearance: none;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  padding: 0.95rem 1.1rem;
+  width: 100%;
+  text-align: left;
+  font-size: 1.05rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  position: relative;
+}
+
+.collapsible-toggle::after {
+  content: "▸";
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-left: auto;
+  transition: transform 0.25s ease;
+}
+
+.collapsible-toggle[aria-expanded="true"]::after {
+  transform: rotate(90deg);
+}
+
+.collapsible-toggle:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 12px 20px -18px rgba(99, 102, 241, 0.65);
+}
+
+.collapsible-toggle:focus-visible {
+  outline: 3px solid rgba(99, 102, 241, 0.35);
+  outline-offset: 2px;
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.settings-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.settings-row {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.settings-row label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-row small {
+  color: var(--text-secondary);
+}
+
+.settings-row input,
+.settings-row select {
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  font: inherit;
+  color: inherit;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-row input:focus-visible,
+.settings-row select:focus-visible {
+  border-color: rgba(99, 102, 241, 0.4);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+.toggle-pair {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.toggle-pair label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.accordion {
+  display: grid;
+  gap: 1rem;
+}
+
+.accordion-item {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.accordion-panel p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.accordion-panel ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.annotation {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+code {
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.95em;
+  background: rgba(15, 23, 42, 0.05);
+  padding: 0.1rem 0.35rem;
+  border-radius: 6px;
+}
+</style>
+</head>
+<body>
+<main class="container">
+  <header class="page-intro">
+    <h1>Expand/Collapse Widget Gallery</h1>
+    <p>Explore three accessible patterns for revealing optional content with smooth interactions. Each widget demonstrates a different technique for controlling visibility.</p>
+  </header>
+
+  <div class="example">
+    <h2>Native <code>&lt;details&gt;</code> Element</h2>
+    <p class="description">Leverages the semantic HTML element for automatic keyboard and screen-reader support, enhanced with modern styling.</p>
+    <details class="details native-details">
+      <summary>How does the native expand/collapse pattern behave?</summary>
+      <div class="details-content">
+        <p>The <code>&lt;details&gt;</code> element provides built-in accessibility, keyboard interactivity, and state management without additional JavaScript. It is ideal for light-weight disclosure widgets.</p>
+        <ul>
+          <li><strong>Keyboard friendly:</strong> Users can focus the summary and toggle it with the <kbd>Enter</kbd> or <kbd>Space</kbd> keys.</li>
+          <li><strong>ARIA aware:</strong> Screen readers announce the state change automatically.</li>
+          <li><strong>Progressive enhancement:</strong> Browsers that do not support <code>&lt;details&gt;</code> simply show the content expanded.</li>
+        </ul>
+        <p class="annotation">Tip: Add the <code>open</code> attribute to start expanded, or remove it to default to the collapsed state.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="example">
+    <h2>Button-Controlled Panel</h2>
+    <p class="description">A custom toggle button manages a content region via ARIA attributes, offering more styling flexibility and bespoke transitions.</p>
+    <button type="button"
+            class="collapsible-toggle"
+            data-label-collapsed="Show advanced settings"
+            data-label-expanded="Hide advanced settings"
+            aria-expanded="false"
+            aria-controls="advanced-settings">
+      <span class="button-label" data-label>Show advanced settings</span>
+    </button>
+    <div class="details collapsible-panel" id="advanced-settings" hidden>
+      <div class="settings-grid">
+        <div class="settings-row">
+          <label for="sync-frequency">Sync frequency</label>
+          <select id="sync-frequency" name="sync-frequency">
+            <option value="15">Every 15 minutes</option>
+            <option value="30">Every 30 minutes</option>
+            <option value="60" selected>Hourly</option>
+            <option value="180">Every 3 hours</option>
+          </select>
+          <small>Choose how often we should synchronize background tasks.</small>
+        </div>
+        <div class="settings-row">
+          <label for="auto-backup">Automatic backup limit</label>
+          <input type="number" id="auto-backup" name="auto-backup" min="1" max="30" step="1" value="7">
+          <small>Specify the number of daily snapshots to retain for recovery.</small>
+        </div>
+        <div class="toggle-pair">
+          <label>
+            <input type="checkbox" id="notify" name="notify" checked>
+            Notify me when a sync completes
+          </label>
+          <label>
+            <input type="checkbox" id="compress" name="compress">
+            Compress archives for storage savings
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="example">
+    <h2>Accordion with Single-Open Group</h2>
+    <p class="description">This accordion pattern ensures only one answer is expanded at a time by grouping toggle buttons.</p>
+    <div class="accordion" role="list">
+      <div class="accordion-item" role="listitem">
+        <button type="button"
+                class="collapsible-toggle"
+                data-group="faq"
+                data-label-collapsed="Working hours"
+                data-label-expanded="Working hours"
+                aria-expanded="true"
+                aria-controls="faq-hours">
+          <span class="button-label" data-label>Working hours</span>
+        </button>
+        <div class="details accordion-panel" id="faq-hours">
+          <p>We operate Monday through Friday from 8:00&nbsp;AM to 6:00&nbsp;PM local time. Weekend support is available for premium plans through the on-call rotation.</p>
+          <ul>
+            <li>Live chat: 8:00&nbsp;AM – 5:00&nbsp;PM</li>
+            <li>Email triage: 24-hour response window</li>
+            <li>Emergency hotline: 24/7</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item" role="listitem">
+        <button type="button"
+                class="collapsible-toggle"
+                data-group="faq"
+                data-label-collapsed="Security practices"
+                data-label-expanded="Security practices"
+                aria-expanded="false"
+                aria-controls="faq-security">
+          <span class="button-label" data-label>Security practices</span>
+        </button>
+        <div class="details accordion-panel" id="faq-security" hidden>
+          <p>All data is encrypted in transit and at rest. We perform quarterly penetration testing and maintain SOC&nbsp;2 Type&nbsp;II compliance.</p>
+          <ul>
+            <li>Single Sign-On (SSO) via SAML 2.0 &amp; OAuth 2.0</li>
+            <li>Role-based access controls with audit logging</li>
+            <li>Automatic session timeout after 30 minutes of inactivity</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item" role="listitem">
+        <button type="button"
+                class="collapsible-toggle"
+                data-group="faq"
+                data-label-collapsed="Billing cycles"
+                data-label-expanded="Billing cycles"
+                aria-expanded="false"
+                aria-controls="faq-billing">
+          <span class="button-label" data-label>Billing cycles</span>
+        </button>
+        <div class="details accordion-panel" id="faq-billing" hidden>
+          <p>Invoices are generated on the first business day of each month. Usage-based charges are prorated and itemized for clarity.</p>
+          <ul>
+            <li>Accepted payments: credit card, ACH, wire transfer</li>
+            <li>Grace period: 10 days after invoice date</li>
+            <li>Past-due accounts receive automated reminders before suspension</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const toggles = document.querySelectorAll('.collapsible-toggle');
+
+  const updateLabel = (button, expanded) => {
+    const labelElement = button.querySelector('[data-label]');
+    if (!labelElement) return;
+    const expandedText = button.dataset.labelExpanded;
+    const collapsedText = button.dataset.labelCollapsed;
+    if (expanded && expandedText) {
+      labelElement.textContent = expandedText;
+    } else if (!expanded && collapsedText) {
+      labelElement.textContent = collapsedText;
+    }
+  };
+
+  toggles.forEach((button) => {
+    const controls = button.getAttribute('aria-controls');
+    if (!controls) return;
+    const content = document.getElementById(controls);
+    const expanded = button.getAttribute('aria-expanded') === 'true';
+
+    if (content) {
+      content.hidden = !expanded;
+    }
+    updateLabel(button, expanded);
+
+    button.addEventListener('click', () => {
+      const isExpanded = button.getAttribute('aria-expanded') === 'true';
+      const newExpanded = !isExpanded;
+      button.setAttribute('aria-expanded', String(newExpanded));
+
+      const target = document.getElementById(button.getAttribute('aria-controls'));
+      if (target) {
+        target.hidden = !newExpanded;
+      }
+
+      if (newExpanded) {
+        const group = button.getAttribute('data-group');
+        if (group) {
+          toggles.forEach((peer) => {
+            if (peer === button) return;
+            if (peer.getAttribute('data-group') === group) {
+              peer.setAttribute('aria-expanded', 'false');
+              const peerTarget = document.getElementById(peer.getAttribute('aria-controls'));
+              if (peerTarget) {
+                peerTarget.hidden = true;
+              }
+              updateLabel(peer, false);
+            }
+          });
+        }
+      }
+
+      updateLabel(button, newExpanded);
+    });
+  });
+});
+</script>
+</body>
+</html>

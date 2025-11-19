@@ -1,0 +1,210 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --overlay: rgba(0, 0, 0, 0.6);
+      --radius: 12px;
+      --shadow: 0 10px 25px rgba(0,0,0,.2);
+      --bg: #fff;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      background: #f5f5f7;
+      color: #111;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+
+    /* Trigger button */
+    .trigger {
+      padding: 0.75rem 1.25rem;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .trigger:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+
+    /* Modal overlay (hidden by default) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: none; /* hidden by default (closed) */
+      align-items: center;
+      justify-content: center;
+      background: var(--overlay);
+      z-index: 1000;
+      padding: 1rem;
+      transition: opacity .2s ease;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    /* Modal card */
+    .modal {
+      width: 100%;
+      max-width: 520px;
+      background: var(--bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transform: translateY(-6px);
+      opacity: 0;
+      transition: transform .25s ease-out, opacity .25s ease-out;
+    }
+    .modal-overlay.open .modal {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .modal-header {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    .modal-close {
+      background: transparent;
+      border: 0;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 1rem;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Button to open the modal (has class "trigger") -->
+  <button class="trigger" data-modal-target="#exampleModal" id="openModalBtn">Open Modal</button>
+
+  <!-- Modal structure -->
+  <div id="exampleModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+    <div class="modal" role="document">
+      <header class="modal-header">
+        <h2 id="modalTitle" class="modal-title">Example Modal</h2>
+        <button class="modal-close" aria-label="Close modal" data-close>&times;</button>
+      </header>
+      <section class="modal-body">
+        <p>This is a modal dialog. It is closed by default and can be opened by clicking the button above.</p>
+        <p>You can close it by clicking the backdrop, pressing Escape, or clicking the close button.</p>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Elements
+      const modalOverlays = document.querySelectorAll('.modal-overlay');
+      const openButtons = document.querySelectorAll('.trigger[data-modal-target]');
+
+      // Open a given overlay element
+      function openModal(overlay) {
+        if (!overlay) return;
+        overlay.classList.add('open');
+        overlay.hidden = false;
+        overlay.removeAttribute('hidden');
+        // Focus the first focusable element inside modal (prefer close button)
+        const focusable = overlay.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusable) focusable.focus();
+        // Prevent background scroll
+        document.documentElement.style.overflow = 'hidden';
+      }
+
+      // Close a given overlay element
+      function closeModal(overlay) {
+        if (!overlay) return;
+        overlay.classList.remove('open');
+        overlay.hidden = true;
+        overlay.setAttribute('hidden', '');
+        // Restore background scroll
+        document.documentElement.style.overflow = '';
+        // Restore focus to opener if possible
+        const openerId = overlay.getAttribute('data-last-open-id');
+        if (openerId) {
+          const opener = document.getElementById(openerId);
+          if (opener) {
+            opener.focus();
+            return;
+          }
+        }
+        // Fallback to first trigger
+        const firstTrigger = document.querySelector('.trigger[data-modal-target]');
+        if (firstTrigger) firstTrigger.focus();
+      }
+
+      // Attach open handlers
+      openButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+          const targetSelector = btn.getAttribute('data-modal-target');
+          const overlay = document.querySelector(targetSelector);
+          if (!overlay) return;
+          // Remember which element opened the modal
+          if (btn.id) {
+            overlay.setAttribute('data-last-open-id', btn.id);
+          } else {
+            overlay.setAttribute('data-last-open-id', '');
+          }
+          openModal(overlay);
+        });
+      });
+
+      // Attach close handlers (close button inside modal)
+      document.querySelectorAll('[data-close]').forEach(ctrl => {
+        ctrl.addEventListener('click', function () {
+          const overlay = ctrl.closest('.modal-overlay');
+          closeModal(overlay);
+        });
+      });
+
+      // Click backdrop to close (only when clicking on overlay, not the modal itself)
+      modalOverlays.forEach(overlay => {
+        overlay.addEventListener('mousedown', function (e) {
+          const modal = overlay.querySelector('.modal');
+          if (e.target === overlay) {
+            closeModal(overlay);
+          }
+        });
+      });
+
+      // Escape key to close
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+          const open = document.querySelector('.modal-overlay.open');
+          if (open) closeModal(open);
+        }
+      });
+
+      // Initialize: ensure all modals are closed by default
+      modalOverlays.forEach(overlay => {
+        overlay.classList.remove('open');
+        overlay.hidden = true;
+        overlay.setAttribute('hidden', '');
+      });
+    })();
+  </script>
+
+</body>
+</html>

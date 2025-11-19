@@ -1,0 +1,193 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expand/Collapse Widget</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .example {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden; /* Ensures border-radius is respected for children */
+        }
+
+        .toggle-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            text-align: left;
+            width: 100%;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: bold;
+            border-radius: 8px; /* Default for collapsed state */
+            transition: background-color 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toggle-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Style for the expand/collapse indicator icon */
+        .toggle-button::after {
+            content: '\25B6'; /* Right-pointing triangle */
+            font-size: 0.8em;
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+        }
+
+        .toggle-button.expanded::after {
+            content: '\25BC'; /* Down-pointing triangle */
+            /* If you want to rotate the right triangle instead of changing content: */
+            /* transform: rotate(90deg); */
+        }
+
+        /* Adjust border-radius when button is expanded */
+        .toggle-button.expanded {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .details {
+            background-color: #fafafa;
+            border-top: 0px solid #eee; /* Initial state, no border */
+            max-height: 0; /* Start collapsed */
+            overflow: hidden;
+            padding: 0 18px; /* Horizontal padding, vertical 0 */
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out, border-top 0.3s ease-out;
+        }
+
+        /* Style for expanded details content */
+        .details.expanded {
+            max-height: var(--details-height); /* Set by JS to scrollHeight */
+            padding-top: 15px;
+            padding-bottom: 15px;
+            border-top: 1px solid #eee; /* Show border when expanded */
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        /* Basic styling for content inside details */
+        .details p {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .details ul {
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding-left: 20px;
+        }
+        .details address {
+            font-style: normal;
+        }
+    </style>
+</head>
+<body>
+    <h1>Expand/Collapse Widgets</h1>
+
+    <div class="example">
+        <button class="toggle-button" aria-expanded="false" aria-controls="section1-details">Section 1: About Our Services</button>
+        <div id="section1-details" class="details">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <ul>
+                <li><strong>Service A:</strong> Web Development - Crafting responsive and dynamic web applications.</li>
+                <li><strong>Service B:</strong> Mobile App Development - Building native and cross-platform mobile solutions.</li>
+                <li><strong>Service C:</strong> Cloud Solutions - Implementing scalable and secure cloud infrastructure.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="example">
+        <button class="toggle-button" aria-expanded="false" aria-controls="section2-details">Section 2: Our Team</button>
+        <div id="section2-details" class="details">
+            <p>Our team comprises highly skilled and passionate individuals dedicated to delivering exceptional results. We believe in collaborative efforts and continuous learning to stay ahead in the dynamic tech landscape.</p>
+            <h3>Meet the Leadership:</h3>
+            <p><strong>CEO:</strong> Jane Doe - A visionary leader with 15+ years in tech innovation.<br><strong>CTO:</strong> John Smith - An engineering maestro, pioneering cutting-edge technologies.</p>
+            <p>We foster an environment of creativity and support, ensuring every team member thrives.</p>
+        </div>
+    </div>
+
+    <div class="example">
+        <button class="toggle-button" aria-expanded="false" aria-controls="section3-details">Section 3: Contact Information</button>
+        <div id="section3-details" class="details">
+            <p>Feel free to reach out to us with any questions or inquiries! We are here to help you achieve your goals.</p>
+            <address>
+                <strong>Email:</strong> <a href="mailto:info@example.com">info@example.com</a><br>
+                <strong>Phone:</strong> (123) 456-7890<br>
+                <strong>Address:</strong> 123 Tech Avenue, Innovation City, IT 98765
+            </address>
+            <p>Our office hours are Monday-Friday, 9 AM to 5 PM local time.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleButtons = document.querySelectorAll('.toggle-button');
+
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const details = document.getElementById(button.getAttribute('aria-controls'));
+                    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+                    if (isExpanded) {
+                        // Collapse the content
+                        details.style.maxHeight = details.scrollHeight + 'px'; // Set to current height for smooth transition down
+                        requestAnimationFrame(() => { // Use requestAnimationFrame for next paint cycle
+                            details.style.maxHeight = '0';
+                        });
+
+                        details.classList.remove('expanded');
+                        button.classList.remove('expanded');
+                        button.setAttribute('aria-expanded', 'false');
+                    } else {
+                        // Expand the content
+                        // Temporarily set max-height to 'none' to get the full scrollHeight
+                        details.style.maxHeight = 'none';
+                        const scrollHeight = details.scrollHeight;
+
+                        // Reset max-height to 0, then set to scrollHeight to trigger animation
+                        details.style.maxHeight = '0';
+                        // Force reflow to ensure the browser registers the max-height: 0
+                        details.offsetWidth; 
+
+                        details.style.maxHeight = scrollHeight + 'px'; // Animate to full height
+
+                        details.classList.add('expanded');
+                        button.classList.add('expanded');
+                        button.setAttribute('aria-expanded', 'true');
+
+                        // After transition, set max-height back to 'none' to allow dynamic content resizing
+                        details.addEventListener('transitionend', function handler() {
+                            if (details.classList.contains('expanded')) {
+                                details.style.maxHeight = 'none';
+                            }
+                            details.removeEventListener('transitionend', handler);
+                        }, { once: true }); // Use { once: true } to automatically remove the listener
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

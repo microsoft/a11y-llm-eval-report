@@ -1,0 +1,235 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand / Collapse Widget Examples</title>
+  <style>
+    :root{
+      --gap: 1rem;
+      --bg: #f9faff;
+      --accent: #0b5fff;
+      --muted: #6b7280;
+      --radius: 8px;
+      --transition: 240ms cubic-bezier(.2,.9,.3,1);
+    }
+
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 2rem;
+      color: #111827;
+      background: #ffffff;
+      line-height: 1.4;
+    }
+
+    h1{ margin-top: 0; font-size: 1.25rem; }
+    p.lead { color: var(--muted); margin-top: 0.25rem; margin-bottom: 1.25rem; }
+
+    .example{
+      background: var(--bg);
+      border: 1px solid rgba(15,23,42,0.06);
+      padding: 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+    }
+
+    .toggle{
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: white;
+      border: 1px solid rgba(15,23,42,0.08);
+      color: var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .toggle:focus{
+      outline: 3px solid rgba(11,95,255,0.12);
+      outline-offset: 2px;
+    }
+
+    /* little chevron icon */
+    .chev {
+      width: 1rem;
+      height: 1rem;
+      display:inline-block;
+      transition: transform var(--transition);
+      transform-origin: 50% 45%;
+      color: var(--accent);
+    }
+    .toggle[aria-expanded="true"] .chev{
+      transform: rotate(180deg);
+    }
+
+    /* Controlled content (must have .details class) */
+    .details{
+      overflow: hidden;
+      transition: max-height var(--transition), padding var(--transition), opacity var(--transition);
+      max-height: 0;
+      padding: 0 0;
+      opacity: 0;
+      margin-top: var(--gap);
+      background: white;
+      border-radius: 6px;
+      border: 1px solid rgba(15,23,42,0.04);
+    }
+
+    .details > .inner{
+      padding: 0.75rem 1rem;
+    }
+
+    /* When open, JS will add an inline max-height for smooth animation and then remove it.
+       Ensure the closed state visually hides content. */
+    .details[aria-hidden="false"]{
+      opacity: 1;
+    }
+
+    /* small content styles */
+    .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .note { font-size: 0.95rem; }
+
+    /* utility layout for demo */
+    .demo-grid{ display: grid; gap: 1rem; grid-template-columns: 1fr; max-width: 760px; }
+    @media (min-width:700px){
+      .demo-grid{ grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widgets</h1>
+  <p class="lead">Examples below wrap each widget in a container with class "example". The content container controlled by the button uses the class "details".</p>
+
+  <div class="demo-grid">
+    <!-- Example 1: Simple Expand/Collapse -->
+    <div class="example">
+      <button class="toggle" id="toggle-1" aria-expanded="false" aria-controls="details-1" type="button">
+        <span class="chev" aria-hidden="true">▾</span>
+        Show details
+      </button>
+
+      <div id="details-1" class="details" role="region" aria-labelledby="toggle-1" aria-hidden="true" hidden>
+        <div class="inner">
+          <div class="meta">Meta information</div>
+          <div class="note">This is a simple expand/collapse region. It is hidden from assistive technologies when collapsed and revealed when expanded. The button controls this panel via aria-controls and aria-expanded.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 2: Longer Animated Content -->
+    <div class="example">
+      <button class="toggle" id="toggle-2" aria-expanded="false" aria-controls="details-2" type="button">
+        <span class="chev" aria-hidden="true">▾</span>
+        Read more
+      </button>
+
+      <div id="details-2" class="details" role="region" aria-labelledby="toggle-2" aria-hidden="true" hidden>
+        <div class="inner">
+          <div class="meta">Article excerpt</div>
+          <div class="note">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.
+            Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Utility to open a details panel with smooth height animation
+      function openDetails(panel){
+        // If already visible, nothing to do
+        if (!panel.hasAttribute('hidden')) return;
+
+        panel.removeAttribute('hidden');
+        panel.setAttribute('aria-hidden', 'false');
+
+        // Set initial max-height to 0 to ensure animation can run, then to scrollHeight
+        panel.style.maxHeight = '0px';
+        // Force reflow
+        void panel.offsetHeight;
+        var full = panel.scrollHeight + 'px';
+        panel.style.maxHeight = full;
+      }
+
+      // Utility to close a details panel with smooth animation
+      function closeDetails(panel){
+        if (panel.hasAttribute('hidden')) return;
+
+        // Fix the current height then transition to 0
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+        // Force reflow
+        void panel.offsetHeight;
+        panel.style.maxHeight = '0px';
+        panel.setAttribute('aria-hidden', 'true');
+
+        // After transition ends, set hidden attribute and clear inline max-height
+        var onEnd = function(e){
+          if (e.target !== panel) return;
+          panel.setAttribute('hidden', '');
+          panel.style.maxHeight = '';
+          panel.removeEventListener('transitionend', onEnd);
+        };
+        panel.addEventListener('transitionend', onEnd);
+      }
+
+      // Toggle function used by button handlers
+      function toggle(button){
+        var id = button.getAttribute('aria-controls');
+        if (!id) return;
+        var panel = document.getElementById(id);
+        if (!panel) return;
+
+        var expanded = button.getAttribute('aria-expanded') === 'true';
+
+        if (expanded){
+          button.setAttribute('aria-expanded', 'false');
+          closeDetails(panel);
+        } else {
+          button.setAttribute('aria-expanded', 'true');
+          openDetails(panel);
+          // After opening, remove inline maxHeight after transition so content can size naturally
+          var afterOpen = function(e){
+            if (e.target !== panel) return;
+            panel.style.maxHeight = '';
+            panel.removeEventListener('transitionend', afterOpen);
+          };
+          panel.addEventListener('transitionend', afterOpen);
+        }
+      }
+
+      // Attach handlers to all toggle buttons
+      var toggles = document.querySelectorAll('.toggle[aria-controls]');
+      toggles.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          toggle(btn);
+        });
+
+        // Optional: support Space/Enter on non-button elements (buttons natively support)
+        // Buttons already receive keyboard activation; this is a fallback for any custom elements.
+        btn.addEventListener('keydown', function(e){
+          if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter'){
+            // Allow default for native buttons but prevent double activation in some browsers
+            e.preventDefault();
+            toggle(btn);
+          }
+        });
+      });
+
+      // Ensure panels that are not hidden have proper aria attributes on load
+      document.querySelectorAll('.details').forEach(function(panel){
+        var hidden = panel.hasAttribute('hidden');
+        panel.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+        if (!hidden){
+          // Ensure maxHeight is cleared
+          panel.style.maxHeight = '';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

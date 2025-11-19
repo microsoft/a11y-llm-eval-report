@@ -1,0 +1,227 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Component Example</title>
+  <style>
+    :root {
+      --overlay: rgba(0, 0, 0, 0.5);
+      --surface: #ffffff;
+      --radius: 10px;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      --focus: 3px solid rgba(59, 130, 246, 0.8);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f4f5f7;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 4rem auto;
+      padding: 0 1rem;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin-top: 0;
+      color: #374151;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #111827;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .button:hover {
+      background: #f7f7f7;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none; /* Closed by default */
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--overlay);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-dialog {
+      width: min(90vw, 520px);
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      outline: none;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .modal-body {
+      padding: 1rem 1.25rem;
+      color: #374151;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid #e5e7eb;
+      background: #fff;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+      color: #6b7280;
+      padding: 0.25rem;
+      border-radius: 4px;
+    }
+    .close-btn:hover {
+      color: #374151;
+      background: #f3f4f6;
+    }
+
+    /* Focus styles for accessibility */
+    :focus-visible {
+      outline: var(--focus);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .modal { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" aria-label="Example page">
+    <h1>Modal Dialog Component Example</h1>
+    <p>This is a simple example of a modal dialog. By default, the modal is closed. Click the button below to open it.</p>
+    <button class="trigger button" id="openModalBtn" aria-haspopup="dialog" aria-expanded="false">
+      Open Modal
+    </button>
+  </div>
+
+  <div class="modal" id="example-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <header class="modal-header">
+        <h2 class="modal-title" id="modal-title">Modal Title</h2>
+        <button class="close-btn" aria-label="Close modal" id="closeDirect" title="Close">&times;</button>
+      </header>
+      <section class="modal-body">
+        <p>This is the content of the modal. It demonstrates a simple dialog with a header, body, and actions.</p>
+        <p>You can close the modal by clicking the close button, clicking outside the modal content, or pressing Escape.</p>
+      </section>
+      <footer class="modal-footer">
+        <button class="button" id="cancelBtn">Cancel</button>
+        <button class="button" id="confirmBtn" style="background:#2563eb;color:white;border-color:#2563eb;">Confirm</button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Elements
+      const trigger = document.querySelector('.trigger');
+      const modal = document.getElementById('example-modal');
+      const openBtn = document.getElementById('openModalBtn');
+      const closeDirect = document.getElementById('closeDirect');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const confirmBtn = document.getElementById('confirmBtn');
+      let previouslyFocused = null;
+
+      function openModal() {
+        previouslyFocused = document.activeElement;
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
+        // Focus the first focusable element inside the modal
+        const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusable) focusable.focus();
+      }
+
+      function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+        if (previouslyFocused) previouslyFocused.focus();
+      }
+
+      // Open via the trigger (button with class "trigger")
+      if (trigger) {
+        trigger.addEventListener('click', openModal);
+      }
+
+      // Also ensure the external opener (for accessibility if duplicated)
+      if (openBtn) {
+        openBtn.addEventListener('click', openModal);
+      }
+
+      // Close when clicking on the overlay (outside the dialog)
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      // Close via explicit close controls
+      closeDirect.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+
+      // Example action for Confirm
+      confirmBtn.addEventListener('click', function () {
+        alert('Confirmed!');
+        closeModal();
+      });
+
+      // Escape to close
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) {
+          closeModal();
+        }
+      });
+
+      // Initialize accessibility attributes
+      modal.setAttribute('aria-hidden', 'true');
+    })();
+  </script>
+</body>
+</html>

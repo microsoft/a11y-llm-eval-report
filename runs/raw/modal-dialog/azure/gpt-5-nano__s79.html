@@ -1,0 +1,222 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --overlay: rgba(0, 0, 0, 0.6);
+      --card: #fff;
+      --shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+      --radius: 10px;
+      --gap: 0.5rem;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f5f5f7;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* Trigger button */
+    .trigger {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      box-shadow: 0 2px 0 rgba(0,0,0,.05);
+    }
+    .trigger:hover { background: #1e4fcb; }
+
+    /* Modal container (hidden by default) */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none; /* hidden by default */
+    }
+
+    /* When not hidden, center the content */
+    .modal:not([hidden]) {
+      display: grid;
+      place-items: center;
+    }
+
+    /* Overlay and dialog structure */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--overlay);
+      cursor: pointer;
+    }
+
+    .modal-content {
+      position: relative;
+      background: var(--card);
+      width: min(92vw, 520px);
+      border-radius: var(--radius);
+      padding: 1rem;
+      box-shadow: var(--shadow);
+      z-index: 1;
+      outline: none;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .close {
+      background: transparent;
+      border: none;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 0.75rem 0;
+      color: #374151;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .btn {
+      padding: 0.5rem 0.9rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #f8fafc;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .btn.primary {
+      background: #1f6feb;
+      color: #fff;
+      border-color: #1f6feb;
+    }
+
+    /* Optional: prevent background scroll when modal is open */
+    body.modal-open {
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="trigger" data-target="#exampleModal" aria-controls="exampleModal">
+    Open Modal
+  </button>
+
+  <div class="modal" id="exampleModal" role="dialog" aria-labelledby="modalTitle" aria-modal="true" hidden>
+    <div class="modal-overlay" aria-hidden="true"></div>
+
+    <div class="modal-content" role="document">
+      <header class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Example Modal</h2>
+        <button class="close" aria-label="Close modal" data-close>&times;</button>
+      </header>
+
+      <section class="modal-body">
+        <p>This is a simple modal dialog example. It is closed by default. Use the trigger button to open it, click outside or press Escape to close.</p>
+      </section>
+
+      <footer class="modal-footer">
+        <button class="btn" data-close>Close</button>
+        <button class="btn primary" data-action="save" data-close>Save</button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // Helpers to open/close modal
+      function openModal(modal) {
+        if (!modal) return;
+        modal.removeAttribute('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open'); // optional (prevents background scroll)
+        // Focus the modal title for accessibility
+        const focusTarget = modal.querySelector('#modalTitle') || modal;
+        focusTarget.focus && focusTarget.focus();
+      }
+
+      function closeModal(modal) {
+        if (!modal) return;
+        modal.setAttribute('hidden', '');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        // Return focus to the trigger if possible
+        const lastTrigger = document.querySelector('.trigger:focus');
+        if (lastTrigger) lastTrigger.focus();
+      }
+
+      // Wire up openers with class "trigger"
+      document.querySelectorAll('.trigger').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const targetSelector = btn.getAttribute('data-target') || btn.getAttribute('aria-controls');
+          const modal = document.querySelector(targetSelector);
+          openModal(modal);
+        });
+      });
+
+      // Wire up close actions
+      document.querySelectorAll('[data-close]').forEach(function(el) {
+        el.addEventListener('click', function() {
+          const modal = el.closest('.modal');
+          closeModal(modal);
+        });
+      });
+
+      // Overlay click closes
+      document.querySelectorAll('.modal').forEach(function(modal){
+        const overlay = modal.querySelector('.modal-overlay');
+        if (overlay) {
+          overlay.addEventListener('click', function() {
+            closeModal(modal);
+          });
+        }
+      });
+
+      // Escape key closes
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+          const openModalEl = document.querySelector('.modal:not([hidden])');
+          if (openModalEl) closeModal(openModalEl);
+        }
+      });
+
+      // Optional: trap focus within modal for nicer accessibility
+      // Simple focus trap can be added if desired
+    })();
+  </script>
+</body>
+</html>

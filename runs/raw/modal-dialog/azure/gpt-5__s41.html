@@ -1,0 +1,383 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Modal Dialog Component Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --overlay: rgba(0,0,0,0.55);
+      --bg: #ffffff;
+      --fg: #1b1b1b;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --shadow: 0 20px 40px rgba(0,0,0,0.2);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--fg);
+      background: #f8fafc;
+      line-height: 1.5;
+    }
+
+    main {
+      padding: 4rem 1rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 1rem;
+      font-size: 1.875rem;
+    }
+
+    p {
+      max-width: 70ch;
+      color: var(--muted);
+    }
+
+    button {
+      font: inherit;
+      padding: 0.625rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      color: var(--fg);
+      cursor: pointer;
+      transition: box-shadow 150ms, transform 150ms, border-color 150ms;
+    }
+    button:hover { border-color: #d1d5db; box-shadow: 0 8px 18px rgba(0,0,0,0.08); }
+    button:active { transform: translateY(1px); }
+    button:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+
+    .button--primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: transparent;
+    }
+    .button--ghost {
+      background: transparent;
+    }
+
+    /* Modal */
+    [hidden] { display: none !important; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      opacity: 0;
+      transition: opacity 200ms ease-in-out;
+      z-index: 999;
+    }
+    .modal-backdrop.open { opacity: 1; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      z-index: 1000;
+      padding: 1.5rem;
+    }
+
+    .modal__dialog {
+      width: min(560px, 100%);
+      background: var(--bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid #e5e7eb;
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+      transition: transform 220ms ease, opacity 220ms ease;
+      overflow: clip;
+    }
+    .modal.open .modal__dialog {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .modal__header {
+      padding: 1rem 1rem 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .modal__title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+      flex: 1;
+    }
+    .modal__close {
+      border: none;
+      background: transparent;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+    .modal__close:hover { background: #f8fafc; }
+
+    .modal__body {
+      padding: 1rem;
+      color: var(--muted);
+    }
+
+    .modal__footer {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem 1rem;
+      border-top: 1px solid #f1f5f9;
+      justify-content: flex-end;
+    }
+
+    .field {
+      display: grid;
+      gap: 0.375rem;
+      margin-bottom: 1rem;
+    }
+    .field label {
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 0.5rem 0.625rem;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      font: inherit;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: 3px solid #93c5fd;
+      outline-offset: 2px;
+      border-color: #93c5fd;
+    }
+
+    /* Prevent background scroll when modal is open */
+    body.modal-open {
+      overflow: hidden;
+      padding-right: var(--scrollbar-compensation, 0px);
+    }
+  </style>
+</head>
+<body>
+  <main id="content">
+    <h1>Modal Dialog Component</h1>
+    <p>This demo shows an accessible modal dialog. It is closed by default. Use the button below to open it.</p>
+    <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="exampleModal">Open Modal</button>
+
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam erat volutpat. Integer feugiat mi vitae orci pharetra, sit amet congue magna sagittis. Vivamus venenatis hendrerit sem, at malesuada justo ullamcorper sit amet. Suspendisse gravida blandit eros, vitae vulputate arcu facilisis sit amet.</p>
+  </main>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden></div>
+
+  <div class="modal" id="exampleModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription" tabindex="-1" hidden>
+    <div class="modal__dialog">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modalTitle">Subscribe to updates</h2>
+        <button class="modal__close" type="button" aria-label="Close dialog" data-close>&times;</button>
+      </div>
+      <div class="modal__body" id="modalDescription">
+        <p>Stay informed about new features and updates. Enter your details below.</p>
+        <div class="field">
+          <label for="nameField">Name</label>
+          <input id="nameField" name="name" type="text" autocomplete="name" placeholder="Jane Doe">
+        </div>
+        <div class="field">
+          <label for="emailField">Email</label>
+          <input id="emailField" name="email" type="email" autocomplete="email" placeholder="jane@example.com">
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="button--ghost" type="button" data-close>Cancel</button>
+        <button class="button--primary" type="button">Subscribe</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const modal = document.getElementById('exampleModal');
+      const backdrop = document.getElementById('modalBackdrop');
+      const trigger = document.querySelector('.trigger');
+      const content = document.getElementById('content');
+      const closeButtons = modal.querySelectorAll('[data-close]');
+      let previouslyFocused = null;
+      let cleanupFns = [];
+
+      function getFocusableElements(container) {
+        const selectors = [
+          'a[href]',
+          'area[href]',
+          'button:not([disabled])',
+          'input:not([disabled])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          'summary',
+          '[tabindex]:not([tabindex="-1"])',
+          'audio[controls]',
+          'video[controls]'
+        ];
+        return Array.from(container.querySelectorAll(selectors.join(',')))
+          .filter(el => el.offsetParent !== null || el === container);
+      }
+
+      function setAriaExpanded(el, expanded) {
+        try {
+          el.setAttribute('aria-expanded', String(expanded));
+        } catch (_) {}
+      }
+
+      function enableInert(val) {
+        try {
+          if (val) {
+            content.setAttribute('aria-hidden', 'true');
+            content.setAttribute('inert', '');
+          } else {
+            content.removeAttribute('aria-hidden');
+            content.removeAttribute('inert');
+          }
+        } catch (_) {}
+      }
+
+      function compensateScrollbar() {
+        const hasScrollbar = document.documentElement.scrollHeight > document.documentElement.clientHeight;
+        const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.documentElement.style.setProperty('--scrollbar-compensation', hasScrollbar ? scrollBarWidth + 'px' : '0px');
+      }
+
+      function onKeydown(e) {
+        if (modal.hasAttribute('hidden')) return;
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+        if (e.key === 'Tab') {
+          const focusables = getFocusableElements(modal);
+          if (focusables.length === 0) {
+            e.preventDefault();
+            modal.focus();
+            return;
+          }
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          const active = document.activeElement;
+
+          if (e.shiftKey) {
+            if (active === first || active === modal) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (active === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      }
+
+      function openModal() {
+        if (!modal.hasAttribute('hidden')) return;
+        previouslyFocused = document.activeElement;
+
+        compensateScrollbar();
+        document.body.classList.add('modal-open');
+
+        backdrop.hidden = false;
+        modal.hidden = false;
+
+        // Slight defer to allow transition classes to be applied
+        requestAnimationFrame(() => {
+          backdrop.classList.add('open');
+          modal.classList.add('open');
+        });
+
+        enableInert(true);
+        setAriaExpanded(trigger, true);
+
+        // Focus management
+        // Prefer focusing first form field; otherwise focus dialog itself
+        const focusables = getFocusableElements(modal);
+        const targetToFocus = focusables.find(el => el.tagName === 'INPUT' || el.tagName === 'BUTTON') || modal;
+        targetToFocus.focus({ preventScroll: true });
+
+        // Event listeners
+        document.addEventListener('keydown', onKeydown);
+        cleanupFns.push(() => document.removeEventListener('keydown', onKeydown));
+
+        const onBackdropClick = (e) => {
+          if (e.target === backdrop) {
+            closeModal();
+          }
+        };
+        backdrop.addEventListener('click', onBackdropClick);
+        cleanupFns.push(() => backdrop.removeEventListener('click', onBackdropClick));
+
+        closeButtons.forEach(btn => {
+          const fn = () => closeModal();
+          btn.addEventListener('click', fn);
+          cleanupFns.push(() => btn.removeEventListener('click', fn));
+        });
+      }
+
+      function closeModal() {
+        if (modal.hasAttribute('hidden')) return;
+
+        backdrop.classList.remove('open');
+        modal.classList.remove('open');
+
+        // Wait for transition before hiding to avoid abrupt cut
+        const transitionMs = 200;
+        setTimeout(() => {
+          backdrop.hidden = true;
+          modal.hidden = true;
+        }, transitionMs);
+
+        document.body.classList.remove('modal-open');
+        enableInert(false);
+        setAriaExpanded(trigger, false);
+
+        // Cleanup event listeners
+        while (cleanupFns.length) {
+          try { cleanupFns.pop()(); } catch (_) {}
+        }
+
+        // Restore focus
+        if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+          previouslyFocused.focus({ preventScroll: true });
+        } else {
+          trigger.focus({ preventScroll: true });
+        }
+      }
+
+      // Initialize trigger
+      if (trigger) {
+        trigger.addEventListener('click', openModal);
+      }
+
+      // Progressive enhancement: open via keyboard as well
+      if (trigger) {
+        trigger.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openModal();
+          }
+        });
+      }
+
+      // Optionally close when clicking outside the dialog content (backdrop handles this).
+      // Ensure modal closes on page navigation
+      window.addEventListener('pagehide', closeModal);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widget Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #222;
+      background: #f6f7fb;
+      margin: 0;
+    }
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 1rem 0;
+    }
+    .intro {
+      margin-bottom: 1.5rem;
+      color: #444;
+    }
+    .example {
+      background: #fff;
+      border: 1px solid #dde1ee;
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .example h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.25rem;
+    }
+    .toggle {
+      appearance: none;
+      border: 1px solid #5d6bff;
+      background: #eef0ff;
+      color: #2836ff;
+      padding: 0.55rem 0.8rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+    }
+    .toggle::before {
+      content: "▸ ";
+      font-weight: 700;
+    }
+    .toggle[aria-expanded="true"]::before {
+      content: "▾ ";
+    }
+    .toggle[aria-expanded="true"] {
+      background: #2b37ff;
+      color: #fff;
+      border-color: #2b37ff;
+    }
+    .toggle:focus-visible {
+      outline: 3px solid #9aa6ff;
+      outline-offset: 2px;
+    }
+    .details {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: #fafbff;
+      border: 1px dashed #c5c9f3;
+      border-radius: 10px;
+    }
+    .details p { margin: 0.5rem 0; }
+    .details ul { margin: 0.5rem 0 0.5rem 1rem; }
+    code {
+      background: #f0f1f6;
+      padding: 0 0.25rem;
+      border-radius: 4px;
+    }
+    .note {
+      font-size: 0.95rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget Examples</h1>
+    <p class="intro">These examples show accessible expand/collapse widgets. Each widget is wrapped in an <code>example</code> container, and the controlled content uses the <code>details</code> class.</p>
+
+    <div class="example" id="example-1">
+      <h2>Basic Toggle</h2>
+      <button class="toggle" data-toggle="details" data-target="details-1" data-open-label="Hide details" data-closed-label="Show details">Show details</button>
+      <div class="details" id="details-1" hidden>
+        <p>This is a basic expand/collapse widget. Click the button again to hide this content.</p>
+        <ul>
+          <li>Uses a button with <code>aria-expanded</code> and <code>aria-controls</code></li>
+          <li>Press <code>Esc</code> while focused inside to collapse</li>
+          <li>The content region is focusable to aid accessibility</li>
+        </ul>
+        <p class="note">Tip: Try tabbing to the button and pressing Enter/Space.</p>
+      </div>
+    </div>
+
+    <div class="example" id="example-2">
+      <h2>Initially Expanded</h2>
+      <button class="toggle" data-toggle="details" data-target="details-2" data-open-label="Hide information" data-closed-label="Show information">Hide information</button>
+      <div class="details" id="details-2" role="region">
+        <p>This widget starts expanded. The button text and state reflect the initial open condition.</p>
+        <p>Why use this pattern?</p>
+        <ul>
+          <li>Improves page scanability by hiding optional content</li>
+          <li>Reduces cognitive load</li>
+          <li>Keeps layouts compact</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="example" id="example-3">
+      <h2>Long Content Section</h2>
+      <button class="toggle" data-toggle="details" data-target="details-3" data-open-label="Hide article" data-closed-label="Read article">Read article</button>
+      <div class="details" id="details-3" hidden>
+        <p><strong>Designing Expand/Collapse Interactions</strong></p>
+        <p>When implementing expand/collapse interactions, be mindful of discoverability and state visibility. Provide clear labeling, use progressive disclosure where appropriate, and keep interaction costs low.</p>
+        <p>Best practices include:</p>
+        <ul>
+          <li>Provide descriptive buttons, e.g., “Show details” vs. “Hide details”</li>
+          <li>Reflect current state with <code>aria-expanded</code></li>
+          <li>Ensure keyboard and screen-reader access</li>
+          <li>Maintain focus context when content appears</li>
+        </ul>
+        <p>For longer sections, consider a summary or preview to help users decide whether to reveal the rest.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const setLabel = (btn, open) => {
+        const openLabel = btn.getAttribute('data-open-label') || 'Collapse';
+        const closedLabel = btn.getAttribute('data-closed-label') || 'Expand';
+        btn.textContent = open ? openLabel : closedLabel;
+      };
+
+      const initToggle = (btn) => {
+        const targetId = btn.getAttribute('data-target');
+        const content = document.getElementById(targetId);
+        if (!content) return;
+
+        btn.setAttribute('aria-controls', targetId);
+        if (!content.hasAttribute('role')) {
+          content.setAttribute('role', 'region');
+        }
+        if (!content.hasAttribute('aria-label') && !content.hasAttribute('aria-labelledby')) {
+          const labelText = btn.textContent.trim() || 'Details';
+          content.setAttribute('aria-label', labelText);
+        }
+        content.tabIndex = -1;
+
+        const isOpen = !content.hasAttribute('hidden');
+        btn.setAttribute('aria-expanded', String(isOpen));
+        setLabel(btn, isOpen);
+
+        btn.addEventListener('click', () => {
+          const open = !content.hasAttribute('hidden');
+          if (open) {
+            content.setAttribute('hidden', '');
+            btn.setAttribute('aria-expanded', 'false');
+            setLabel(btn, false);
+          } else {
+            content.removeAttribute('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+            setLabel(btn, true);
+            content.focus({ preventScroll: true });
+          }
+        });
+
+        content.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' || e.key === 'Esc') {
+            content.setAttribute('hidden', '');
+            btn.setAttribute('aria-expanded', 'false');
+            setLabel(btn, false);
+            btn.focus();
+          }
+        });
+      };
+
+      document.querySelectorAll('[data-toggle="details"]').forEach(initToggle);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #2a7ae2;
+      --shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      color: var(--text);
+      background: var(--bg);
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .example {
+      background: var(--card);
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    .example h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.05rem;
+    }
+
+    /* Widget 1: Custom toggle with animated height */
+    .widget1 .header {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .toggle {
+      padding: .55rem 1rem;
+      border: none;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .panel {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.35s ease;
+    }
+
+    /* Container for controlled content has class 'details' (as requested) */
+    .panel.details {
+      /* additional styling can be added here if needed */
+    }
+
+    .details-inner {
+      padding: 0.55rem 0.75rem;
+    }
+
+    /* Widget 2: second method (open class) */
+    .widget2 .header {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .btn {
+      padding: .5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      background: #2a6bd8;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .content {
+      height: 0;
+      overflow: hidden;
+      transition: height 0.3s ease;
+    }
+
+    .content.details {
+      /* keep as a marker for the problem requirement; no extra styling needed now */
+    }
+
+    .content-inner {
+      padding: .5rem 0;
+    }
+
+    /* Widget 3: Native details element styling (optional) */
+    .details-native {
+      display: block;
+    }
+
+    details.details {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: .4rem;
+      width: max-content;
+    }
+
+    details.details summary {
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    details.details > div {
+      padding-top: .4rem;
+    }
+
+    @media (max-width: 600px) {
+      .example { padding: .75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Expand/Collapse Widget Demo</h1>
+
+  <!-- Widget 1 -->
+  <div class="example" aria-label="Expandable widget example 1">
+    <h3>Widget 1: Custom toggle with animated height</h3>
+    <div class="widget1">
+      <div class="header" aria-label="Widget 1 toggle">
+        <button id="btn1" class="toggle" aria-expanded="false" aria-controls="panel1">Expand</button>
+        <span style="color:#555; font-size: .95rem;">First custom expand/collapse using height animation</span>
+      </div>
+      <div id="panel1" class="panel details" role="region" aria-labelledby="btn1" style="max-height:0;">
+        <div class="details-inner">
+          <p>This panel expands and collapses with a smooth height transition. The container for controlled content has a class of "details".</p>
+          <ul>
+            <li>Accessible with ARIA attributes</li>
+            <li>Animated reveal using height</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Widget 2 -->
+  <div class="example" aria-label="Expandable widget example 2">
+    <h3>Widget 2: Toggle with open class</h3>
+    <div class="widget2">
+      <div class="header" aria-label="Widget 2 toggle">
+        <button id="btn2" class="btn" aria-expanded="false" aria-controls="panel2">Show</button>
+        <span style="color:#555; font-size:.95rem;">Second widget uses a CSS class to reveal content</span>
+      </div>
+      <div id="panel2" class="content details" aria-hidden="true" style="height:0;">
+        <div class="content-inner">
+          <p>Content for the second widget. The container is marked with a class of "details".</p>
+          <p>When opened, the height expands to reveal this content.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Widget 3: Native details element -->
+  <div class="example" aria-label="Expandable widget example 3">
+    <h3>Widget 3: Native details element</h3>
+    <div class="details-native">
+      <details class="details" style="width:fit-content;">
+        <summary>Click to expand (native)</summary>
+        <div style="padding: .4rem 0 0;">
+          <p>This widget uses the native details element. The content container has a class of "details".</p>
+          <p>Opening this will show the extra information without custom JS.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    // Widget 1: Custom height animation
+    (function() {
+      var btn = document.getElementById('btn1');
+      var panel = document.getElementById('panel1');
+      if (!btn || !panel) return;
+      btn.addEventListener('click', function() {
+        var isOpen = btn.getAttribute('aria-expanded') === 'true';
+        if (isOpen) {
+          panel.style.maxHeight = '0px';
+          btn.setAttribute('aria-expanded', 'false');
+          btn.textContent = 'Expand';
+        } else {
+          panel.style.maxHeight = panel.scrollHeight + 'px';
+          btn.setAttribute('aria-expanded', 'true');
+          btn.textContent = 'Collapse';
+        }
+      });
+    })();
+
+    // Widget 2: Toggle with open class
+    (function() {
+      var btn = document.getElementById('btn2');
+      var panel = document.getElementById('panel2');
+      if (!btn || !panel) return;
+      btn.addEventListener('click', function() {
+        var isOpen = panel.classList.contains('open');
+        if (isOpen) {
+          panel.style.height = '0px';
+          panel.classList.remove('open');
+          btn.textContent = 'Show';
+          btn.setAttribute('aria-expanded', 'false');
+          panel.setAttribute('aria-hidden', 'true');
+        } else {
+          var inner = panel.querySelector('.content-inner');
+          var h = inner ? inner.scrollHeight : 0;
+          panel.style.height = h + 'px';
+          panel.classList.add('open');
+          btn.textContent = 'Hide';
+          btn.setAttribute('aria-expanded', 'true');
+          panel.setAttribute('aria-hidden', 'false');
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>

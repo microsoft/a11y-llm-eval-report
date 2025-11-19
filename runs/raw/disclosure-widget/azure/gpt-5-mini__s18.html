@@ -1,0 +1,298 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root{
+      --accent:#0366d6;
+      --bg:#f7f9fc;
+      --card:#ffffff;
+      --border:#e1e4e8;
+      --radius:8px;
+      --transition: 300ms cubic-bezier(.2,.9,.3,1);
+    }
+
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,var(--bg),#ffffff 60%);
+      color: #111827;
+      margin: 24px;
+      line-height: 1.4;
+    }
+
+    h1{ margin: 0 0 12px 0; font-size: 1.25rem; }
+    p.lead { margin: 0 0 20px 0; color: #475569; }
+
+    .example {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      max-width: 720px;
+      box-shadow: 0 1px 2px rgba(16,24,40,0.03);
+      margin: 18px 0;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    button.toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--accent);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+    button.toggle:focus {
+      outline: 3px solid rgba(3,102,214,0.12);
+      outline-offset: 2px;
+    }
+    .hint { color: #6b7280; font-size: 0.9rem; }
+
+    /* details container (controlled content) */
+    .details {
+      overflow: hidden;
+      border-top: 1px dashed var(--border);
+      padding-top: 12px;
+      will-change: max-height;
+      /* start collapsed for no-JS users (JS will manage and may show by default if desired) */
+      max-height: 0;
+    }
+
+    .details.open {
+      /* when open, JS will set max-height inline to match content */
+    }
+
+    .content {
+      padding: 6px 2px 6px 0;
+      color: #111827;
+    }
+
+    .meta {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    /* smooth transition for modern users */
+    .details {
+      transition: max-height var(--transition);
+    }
+
+    /* reduced motion users */
+    @media (prefers-reduced-motion: reduce) {
+      .details { transition: none; }
+    }
+
+    /* small visual flourish */
+    .summary-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .chev {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      transition: transform var(--transition);
+    }
+    .chev svg { display:block; width:100%; height:100%;}
+    .chev.open { transform: rotate(90deg); } /* rotate when open */
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget</h1>
+  <p class="lead">Examples of an accessible expand/collapse pattern. Each widget is wrapped with a div.example and the controlled content container uses the class "details".</p>
+
+  <!-- Example 1: Simple details -->
+  <div class="example">
+    <div class="controls">
+      <button class="toggle" type="button" aria-expanded="false">
+        <span class="chev" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 4 14 10 6 16"></polyline>
+          </svg>
+        </span>
+        <span class="label">Show details</span>
+      </button>
+      <div class="hint">Keyboard: Enter or Space to toggle</div>
+    </div>
+
+    <div class="details" data-initial="closed">
+      <div class="content">
+        <div class="summary-line">Summary of the item</div>
+        <p style="margin-top:8px">This is the content revealed by the expand/collapse widget. It can contain arbitrary HTML — paragraphs, lists, images, or other UI. The container has the class "details".</p>
+        <ul>
+          <li>Point one about this item</li>
+          <li>Point two with more context</li>
+          <li>Final note</li>
+        </ul>
+      </div>
+      <div class="meta">Updated: 2025-11-10</div>
+    </div>
+  </div>
+
+  <!-- Example 2: Longer content with animated reveal -->
+  <div class="example">
+    <div class="controls">
+      <button class="toggle" type="button" aria-expanded="false">
+        <span class="chev" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 4 14 10 6 16"></polyline>
+          </svg>
+        </span>
+        <span class="label">View more information</span>
+      </button>
+      <div class="hint">Animated reveal (prefers-reduced-motion respected)</div>
+    </div>
+
+    <div class="details" data-initial="closed">
+      <div class="content">
+        <h3 style="margin:0 0 8px 0;">Detailed Notes</h3>
+        <p style="margin:0 0 8px 0;">This example demonstrates a longer block of content. The JavaScript sets the details container's max-height dynamically to allow a smooth transition that matches the content height.</p>
+        <p style="margin:0 0 8px 0;">Resize the window while the panel is open to see the script adjust the max-height to match the new content flow.</p>
+        <ol>
+          <li>Step one: preview the content</li>
+          <li>Step two: interact with it</li>
+          <li>Step three: close when done</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Initialize all widgets (any .example containing a .toggle button and a .details container)
+      const examples = document.querySelectorAll('.example');
+
+      let idCounter = 0;
+
+      examples.forEach(example => {
+        const btn = example.querySelector('button.toggle');
+        const details = example.querySelector('.details');
+
+        if (!btn || !details) return;
+
+        // ensure details has an id for aria-controls
+        if (!details.id) {
+          idCounter += 1;
+          details.id = 'details-' + idCounter;
+        }
+        btn.setAttribute('aria-controls', details.id);
+
+        // establish initial state
+        const initial = details.getAttribute('data-initial');
+        const isOpenInitial = initial === 'open' || details.classList.contains('open');
+
+        // helper to update button label and icon
+        function updateButton(open){
+          btn.setAttribute('aria-expanded', String(open));
+          const label = btn.querySelector('.label');
+          const chev = btn.querySelector('.chev');
+          if (label) label.textContent = open ? (label.getAttribute('data-open') || 'Hide details') : (label.getAttribute('data-closed') || label.textContent || 'Show details');
+          // toggle class for rotation
+          if (chev) {
+            if (open) chev.classList.add('open'); else chev.classList.remove('open');
+          }
+        }
+
+        // Initialize labels (store original closed label)
+        const labelEl = btn.querySelector('.label');
+        if (labelEl && !labelEl.getAttribute('data-closed')) {
+          labelEl.setAttribute('data-closed', labelEl.textContent.trim());
+          // set a sensible open label if none provided
+          if (!labelEl.getAttribute('data-open')) {
+            labelEl.setAttribute('data-open', labelEl.textContent.trim().replace(/(show|view)\b/i, 'Hide'));
+          }
+        }
+
+        // apply initial open/closed
+        if (isOpenInitial) {
+          details.classList.add('open');
+          details.style.maxHeight = details.scrollHeight + 'px';
+          details.setAttribute('aria-hidden', 'false');
+          updateButton(true);
+          // after transition, remove max-height so content can grow/shrink naturally
+          const cleanupOnce = () => {
+            details.style.maxHeight = 'none';
+            details.removeEventListener('transitionend', cleanupOnce);
+          };
+          details.addEventListener('transitionend', cleanupOnce);
+        } else {
+          details.classList.remove('open');
+          details.style.maxHeight = '0px';
+          details.setAttribute('aria-hidden', 'true');
+          updateButton(false);
+        }
+
+        // click handler
+        btn.addEventListener('click', () => {
+          const isOpen = btn.getAttribute('aria-expanded') === 'true';
+          if (isOpen) {
+            // collapse
+            details.setAttribute('aria-hidden', 'true');
+            // to animate from current height to 0, set maxHeight to current scrollHeight then to 0
+            details.style.maxHeight = details.scrollHeight + 'px';
+            // force reflow to ensure transition starts
+            /* eslint-disable no-unused-expressions */
+            details.offsetHeight;
+            details.style.maxHeight = '0px';
+            details.classList.remove('open');
+            updateButton(false);
+          } else {
+            // expand
+            details.classList.add('open');
+            details.setAttribute('aria-hidden', 'false');
+            // set maxHeight to scrollHeight to animate open
+            details.style.maxHeight = details.scrollHeight + 'px';
+
+            updateButton(true);
+
+            // when the transition ends, remove the inline max-height so content can resize naturally
+            const onEnd = (e) => {
+              // only react to the transition on max-height
+              if (e.target !== details || e.propertyName !== 'max-height') return;
+              details.style.maxHeight = 'none';
+              details.removeEventListener('transitionend', onEnd);
+            };
+            details.addEventListener('transitionend', onEnd);
+          }
+        });
+
+        // adjust open panels on window resize so animation continues to match content
+        let resizeTid;
+        window.addEventListener('resize', () => {
+          if (!details.classList.contains('open')) return;
+          // debounce
+          if (resizeTid) clearTimeout(resizeTid);
+          resizeTid = setTimeout(() => {
+            // set explicit maxHeight to new scrollHeight
+            details.style.maxHeight = details.scrollHeight + 'px';
+            // remove it shortly after to keep it flexible
+            setTimeout(() => {
+              details.style.maxHeight = 'none';
+            }, 350);
+          }, 120);
+        });
+
+        // Allow the Enter/Space key activation for accessibility is provided by native button element.
+        // But we'll ensure that if someone toggles open/closed programmatically, attributes stay in sync.
+      });
+    })();
+  </script>
+</body>
+</html>

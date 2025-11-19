@@ -1,0 +1,316 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widgets</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --card: #ffffff;
+      --border: #d0d7de;
+      --accent: #0969da;
+      --text: #24292f;
+      --muted: #57606a;
+      --panel: #f0f4f8;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin: 0 0 1rem 0;
+      font-size: 1.75rem;
+    }
+    p.lead {
+      color: var(--muted);
+      margin: 0 0 1.25rem 0;
+    }
+
+    .example {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      max-width: 800px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .example header {
+      margin-bottom: 0.5rem;
+    }
+    .example h2 {
+      font-size: 1.1rem;
+      margin: 0 0 0.25rem 0;
+    }
+    .example .desc {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin: 0 0 0.75rem 0;
+    }
+
+    button.toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.75rem 0.875rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      text-align: left;
+    }
+    button.toggle-btn:hover {
+      border-color: #b6bec7;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    button.toggle-btn:focus-visible {
+      outline: 3px solid rgba(9,105,218,0.3);
+      outline-offset: 2px;
+    }
+    button.toggle-btn::before {
+      content: "▸";
+      font-size: 1.05rem;
+      color: var(--muted);
+      width: 1rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    button.toggle-btn[aria-expanded="true"]::before {
+      content: "▾";
+      color: var(--accent);
+    }
+    button.toggle-btn span.label {
+      flex: 1;
+    }
+
+    .details {
+      margin-top: 0.75rem;
+      padding: 0.75rem 0.875rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .details[hidden] {
+      display: none !important;
+    }
+
+    /* Native <details> styling */
+    details.widget {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 0.25rem 0.25rem;
+    }
+    details.widget summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.5rem 0.625rem;
+      border-radius: 8px;
+      outline: none;
+    }
+    details.widget summary:focus-visible {
+      outline: 3px solid rgba(9,105,218,0.3);
+      outline-offset: 2px;
+    }
+    details.widget summary::marker {
+      content: "";
+    }
+    details.widget summary .chev {
+      display: inline-block;
+      width: 1rem;
+      text-align: center;
+      color: var(--muted);
+      margin-right: 0.25rem;
+    }
+    details.widget[open] summary .chev {
+      color: var(--accent);
+    }
+
+    /* Accordion specifics */
+    .accordion {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .accordion .item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.25rem;
+      background: #fff;
+    }
+    .accordion .item button.toggle-btn {
+      border: none;
+      box-shadow: none;
+      background: transparent;
+      padding: 0.5rem 0.625rem;
+    }
+    .accordion .item .details {
+      margin: 0.5rem 0.625rem 0.625rem;
+      background: var(--panel);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95em;
+      background: rgba(2, 6, 23, 0.04);
+      padding: 0.1em 0.3em;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Examples</h1>
+  <p class="lead">Three widgets demonstrate toggling content. Each widget is wrapped in an element with the class <code>example</code>, and the controlled content container uses the class <code>details</code>.</p>
+
+  <div class="example" id="basic-toggle">
+    <header>
+      <h2>Basic Toggle (Button + ARIA)</h2>
+      <p class="desc">A button toggles a content region. The content container has class <code>details</code>.</p>
+    </header>
+
+    <button class="toggle-btn" id="btn-basic" aria-expanded="false" aria-controls="panel-basic">
+      <span class="label">Show more information</span>
+    </button>
+
+    <div id="panel-basic" class="details" role="region" aria-labelledby="btn-basic" hidden>
+      <p>This is a simple expand/collapse panel controlled by a button. It uses the <code>aria-expanded</code> and <code>aria-controls</code> attributes for accessibility.</p>
+      <ul>
+        <li>Keyboard accessible via the button.</li>
+        <li>Screen readers announce expanded/collapsed state.</li>
+        <li>Content container has class <code>details</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="example" id="native-details">
+    <header>
+      <h2>Native HTML Details/Summary</h2>
+      <p class="desc">Uses the built-in <code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> element. The visible content inside is wrapped in a container with class <code>details</code>.</p>
+    </header>
+
+    <details class="widget">
+      <summary>
+        <span class="chev">▸</span>
+        Product specifications
+      </summary>
+      <div class="details">
+        <p>Below are the product specs. Using native elements provides built-in keyboard and accessibility support.</p>
+        <dl>
+          <dt>Dimensions</dt>
+          <dd>120 × 75 × 9 mm</dd>
+          <dt>Weight</dt>
+          <dd>160 g</dd>
+          <dt>Battery</dt>
+          <dd>4000 mAh</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+
+  <div class="example" id="accordion-example" data-accordion="true">
+    <header>
+      <h2>Accordion (Single-open group)</h2>
+      <p class="desc">An accordion where only one section opens at a time. Each section's controlled content container uses the class <code>details</code>.</p>
+    </header>
+
+    <div class="accordion" role="tablist" aria-label="FAQ">
+      <div class="item">
+        <button class="toggle-btn" id="acc-btn-1" aria-expanded="false" aria-controls="acc-panel-1" role="tab">
+          <span class="label">What is an accordion?</span>
+        </button>
+        <div id="acc-panel-1" class="details" role="region" aria-labelledby="acc-btn-1" hidden>
+          <p>An accordion is a vertically stacked list of sections where one section can be expanded while others remain collapsed.</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <button class="toggle-btn" id="acc-btn-2" aria-expanded="false" aria-controls="acc-panel-2" role="tab">
+          <span class="label">How do I use it with keyboard?</span>
+        </button>
+        <div id="acc-panel-2" class="details" role="region" aria-labelledby="acc-btn-2" hidden>
+          <p>Use Tab to focus a header button, then press Enter or Space to toggle it.</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <button class="toggle-btn" id="acc-btn-3" aria-expanded="false" aria-controls="acc-panel-3" role="tab">
+          <span class="label">Can multiple sections be open?</span>
+        </button>
+        <div id="acc-panel-3" class="details" role="region" aria-labelledby="acc-btn-3" hidden>
+          <p>This example limits to a single open section. Remove the <code>data-accordion</code> attribute on the widget container to allow multiple open sections.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Initialize button-driven expand/collapse
+      function setupToggleButton(btn) {
+        var panelId = btn.getAttribute('aria-controls');
+        var panel = document.getElementById(panelId);
+        if (!panel) return;
+
+        // Ensure initial state alignment
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        panel.hidden = !expanded;
+
+        btn.addEventListener('click', function () {
+          var nowExpanded = btn.getAttribute('aria-expanded') === 'true';
+          setExpanded(btn, panel, !nowExpanded);
+          maybeAccordionCollapseOthers(btn);
+        });
+      }
+
+      function setExpanded(btn, panel, expanded) {
+        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        panel.hidden = !expanded;
+      }
+
+      // If the widget container has data-accordion="true", collapse siblings when one opens
+      function maybeAccordionCollapseOthers(triggerBtn) {
+        var widget = triggerBtn.closest('.example[data-accordion="true"]');
+        if (!widget) return;
+
+        var expanded = triggerBtn.getAttribute('aria-expanded') === 'true';
+        if (!expanded) return; // Only collapse others when opening
+
+        var currentPanelId = triggerBtn.getAttribute('aria-controls');
+        var allButtons = widget.querySelectorAll('button[aria-controls]');
+        allButtons.forEach(function (btn) {
+          if (btn === triggerBtn) return;
+          var panelId = btn.getAttribute('aria-controls');
+          var panel = document.getElementById(panelId);
+          if (!panel) return;
+          btn.setAttribute('aria-expanded', 'false');
+          panel.hidden = true;
+        });
+      }
+
+      // Attach to all buttons inside .example containers
+      document.querySelectorAll('.example button[aria-controls]').forEach(setupToggleButton);
+
+      // Cosmetic: toggle chevron for native <details>
+      document.querySelectorAll('details.widget').forEach(function (det) {
+        var summary = det.querySelector('summary');
+        if (!summary) return;
+        det.addEventListener('toggle', function () {
+          var chev = summary.querySelector('.chev');
+          if (!chev) return;
+          chev.textContent = det.open ? '▾' : '▸';
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

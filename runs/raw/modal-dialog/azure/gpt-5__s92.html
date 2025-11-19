@@ -1,0 +1,204 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --modal-bg: #fff;
+      --modal-border: #e5e7eb;
+      --modal-shadow: 0 20px 40px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1);
+      --backdrop: rgba(0,0,0,0.5);
+      --accent: #2563eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      color: #111827;
+      background: #f9fafb;
+      padding: 2rem;
+    }
+    .trigger {
+      appearance: none;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .trigger:focus { outline: 2px solid #93c5fd; outline-offset: 2px; }
+    .trigger:hover { background: #1d4ed8; }
+
+    dialog {
+      width: min(92vw, 560px);
+      max-width: 560px;
+      border: none;
+      border-radius: 0.75rem;
+      padding: 0;
+      background: var(--modal-bg);
+      box-shadow: var(--modal-shadow);
+    }
+    dialog::backdrop { background: var(--backdrop); }
+
+    .modal-content {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 0;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--modal-border);
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 700;
+    }
+    .close-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0.25rem;
+      cursor: pointer;
+      border-radius: 0.375rem;
+    }
+    .close-btn:hover { background: #f3f4f6; }
+    .close-btn:focus { outline: 2px solid #93c5fd; outline-offset: 2px; }
+
+    .modal-body {
+      padding: 1rem 1.25rem;
+      color: #374151;
+    }
+    .modal-footer {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--modal-border);
+      background: #fafafa;
+      border-radius: 0 0 0.75rem 0.75rem;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #111827;
+      padding: 0.5rem 0.875rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:focus { outline: 2px solid #93c5fd; outline-offset: 2px; }
+    .btn:hover { background: #f9fafb; }
+    .btn-primary {
+      border-color: transparent;
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <button class="trigger" aria-controls="modal">Open Modal</button>
+
+  <dialog id="modal" aria-labelledby="modal-title" aria-describedby="modal-desc">
+    <div class="modal-content">
+      <header class="modal-header">
+        <h2 class="modal-title" id="modal-title">Example Modal</h2>
+        <button class="close-btn" type="button" data-close aria-label="Close dialog">✕</button>
+      </header>
+      <div class="modal-body" id="modal-desc">
+        <p>This is a modal dialog. It is closed by default. Use the trigger button to open it.</p>
+        <p>Click outside the dialog, press Escape, or use the Close button to dismiss.</p>
+        <label for="name-input">Your name</label>
+        <input id="name-input" type="text" placeholder="e.g., Alex" style="width:100%;margin-top:.25rem;margin-bottom:.75rem;padding:.5rem;border:1px solid #d1d5db;border-radius:.5rem;">
+      </div>
+      <footer class="modal-footer">
+        <button class="btn" type="button" data-close>Cancel</button>
+        <button class="btn btn-primary" type="button" id="confirm-btn">Confirm</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <script>
+    (function() {
+      const dialog = document.getElementById('modal');
+      const trigger = document.querySelector('.trigger');
+      const closeButtons = dialog.querySelectorAll('[data-close]');
+      const content = dialog.querySelector('.modal-content');
+      const confirmBtn = document.getElementById('confirm-btn');
+
+      let previouslyFocused = null;
+
+      function openDialog() {
+        previouslyFocused = document.activeElement;
+        dialog.showModal();
+        // Move focus to first interactive element inside
+        const focusable = dialog.querySelector('input, button, [href], select, textarea, [tabindex]:not([tabindex="-1"])');
+        (focusable || dialog).focus();
+      }
+      function closeDialog(returnFocus = true) {
+        if (dialog.open) dialog.close();
+        if (returnFocus && previouslyFocused) previouslyFocused.focus();
+      }
+
+      trigger.addEventListener('click', openDialog);
+
+      closeButtons.forEach(btn => btn.addEventListener('click', () => closeDialog(true)));
+
+      dialog.addEventListener('cancel', (e) => {
+        e.preventDefault(); // ensure consistent behavior across browsers
+        closeDialog(true);
+      });
+
+      // Click on backdrop closes the dialog
+      dialog.addEventListener('click', (e) => {
+        const rect = content.getBoundingClientRect();
+        const withinContent =
+          e.clientX >= rect.left && e.clientX <= rect.right &&
+          e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+        if (!withinContent) {
+          closeDialog(true);
+        }
+      });
+
+      // Optional: demo confirm action
+      confirmBtn.addEventListener('click', () => {
+        alert('Confirmed!');
+        closeDialog(true);
+      });
+
+      // Basic focus trap
+      dialog.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          const focusable = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          const focusables = Array.from(focusable).filter(el => !el.disabled && el.offsetParent !== null);
+          if (focusables.length === 0) return;
+
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

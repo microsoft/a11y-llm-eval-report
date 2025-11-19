@@ -1,0 +1,479 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand/Collapse Widget Examples</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --accent: #2563eb;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --focus: #93c5fd;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      background: radial-gradient(1200px 500px at 10% 10%, rgba(37, 99, 235, 0.18), transparent 40%) no-repeat var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 32px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin: 0 0 16px;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .examples-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      max-width: 1000px;
+    }
+
+    @media (min-width: 900px) {
+      .examples-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)) padding-box,
+                  linear-gradient(180deg, rgba(147, 197, 253, 0.3), rgba(37, 99, 235, 0.5)) border-box;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+
+    .example h2 {
+      font-size: 1.125rem;
+      margin: 0 0 12px;
+    }
+
+    .summary {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+    }
+
+    /* Generic content container */
+    .details {
+      background: rgba(17, 24, 39, 0.75);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .details p {
+      margin: 0 0 10px;
+    }
+
+    .details ul {
+      margin: 0 0 8px 20px;
+    }
+
+    /* Native details/summary */
+    details.details {
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+
+    details.details > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(17, 24, 39, 0.65);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+
+    details.details > summary::marker { content: ""; }
+
+    .chevron {
+      width: 12px;
+      height: 12px;
+      border-right: 2px solid var(--muted);
+      border-bottom: 2px solid var(--muted);
+      transform: rotate(-45deg);
+      transition: transform 180ms ease;
+      margin-left: 2px;
+    }
+
+    details[open] .chevron {
+      transform: rotate(45deg);
+    }
+
+    details.details > .content {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      background: rgba(17, 24, 39, 0.75);
+    }
+
+    /* Toggle button */
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(17,24,39,0.85), rgba(15,23,42,0.8));
+      cursor: pointer;
+      transition: box-shadow 150ms ease, transform 100ms ease, border-color 150ms ease;
+    }
+
+    .toggle-btn:hover {
+      border-color: rgba(147, 197, 253, 0.45);
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .toggle-btn:active {
+      transform: translateY(1px);
+    }
+
+    .toggle-btn:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 6px rgba(147, 197, 253, 0.16);
+    }
+
+    .toggle-icon {
+      position: relative;
+      width: 14px;
+      height: 14px;
+    }
+
+    .toggle-icon::before,
+    .toggle-icon::after {
+      content: "";
+      position: absolute;
+      background: var(--muted);
+      border-radius: 2px;
+      transition: transform 150ms ease, opacity 150ms ease;
+    }
+
+    .toggle-icon::before {
+      width: 14px;
+      height: 2px;
+      top: 6px;
+      left: 0;
+    }
+
+    .toggle-icon::after {
+      width: 2px;
+      height: 14px;
+      top: 0;
+      left: 6px;
+    }
+
+    .toggle-btn[aria-expanded="true"] .toggle-icon::after {
+      opacity: 0;
+      transform: scaleY(0.3);
+    }
+
+    .toggle-btn[aria-expanded="true"] .toggle-icon::before {
+      background: var(--accent);
+    }
+
+    /* Accordion */
+    .accordion {
+      display: grid;
+      gap: 10px;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(17, 24, 39, 0.65);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+    }
+
+    .panel-btn {
+      all: unset;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .panel-btn:hover {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .panel-btn:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .panel-btn .title {
+      font-weight: 600;
+    }
+
+    .panel-btn .status {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .panel .details {
+      margin: 10px;
+    }
+
+    /* Utility */
+    code {
+      background: rgba(255,255,255,0.06);
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widget Examples</h1>
+  <p class="lead">Three approaches: native details/summary, a button-controlled disclosure, and an accordion with a single open section. Each controlled content area uses the "details" class.</p>
+
+  <div class="examples-grid">
+
+    <div class="example">
+      <h2>Example 1: Native details/summary</h2>
+      <p class="summary">Uses the built-in HTML details element. Click the summary row to expand/collapse.</p>
+
+      <details class="details">
+        <summary>
+          <span class="chevron" aria-hidden="true"></span>
+          What is an expand/collapse widget?
+        </summary>
+        <div class="content">
+          <p>An expand/collapse widget lets you reveal additional content on demand without navigating away from the page. It helps keep interfaces clean and focused.</p>
+          <ul>
+            <li>Expandable content stays hidden until requested</li>
+            <li>Reduces visual clutter</li>
+            <li>Improves scannability of long pages</li>
+          </ul>
+          <p class="muted">Tip: The <code>&lt;details&gt;</code> element is keyboard and screen-reader friendly by default.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <h2>Example 2: Button-controlled disclosure</h2>
+      <p class="summary">A button toggles a content region. The button updates <code>aria-expanded</code> and controls a container with the <code>details</code> class.</p>
+
+      <button
+        id="ex2-btn"
+        class="toggle-btn"
+        type="button"
+        aria-expanded="false"
+        aria-controls="ex2-details"
+        data-collapsed-text="Show more details"
+        data-expanded-text="Hide details">
+        <span class="toggle-icon" aria-hidden="true"></span>
+        <span class="label">Show more details</span>
+      </button>
+
+      <div
+        id="ex2-details"
+        class="details"
+        role="region"
+        aria-labelledby="ex2-btn"
+        hidden>
+        <p>This region is controlled by the button above. When the button is activated, we toggle its <code>aria-expanded</code> state and show/hide this content.</p>
+        <p>Because this container uses the <code>details</code> class, you can style all controlled areas consistently.</p>
+        <ul>
+          <li>ARIA linkage via <code>aria-controls</code> and <code>aria-labelledby</code></li>
+          <li>Keyboard accessible button</li>
+          <li>Programmatic state tracking</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>Example 3: Accordion (single open)</h2>
+      <p class="summary">Only one section stays open at a time. Each panel’s content container uses the <code>details</code> class.</p>
+
+      <div class="accordion" data-accordion>
+        <div class="panel">
+          <div class="panel-header">
+            <button
+              id="acc-btn-1"
+              class="panel-btn"
+              type="button"
+              aria-expanded="false"
+              aria-controls="acc-panel-1">
+              <span class="title">Getting Started</span>
+              <span class="status" aria-hidden="true">Collapsed</span>
+            </button>
+          </div>
+          <div
+            id="acc-panel-1"
+            class="details"
+            role="region"
+            aria-labelledby="acc-btn-1"
+            hidden>
+            <p>Install dependencies, run the dev server, and open the app in your browser.</p>
+            <ul>
+              <li>Install: <code>npm install</code></li>
+              <li>Dev: <code>npm run dev</code></li>
+              <li>Open: <code>http://localhost:3000</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <button
+              id="acc-btn-2"
+              class="panel-btn"
+              type="button"
+              aria-expanded="false"
+              aria-controls="acc-panel-2">
+              <span class="title">Configuration</span>
+              <span class="status" aria-hidden="true">Collapsed</span>
+            </button>
+          </div>
+          <div
+            id="acc-panel-2"
+            class="details"
+            role="region"
+            aria-labelledby="acc-btn-2"
+            hidden>
+            <p>Edit the config file to adjust environment variables and build options.</p>
+            <ul>
+              <li>Environment: <code>.env.local</code></li>
+              <li>Build target: <code>esm</code> or <code>cjs</code></li>
+              <li>Source maps: <code>true</code>/<code>false</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <button
+              id="acc-btn-3"
+              class="panel-btn"
+              type="button"
+              aria-expanded="false"
+              aria-controls="acc-panel-3">
+              <span class="title">Deployment</span>
+              <span class="status" aria-hidden="true">Collapsed</span>
+            </button>
+          </div>
+          <div
+            id="acc-panel-3"
+            class="details"
+            role="region"
+            aria-labelledby="acc-btn-3"
+            hidden>
+            <p>Choose a platform, configure CI/CD, and monitor releases.</p>
+            <ul>
+              <li>Platforms: Vercel, Netlify, Docker</li>
+              <li>CI: GitHub Actions</li>
+              <li>Monitoring: Uptime + logs</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Button-controlled disclosure
+    (function () {
+      var btn = document.getElementById('ex2-btn');
+      var region = document.getElementById('ex2-details');
+
+      function setExpanded(expanded) {
+        btn.setAttribute('aria-expanded', String(expanded));
+        var labelEl = btn.querySelector('.label');
+        var collapsedText = btn.dataset.collapsedText || 'Show';
+        var expandedText = btn.dataset.expandedText || 'Hide';
+        labelEl.textContent = expanded ? expandedText : collapsedText;
+        region.hidden = !expanded;
+      }
+
+      btn.addEventListener('click', function () {
+        var isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        setExpanded(!isExpanded);
+      });
+    }());
+
+    // Accordion: allow only one panel open
+    (function () {
+      var accordion = document.querySelector('[data-accordion]');
+      if (!accordion) return;
+
+      function updateStatus(btn) {
+        var status = btn.querySelector('.status');
+        if (status) status.textContent = btn.getAttribute('aria-expanded') === 'true' ? 'Expanded' : 'Collapsed';
+      }
+
+      accordion.addEventListener('click', function (e) {
+        var btn = e.target.closest('.panel-btn');
+        if (!btn) return;
+
+        var panelId = btn.getAttribute('aria-controls');
+        var panel = document.getElementById(panelId);
+        if (!panel) return;
+
+        var willExpand = btn.getAttribute('aria-expanded') !== 'true';
+
+        // Collapse all panels
+        accordion.querySelectorAll('.panel-btn').forEach(function (b) {
+          b.setAttribute('aria-expanded', 'false');
+          updateStatus(b);
+          var pid = b.getAttribute('aria-controls');
+          var p = document.getElementById(pid);
+          if (p) p.hidden = true;
+        });
+
+        // Expand the requested one if desired
+        if (willExpand) {
+          btn.setAttribute('aria-expanded', 'true');
+          updateStatus(btn);
+          panel.hidden = false;
+        }
+      });
+
+      // Keyboard: toggle with Enter/Space (buttons already handle this)
+      // Initialize status text
+      accordion.querySelectorAll('.panel-btn').forEach(updateStatus);
+    }());
+  </script>
+</body>
+</html>

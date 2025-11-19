@@ -1,0 +1,305 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accessible Modal Example</title>
+  <style>
+    :root {
+      --overlay-bg: rgba(0,0,0,0.5);
+      --modal-bg: #fff;
+      --radius: 8px;
+      --max-width: 520px;
+      --gap: 16px;
+      --accent: #0b79ff;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 0;
+      line-height: 1.4;
+      padding: 32px;
+      background: #f5f7fb;
+      color: #111827;
+    }
+
+    /* Prevent background scroll when modal open */
+    .no-scroll {
+      overflow: hidden;
+    }
+
+    .trigger {
+      padding: 10px 16px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: linear-gradient(180deg,#fff,#f7fbff);
+      cursor: pointer;
+      color: #05263a;
+      box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+    }
+    .trigger:focus {
+      outline: 3px solid rgba(11,121,255,0.18);
+      outline-offset: 2px;
+    }
+
+    /* Hidden when closed */
+    [hidden] {
+      display: none !important;
+    }
+
+    /* Modal overlay */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+      animation: fadeIn 180ms ease;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--overlay-bg);
+      backdrop-filter: blur(2px);
+    }
+
+    .dialog {
+      position: relative;
+      background: var(--modal-bg);
+      border-radius: var(--radius);
+      max-width: var(--max-width);
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.18);
+      padding: 20px;
+      z-index: 1;
+      transform: translateY(6px);
+      animation: slideUp 220ms ease;
+    }
+
+    .dialog header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .dialog h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .close {
+      background: transparent;
+      border: none;
+      padding: 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #334155;
+    }
+    .close:focus {
+      outline: 3px solid rgba(11,121,255,0.18);
+      outline-offset: 2px;
+    }
+
+    .dialog p {
+      margin: 0 0 16px 0;
+      color: #374151;
+      font-size: 15px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+    }
+    .btn:focus {
+      outline: 3px solid rgba(11,121,255,0.18);
+      outline-offset: 2px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Small helpers for demo layout */
+    .note { margin-top: 18px; color: #6b7280; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Modal Dialog Component (closed by default)</h1>
+
+  <button class="trigger" id="openModalBtn" aria-haspopup="dialog" aria-controls="modal">
+    Open Modal
+  </button>
+
+  <p class="note">The button above has the class "trigger". The modal is hidden when the page loads.</p>
+
+  <!-- Modal (closed by default via hidden attribute and aria-hidden) -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle" hidden>
+    <div class="overlay" data-close></div>
+
+    <div class="dialog" role="document">
+      <header>
+        <h2 id="modalTitle">Confirm action</h2>
+        <button class="close" data-close aria-label="Close dialog">&times;</button>
+      </header>
+
+      <div class="content">
+        <p>Are you sure you want to proceed with this action? This operation cannot be undone.</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn" data-close>Cancel</button>
+        <button class="btn primary" id="confirmBtn">Yes, proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const openTriggers = document.querySelectorAll('.trigger');
+      const modal = document.getElementById('modal');
+      const overlay = modal.querySelector('.overlay');
+      const closeElements = modal.querySelectorAll('[data-close]');
+      const confirmBtn = document.getElementById('confirmBtn');
+
+      let lastFocused = null;
+
+      function getFocusable(container) {
+        const selectors = [
+          'a[href]:not([tabindex="-1"])',
+          'area[href]',
+          'input:not([disabled]):not([tabindex="-1"])',
+          'select:not([disabled]):not([tabindex="-1"])',
+          'textarea:not([disabled]):not([tabindex="-1"])',
+          'button:not([disabled]):not([tabindex="-1"])',
+          'iframe',
+          'object',
+          'embed',
+          '[contenteditable]',
+          '[tabindex]:not([tabindex="-1"])'
+        ];
+        return Array.from(container.querySelectorAll(selectors.join(',')));
+      }
+
+      function openModal() {
+        if (!modal) return;
+        lastFocused = document.activeElement;
+        modal.removeAttribute('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('no-scroll');
+
+        // Focus first focusable item in the modal
+        const focusable = getFocusable(modal);
+        (focusable.length ? focusable[0] : modal).focus();
+
+        document.addEventListener('keydown', onKeyDown);
+        modal.addEventListener('click', onClickOutside);
+      }
+
+      function closeModal() {
+        if (!modal) return;
+        modal.setAttribute('hidden', '');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('no-scroll');
+
+        document.removeEventListener('keydown', onKeyDown);
+        modal.removeEventListener('click', onClickOutside);
+
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+          lastFocused.focus();
+        }
+      }
+
+      function onClickOutside(e) {
+        // Close only when clicking overlay or elements with data-close
+        if (e.target === overlay || e.target.closest('[data-close]')) {
+          closeModal();
+        }
+      }
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+
+        if (e.key === 'Tab') {
+          // Basic focus trap
+          const focusable = getFocusable(modal);
+          if (focusable.length === 0) {
+            e.preventDefault();
+            return;
+          }
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey) {
+            if (document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      }
+
+      // Attach triggers
+      openTriggers.forEach(btn => {
+        btn.addEventListener('click', openModal);
+      });
+
+      // Attach close handlers (buttons)
+      closeElements.forEach(el => {
+        el.addEventListener('click', closeModal);
+      });
+
+      // Example action for confirm button
+      confirmBtn.addEventListener('click', function () {
+        // Simulate action then close
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Processing...';
+        setTimeout(() => {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Yes, proceed';
+          closeModal();
+          alert('Action confirmed.');
+        }, 700);
+      });
+
+      // Allow open via keyboard on enter/space if trigger is focused (normal button does this by default)
+      // Optional: open modal if page is loaded with ?open=true (for demonstration)
+      if (new URLSearchParams(window.location.search).get('open') === 'true') {
+        openModal();
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widgets Demo</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --accent: #2563eb;
+      --accent-2: #7c3aed;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --focus: #fbbf24;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 0% 0%, #0b1022, var(--bg));
+    }
+
+    header {
+      max-width: 940px;
+      margin: 0 auto 1.5rem auto;
+    }
+    header h1 {
+      margin: 0 0 .5rem 0;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      max-width: 940px;
+      margin: 0 auto 1rem auto;
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+    .toolbar button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #182232, #121a28);
+      color: var(--text);
+      padding: .5rem .75rem;
+      border-radius: .5rem;
+      cursor: pointer;
+      transition: border-color 120ms ease, box-shadow 120ms ease, transform 60ms ease;
+      font-weight: 600;
+    }
+    .toolbar button:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 40%, transparent);
+    }
+    .toolbar button:active {
+      transform: translateY(1px);
+    }
+    .toolbar button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 45%, transparent);
+      border-color: var(--focus);
+    }
+
+    .examples {
+      max-width: 940px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      border-radius: .75rem;
+      padding: .75rem;
+      background: linear-gradient(180deg, #0f1422, #0d1421);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+
+    /* Expand/Collapse styling */
+    details.details {
+      border: 1px solid var(--border);
+      border-radius: .5rem;
+      overflow: hidden;
+      background: linear-gradient(180deg, #121927, #0f1724);
+    }
+
+    details.details summary {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      list-style: none;
+      cursor: pointer;
+      padding: .75rem 1rem;
+      user-select: none;
+      font-weight: 600;
+      letter-spacing: .2px;
+      position: relative;
+      color: #e7ebf2;
+    }
+    details.details summary::-webkit-details-marker { display: none; }
+
+    /* Chevron */
+    details.details summary::before {
+      content: "▸";
+      display: inline-block;
+      width: 1em;
+      text-align: center;
+      color: var(--accent);
+      transition: transform 160ms ease;
+      transform-origin: 50% 50%;
+    }
+    details.details[open] summary::before {
+      content: "▾";
+      color: var(--accent-2);
+    }
+
+    details.details summary:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 45%, transparent);
+      border-bottom-left-radius: .5rem;
+      border-bottom-right-radius: .5rem;
+    }
+
+    details.details .panel {
+      padding: .75rem 1rem 1rem 2rem;
+      border-top: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    /* Subtle open animation */
+    @media (prefers-reduced-motion: no-preference) {
+      details.details .panel {
+        opacity: 0;
+        transform: translateY(-2px);
+        transition: opacity 160ms ease, transform 160ms ease;
+      }
+      details.details[open] .panel {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Content styling */
+    .panel p { margin: 0 0 .75rem 0; }
+    .panel ul {
+      margin: .25rem 0 0 0;
+      padding-left: 1.2rem;
+      color: #cbd5e1;
+    }
+    .panel code {
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: .35rem;
+      padding: .15rem .35rem;
+      color: #f3f4f6;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      font-size: .85rem;
+      color: #d1d5db;
+      background: #0e1524;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .25rem .6rem;
+    }
+    .badge .dot {
+      width: .5rem;
+      height: .5rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px color-mix(in oklab, var(--accent) 45%, transparent);
+    }
+
+    /* Footer */
+    footer {
+      max-width: 940px;
+      margin: 1.5rem auto 0;
+      color: var(--muted);
+      font-size: .9rem;
+      border-top: 1px dashed var(--border);
+      padding-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widgets</h1>
+    <p>Click the headers below to expand or collapse content. Use the toolbar to control them programmatically.</p>
+  </header>
+
+  <div class="toolbar" aria-label="Expand/Collapse Controls">
+    <button id="expandAll" type="button">Expand all</button>
+    <button id="collapseAll" type="button">Collapse all</button>
+  </div>
+
+  <section class="examples" id="examples">
+    <div class="example">
+      <details class="details">
+        <summary>Basic widget: What is an expand/collapse?</summary>
+        <div class="panel">
+          <p>An expand/collapse widget reveals additional content when activated. This example uses the native HTML <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements for accessibility and simplicity.</p>
+          <ul>
+            <li>Keyboard accessible by default</li>
+            <li>Supports focus and toggle states</li>
+            <li>No extra JavaScript is needed</li>
+          </ul>
+          <span class="badge"><span class="dot" aria-hidden="true"></span> Native HTML</span>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <details class="details" open>
+        <summary>Default open: Starts expanded</summary>
+        <div class="panel">
+          <p>This widget includes the <code>open</code> attribute, so it starts expanded.</p>
+          <ul>
+            <li>Use <code>open</code> to pre-expand important information</li>
+            <li>Remove it to start collapsed</li>
+          </ul>
+          <span class="badge"><span class="dot" aria-hidden="true"></span> Default open</span>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <details class="details">
+        <summary>Content-rich panel: Lists and code samples</summary>
+        <div class="panel">
+          <p>You can include any HTML inside the panel, like lists, paragraphs, and inline code.</p>
+          <ul>
+            <li>Use <code>&lt;ul&gt;</code>/<code>&lt;ol&gt;</code> to organize content</li>
+            <li>Style with CSS for consistent appearance</li>
+            <li>Keep summaries clear and concise</li>
+          </ul>
+          <p>For example, toggling with JavaScript:</p>
+          <pre><code>const d = document.querySelector('details.details');
+d.open = !d.open;</code></pre>
+          <span class="badge"><span class="dot" aria-hidden="true"></span> Rich content</span>
+        </div>
+      </details>
+    </div>
+
+    <div class="example" data-accordion>
+      <details class="details">
+        <summary>Accordion group: Item 1</summary>
+        <div class="panel">
+          <p>In an accordion, opening one item closes the others in the same group.</p>
+          <span class="badge"><span class="dot" aria-hidden="true"></span> Accordion</span>
+        </div>
+      </details>
+      <details class="details">
+        <summary>Accordion group: Item 2</summary>
+        <div class="panel">
+          <p>This second item opens by closing the others.</p>
+          <span class="badge"><span class="dot" aria-hidden="true"></span> Accordion</span>
+        </div>
+      </details>
+      <details class="details">
+        <summary>Accordion group: Item 3</summary>
+        <div class="panel">
+          <p>Only one item remains open within this group.</p>
+          <span class="badge"><span class="dot" aria-hidden="true"></span> Accordion</span>
+        </div>
+      </details>
+    </div>
+
+    <div class="example">
+      <details class="details" id="externalControlled">
+        <summary>Externally controlled: Click the button below</summary>
+        <div class="panel">
+          <p>This widget can be toggled programmatically using the button outside.</p>
+          <span class="badge"><span class="dot" aria-hidden="true"></span> External control</span>
+        </div>
+      </details>
+      <div class="toolbar" style="margin-top:.5rem;">
+        <button type="button" id="toggleExternal">Toggle this widget</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Tip: The native details/summary pattern is widely supported and accessible. Customize styling and behavior with CSS and optional JavaScript.
+  </footer>
+
+  <script>
+    // Expand/Collapse All
+    const expandAllBtn = document.getElementById('expandAll');
+    const collapseAllBtn = document.getElementById('collapseAll');
+    const getAllDetails = () => Array.from(document.querySelectorAll('details.details'));
+
+    expandAllBtn.addEventListener('click', () => {
+      getAllDetails().forEach(d => d.open = true);
+    });
+    collapseAllBtn.addEventListener('click', () => {
+      getAllDetails().forEach(d => d.open = false);
+    });
+
+    // External control
+    const externalBtn = document.getElementById('toggleExternal');
+    const externalDetails = document.getElementById('externalControlled');
+    externalBtn.addEventListener('click', () => {
+      externalDetails.open = !externalDetails.open;
+      externalBtn.textContent = externalDetails.open ? 'Collapse this widget' : 'Expand this widget';
+    });
+
+    // Accordion behavior: only one open in a data-accordion group
+    document.querySelectorAll('[data-accordion]').forEach(group => {
+      const items = Array.from(group.querySelectorAll('details.details'));
+      items.forEach(item => {
+        item.addEventListener('toggle', () => {
+          if (item.open) {
+            items.forEach(other => {
+              if (other !== item) other.open = false;
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

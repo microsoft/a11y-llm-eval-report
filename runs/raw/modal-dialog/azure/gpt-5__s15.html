@@ -1,0 +1,254 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Modal Dialog Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      color: #222;
+      background: #f7f7f7;
+    }
+    [hidden] { display: none !important; }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .trigger {
+      appearance: none;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .trigger:hover { background: #1d4ed8; }
+    .trigger:focus { outline: 3px solid rgba(37, 99, 235, 0.35); outline-offset: 2px; }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 1000;
+    }
+    .dialog {
+      background: #fff;
+      color: #111;
+      width: 100%;
+      max-width: 560px;
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    .dialog header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .dialog h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .dialog .close {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: #374151;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .dialog .close:hover { background: #f3f4f6; }
+    .dialog .close:focus { outline: 3px solid rgba(37, 99, 235, 0.35); outline-offset: 2px; }
+    .dialog .content {
+      padding: 16px 20px 20px;
+    }
+    .dialog footer {
+      padding: 16px 20px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #111827;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover { background: #f9fafb; }
+    .btn.primary {
+      border-color: transparent;
+      background: #2563eb;
+      color: #fff;
+    }
+    .btn.primary:hover { background: #1d4ed8; }
+
+    body.modal-open {
+      overflow: hidden;
+      touch-action: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="page" class="container">
+    <h1>Example: Modal Dialog Component</h1>
+    <p>This modal is closed by default. Click the button to open it.</p>
+    <button class="trigger" type="button">Open Modal</button>
+
+    <p style="margin-top: 24px;">You can still interact with the page while the modal is closed. When the modal opens, focus will move to the dialog, and pressing Escape will close it.</p>
+  </div>
+
+  <div id="modal-backdrop" class="backdrop" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
+      <header>
+        <h2 id="modal-title">Modal Title</h2>
+        <button class="close" type="button" aria-label="Close">✕</button>
+      </header>
+      <div class="content">
+        <p id="modal-desc">This is a modal dialog. It traps focus while open and can be closed with the close button, by clicking the backdrop, or by pressing Escape.</p>
+        <label for="name">Your name</label>
+        <input id="name" type="text" placeholder="Type your name" style="display:block;width:100%;margin-top:6px;margin-bottom:14px;padding:10px;border:1px solid #d1d5db;border-radius:8px;">
+        <a href="https://example.com" target="_blank" rel="noreferrer">A sample link inside the modal</a>
+      </div>
+      <footer>
+        <button class="btn" type="button" data-action="cancel">Cancel</button>
+        <button class="btn primary" type="button" data-action="confirm">Confirm</button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const backdrop = document.getElementById('modal-backdrop');
+      const dialog = backdrop.querySelector('.dialog');
+      const closeBtn = backdrop.querySelector('.close');
+      const page = document.getElementById('page');
+      const triggers = Array.from(document.querySelectorAll('.trigger'));
+      const cancelBtn = backdrop.querySelector('[data-action="cancel"]');
+      const confirmBtn = backdrop.querySelector('[data-action="confirm"]');
+      let lastFocused = null;
+
+      function isFocusable(el) {
+        if (!el) return false;
+        const style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') return false;
+        return !el.hasAttribute('disabled') && !el.getAttribute('aria-hidden') && el.tabIndex !== -1;
+      }
+
+      function getFocusableElements(root) {
+        const selector = [
+          'a[href]',
+          'button:not([disabled])',
+          'input:not([disabled])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          '[tabindex]:not([tabindex="-1"])'
+        ].join(',');
+        return Array.from(root.querySelectorAll(selector)).filter(isFocusable);
+      }
+
+      function openModal() {
+        lastFocused = document.activeElement;
+        backdrop.removeAttribute('hidden');
+        page.setAttribute('aria-hidden', 'true');
+        document.body.classList.add('modal-open');
+
+        // Move focus to the first focusable element in the dialog
+        const focusables = getFocusableElements(dialog);
+        const toFocus = focusables[0] || dialog;
+        toFocus.focus();
+
+        document.addEventListener('keydown', onKeyDown);
+        // Prevent background scrolling on iOS during touch move
+        backdrop.addEventListener('touchmove', preventScroll, { passive: false });
+      }
+
+      function closeModal() {
+        backdrop.setAttribute('hidden', '');
+        page.removeAttribute('aria-hidden');
+        document.body.classList.remove('modal-open');
+
+        document.removeEventListener('keydown', onKeyDown);
+        backdrop.removeEventListener('touchmove', preventScroll);
+
+        if (lastFocused && document.contains(lastFocused)) {
+          lastFocused.focus();
+        }
+      }
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+        if (e.key === 'Tab') {
+          const focusables = getFocusableElements(dialog);
+          if (focusables.length === 0) {
+            e.preventDefault();
+            dialog.focus();
+            return;
+          }
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          const current = document.activeElement;
+
+          if (e.shiftKey) {
+            if (current === first || !dialog.contains(current)) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (current === last || !dialog.contains(current)) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      }
+
+      function preventScroll(e) {
+        e.preventDefault();
+      }
+
+      // Open handlers
+      triggers.forEach(btn => btn.addEventListener('click', openModal));
+
+      // Close handlers
+      closeBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+      confirmBtn.addEventListener('click', closeModal);
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) {
+          closeModal();
+        }
+      });
+
+      // Ensure dialog is focusable if needed
+      if (dialog.tabIndex === -1) {
+        dialog.tabIndex = -1;
+      }
+    })();
+  </script>
+</body>
+</html>

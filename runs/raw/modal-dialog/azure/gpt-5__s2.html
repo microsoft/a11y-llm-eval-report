@@ -1,0 +1,309 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Component Example</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      color: #111;
+      background: #f7f7f7;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 0.75rem;
+    }
+    p {
+      margin: 0 0 1rem;
+    }
+    button {
+      font: inherit;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.15);
+      background: #fff;
+      cursor: pointer;
+    }
+    button:hover { background: #f1f1f1; }
+    button:focus-visible {
+      outline: 3px solid #2684ff;
+      outline-offset: 2px;
+    }
+
+    /* Modal base */
+    .modal[hidden] {
+      display: none !important;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0,0,0,0.45);
+      padding: 24px;
+      z-index: 1000;
+    }
+    .modal__dialog {
+      width: 100%;
+      max-width: 560px;
+      background: #fff;
+      color: #111;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(6px);
+      opacity: 0;
+      transition: transform 160ms ease-out, opacity 160ms ease-out;
+    }
+    .modal:not([hidden]) .modal__dialog {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    .modal__header h2 {
+      font-size: 1.2rem;
+      margin: 0;
+    }
+    .modal__close {
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      background: transparent;
+      border: 1px solid rgba(0,0,0,0.15);
+      line-height: 1;
+      font-size: 1.2rem;
+    }
+    .modal__body {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .modal__body label {
+      display: grid;
+      gap: 6px;
+    }
+    .modal__body input,
+    .modal__body select,
+    .modal__body textarea {
+      padding: 0.6rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.15);
+      background: #fff;
+      color: inherit;
+    }
+    .modal__footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 12px 16px 16px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+    }
+    .modal__action {
+      background: #0d6efd;
+      border-color: #0d6efd;
+      color: #fff;
+    }
+    .modal__action:hover { background: #0b5ed7; }
+    .modal__cancel {
+      background: #fff;
+      border-color: rgba(0,0,0,0.15);
+    }
+
+    body.modal-open {
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { color: #eaeaea; background: #111; }
+      button { background: #1d1d1d; border-color: #2a2a2a; color: #eaeaea; }
+      button:hover { background: #232323; }
+      .modal { background: rgba(0,0,0,0.6); }
+      .modal__dialog { background: #1a1a1a; color: #eaeaea; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+      .modal__header, .modal__footer { border-color: rgba(255,255,255,0.08); }
+      .modal__close { border-color: #2a2a2a; background: #222; color: #eaeaea; }
+      .modal__body input, .modal__body select, .modal__body textarea {
+        background: #232323; border-color: #2a2a2a; color: #eaeaea;
+      }
+      .modal__cancel { background: #222; border-color: #2a2a2a; color: #eaeaea; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Modal Dialog Component</h1>
+    <p>Click the button below to open the modal dialog. It is closed by default.</p>
+    <button class="trigger" aria-haspopup="dialog" aria-controls="modal">Open Modal</button>
+
+    <p style="margin-top:2rem">This content remains interactive when the modal is closed.</p>
+    <button>Another page button</button>
+  </main>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal__dialog" role="document" tabindex="-1">
+      <header class="modal__header">
+        <h2 id="modal-title">Example Modal</h2>
+        <button type="button" class="modal__close" id="modal-close" aria-label="Close dialog">×</button>
+      </header>
+      <div class="modal__body">
+        <p>This is a simple modal dialog. It traps focus while open, and can be closed with the close button, by pressing Escape, or by clicking outside the dialog.</p>
+        <label>
+          Your name
+          <input type="text" placeholder="Jane Doe" />
+        </label>
+        <label>
+          Choose an option
+          <select>
+            <option value="">Select…</option>
+            <option>Option A</option>
+            <option>Option B</option>
+          </select>
+        </label>
+      </div>
+      <footer class="modal__footer">
+        <button type="button" class="modal__cancel">Cancel</button>
+        <button type="button" class="modal__action">Confirm</button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.getElementById('modal');
+      const dialog = modal.querySelector('.modal__dialog');
+      const closeBtn = document.getElementById('modal-close');
+      const cancelBtn = modal.querySelector('.modal__cancel');
+      const triggers = document.querySelectorAll('.trigger');
+
+      let lastFocusedElement = null;
+
+      const focusableSelector = [
+        'a[href]',
+        'area[href]',
+        'input:not([disabled]):not([hidden])',
+        'select:not([disabled]):not([hidden])',
+        'textarea:not([disabled]):not([hidden])',
+        'button:not([disabled]):not([hidden])',
+        'iframe',
+        'audio[controls]',
+        'video[controls]',
+        '[contenteditable="true"]',
+        '[tabindex]:not([tabindex="-1"])'
+      ].join(',');
+
+      function getFocusableElements() {
+        const elements = Array.from(dialog.querySelectorAll(focusableSelector))
+          .filter(el => el.offsetParent !== null || el === document.activeElement);
+        return elements;
+      }
+
+      function openModal() {
+        if (!modal.hasAttribute('hidden')) return;
+
+        lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+        modal.removeAttribute('hidden');
+        document.body.classList.add('modal-open');
+
+        // Move focus into the dialog
+        const focusables = getFocusableElements();
+        if (focusables.length) {
+          focusables[0].focus();
+        } else {
+          dialog.focus();
+        }
+
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeModal() {
+        if (modal.hasAttribute('hidden')) return;
+
+        modal.setAttribute('hidden', '');
+        document.body.classList.remove('modal-open');
+
+        document.removeEventListener('keydown', onKeyDown);
+
+        // Restore focus
+        if (lastFocusedElement && document.contains(lastFocusedElement)) {
+          lastFocusedElement.focus();
+        } else {
+          // Fallback: focus any trigger
+          const firstTrigger = document.querySelector('.trigger');
+          if (firstTrigger) firstTrigger.focus();
+        }
+      }
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+
+        if (e.key === 'Tab') {
+          const focusables = getFocusableElements();
+          if (!focusables.length) {
+            e.preventDefault();
+            dialog.focus();
+            return;
+          }
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          const isShift = e.shiftKey;
+          const active = document.activeElement;
+
+          if (!isShift && active === last) {
+            e.preventDefault();
+            first.focus();
+          } else if (isShift && active === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        }
+      }
+
+      // Open handlers
+      triggers.forEach(btn => {
+        btn.addEventListener('click', openModal);
+      });
+
+      // Close handlers
+      closeBtn.addEventListener('click', closeModal);
+      if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+      // Click outside dialog to close
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      // Prevent clicks inside dialog from bubbling to overlay
+      dialog.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    })();
+  </script>
+</body>
+</html>

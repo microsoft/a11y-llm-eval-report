@@ -1,0 +1,361 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #111827;
+      --surface-2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #4f46e5;
+      --accent-2: #7c3aed;
+      --overlay: rgba(2, 6, 23, 0.6);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      background: linear-gradient(120deg, #0b1022, #0f172a 60%, #111827);
+      color: var(--text);
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    .app {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+    }
+    .card {
+      max-width: 720px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow:
+        0 10px 30px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .card h1 {
+      margin: 0 0 0.5rem;
+      font-size: 1.75rem;
+      letter-spacing: -0.02em;
+    }
+    .card p {
+      margin: 0 0 1.25rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 0.8rem 1.1rem;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 10px 20px rgba(124, 58, 237, 0.35), inset 0 -1px 0 rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 12px 24px rgba(124, 58, 237, 0.45), inset 0 -1px 0 rgba(255,255,255,0.12);
+    }
+    button:active {
+      transform: translateY(0);
+      filter: brightness(0.98);
+    }
+    button.secondary {
+      background: linear-gradient(135deg, #374151, #1f2937);
+      color: var(--text);
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.35), inset 0 -1px 0 rgba(255,255,255,0.06);
+    }
+    button.secondary:hover {
+      box-shadow: 0 10px 20px rgba(31, 41, 55, 0.45), inset 0 -1px 0 rgba(255,255,255,0.08);
+    }
+
+    dialog {
+      border: none;
+      padding: 0;
+      border-radius: 16px;
+      width: min(560px, calc(100vw - 2rem));
+      color: var(--text);
+      background: radial-gradient(1200px 700px at 20% -50%, rgba(79,70,229,0.15), transparent 60%),
+                  radial-gradient(1200px 700px at 120% 120%, rgba(124,58,237,0.2), transparent 60%),
+                  linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      backdrop-filter: blur(10px);
+      box-shadow:
+        0 25px 60px rgba(0,0,0,0.45),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+      animation: scaleIn 160ms ease-out;
+    }
+    dialog::backdrop {
+      background: var(--overlay);
+      backdrop-filter: blur(2px);
+      animation: fadeIn 150ms ease-out;
+    }
+    dialog[open] .modal-header .close {
+      opacity: 1;
+      transform: scale(1);
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: translateY(6px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .modal {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 0;
+      overflow: hidden;
+    }
+    .modal-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      gap: 0.75rem;
+      padding: 1rem 1rem 0.5rem 1rem;
+    }
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: -0.01em;
+    }
+    .modal-header .subtitle {
+      margin: 0.15rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+    .close {
+      background: transparent;
+      border-radius: 10px;
+      padding: 0.5rem;
+      color: var(--muted);
+      box-shadow: none;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    .close:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+    .close:active { transform: scale(0.94); }
+
+    .modal-body {
+      padding: 0.75rem 1rem 1rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .modal-body p {
+      margin: 0 0 1rem;
+      color: var(--text);
+    }
+    .modal-footer {
+      padding: 0.75rem 1rem 1rem;
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.7rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+    }
+    .pill svg {
+      width: 18px;
+      height: 18px;
+      opacity: 0.8;
+    }
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text);
+      font-size: 0.85em;
+    }
+
+    a.inline {
+      color: #a78bfa;
+      text-decoration: none;
+    }
+    a.inline:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>Modal Dialog Demo</h1>
+      <p>
+        This example shows a modal dialog that is closed by default.
+        Click the button below to open it. The dialog supports keyboard navigation,
+        focus management, and closing via Escape or backdrop click.
+      </p>
+      <div class="actions">
+        <button class="trigger" aria-haspopup="dialog" aria-controls="modal">Open Modal</button>
+        <button class="secondary" onclick="alert('Another action')" type="button">Secondary Action</button>
+        <span class="pill" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+          Tip: press <span class="kbd">Esc</span> to close
+        </span>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="modal" aria-labelledby="modal-title" aria-modal="true" role="dialog">
+    <div class="modal">
+      <header class="modal-header">
+        <div>
+          <h2 id="modal-title">Save your changes?</h2>
+          <p class="subtitle">You have unsaved edits. Choose an option below to continue.</p>
+        </div>
+        <button class="close" type="button" data-close aria-label="Close dialog">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </button>
+      </header>
+
+      <section class="modal-body" id="modal-desc">
+        <p>
+          This modal is fully accessible and keyboard-friendly:
+          - Focus moves into the dialog when it opens.
+          - Tab and Shift+Tab cycle through focusable elements.
+          - Press Escape or click the backdrop to close.
+        </p>
+        <p>
+          You can also explore more about building accessible components at
+          <a class="inline" href="https://www.w3.org/WAI/ARIA/apg/" target="_blank" rel="noopener noreferrer">WAI-ARIA Authoring Practices</a>.
+        </p>
+      </section>
+
+      <footer class="modal-footer">
+        <button class="secondary" type="button" data-close>Cancel</button>
+        <button type="button" onclick="alert('Changes saved!');document.getElementById('modal').close();">Save Changes</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <script>
+    (function () {
+      const dialog = document.getElementById('modal');
+      const trigger = document.querySelector('.trigger');
+      const closeButtons = dialog.querySelectorAll('[data-close]');
+      let lastActiveEl = null;
+
+      function getFocusable(container) {
+        const selectors = [
+          'a[href]',
+          'area[href]',
+          'button:not([disabled])',
+          'input:not([disabled]):not([type="hidden"])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          '[tabindex]:not([tabindex="-1"])'
+        ];
+        return Array.from(container.querySelectorAll(selectors.join(',')))
+          .filter(el => !el.closest('[hidden]') && el.offsetParent !== null);
+      }
+
+      function openDialog() {
+        lastActiveEl = document.activeElement;
+        dialog.showModal();
+        const focusables = getFocusable(dialog);
+        const toFocus = focusables[0] || dialog;
+        toFocus.focus();
+      }
+
+      function closeDialog() {
+        dialog.close();
+      }
+
+      trigger.addEventListener('click', openDialog);
+      closeButtons.forEach(btn => btn.addEventListener('click', closeDialog));
+
+      dialog.addEventListener('close', () => {
+        if (lastActiveEl && typeof lastActiveEl.focus === 'function') {
+          lastActiveEl.focus();
+        }
+      });
+
+      dialog.addEventListener('click', (event) => {
+        // Close when clicking on the backdrop (outside dialog content)
+        const rect = dialog.getBoundingClientRect();
+        const isInContent =
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom;
+        if (!isInContent) {
+          closeDialog();
+        }
+      });
+
+      dialog.addEventListener('keydown', (event) => {
+        // Trap focus within dialog
+        if (event.key === 'Tab') {
+          const focusables = getFocusable(dialog);
+          if (focusables.length === 0) {
+            event.preventDefault();
+            return;
+          }
+          const currentIndex = focusables.indexOf(document.activeElement);
+          if (event.shiftKey) {
+            if (currentIndex <= 0) {
+              event.preventDefault();
+              focusables[focusables.length - 1].focus();
+            }
+          } else {
+            if (currentIndex === focusables.length - 1) {
+              event.preventDefault();
+              focusables[0].focus();
+            }
+          }
+        }
+      });
+
+      // Optional: Open with Enter/Space when focused on trigger (for non-button triggers)
+      trigger.addEventListener('keydown', (event) => {
+        if ((event.key === 'Enter' || event.key === ' ') && !event.defaultPrevented) {
+          event.preventDefault();
+          openDialog();
+        }
+      });
+
+      // Programmatic API example (optional)
+      window.modalAPI = {
+        open: openDialog,
+        close: closeDialog,
+        element: dialog
+      };
+    })();
+  </script>
+</body>
+</html>

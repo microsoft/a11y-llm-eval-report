@@ -1,0 +1,210 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --overlay: rgba(0,0,0,.5);
+      --bg: #fff;
+      --modal-radius: 12px;
+      --shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f7f7f7;
+      color: #111;
+    }
+
+    .trigger {
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #333;
+      background: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.5);
+      padding: 1rem;
+      z-index: 1000;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-content {
+      width: min(600px, 90vw);
+      background: #fff;
+      border-radius: var(--modal-radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      outline: none;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .close {
+      background: transparent;
+      border: none;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .close:hover {
+      background: #eee;
+    }
+
+    .modal-body {
+      font-size: 0.95rem;
+      color: #333;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .modal.open { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Modal Dialog Demo</h1>
+  <p>This is a simple example of a modal dialog component. The dialog is closed by default. Click the button below to open it.</p>
+
+  <button class="trigger" data-target="#exampleModal">Open modal</button>
+
+  <!-- Modal -->
+  <div id="exampleModal" class="modal" tabindex="-1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
+    <div class="modal-content" role="document" tabindex="-1">
+      <div class="modal-header">
+        <h2 id="modalTitle" class="modal-title">Example Modal</h2>
+        <button class="close" aria-label="Close modal" type="button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>This is a modal dialog. It can be closed by clicking the backdrop, pressing Escape, or clicking the close button.</p>
+        <p>You can put any content here: text, images, forms, etc.</p>
+        <label for="name">Name</label>
+        <input id="name" type="text" placeholder="Your name" style="width:100%; padding:.5rem; margin:.25rem 0 1rem; border:1px solid #ccc; border-radius:4px;">
+        <button style="padding:.5rem 1rem; border:1px solid #333; border-radius:6px; background:#333; color:white;">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const triggers = document.querySelectorAll('.trigger');
+      triggers.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const modalSelector = btn.dataset.target;
+          const modal = document.querySelector(modalSelector);
+          if (modal) openModal(modal);
+        });
+      });
+
+      function openModal(modal) {
+        if (modal.classList.contains('open')) return;
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('open');
+        // Move focus to modal content
+        const dlg = modal.querySelector('.modal-content');
+        if (dlg) dlg.focus();
+        // Save focus
+        modal._previousFocus = document.activeElement;
+        // Trap focus inside modal
+        document.addEventListener('keydown', trapTabKey);
+        // Disable background scroll
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal(modal) {
+        if (!modal.classList.contains('open')) return;
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        // Restore focus
+        if (modal._previousFocus && typeof modal._previousFocus.focus === 'function') {
+          modal._previousFocus.focus();
+        }
+        document.removeEventListener('keydown', trapTabKey);
+        document.body.style.overflow = '';
+      }
+
+      // Close when clicking on backdrop
+      const modals = document.querySelectorAll('.modal');
+      modals.forEach(m => {
+        m.addEventListener('click', (e) => {
+          if (e.target === m) closeModal(m);
+        });
+        const closeBtn = m.querySelector('.close');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => closeModal(m));
+        }
+      });
+
+      // Escape key closes any open modal
+      function trapTabKey(e) {
+        const openModal = document.querySelector('.modal.open');
+        if (!openModal) return;
+        if (e.key === 'Escape' || e.keyCode === 27) {
+          closeModal(openModal);
+          e.preventDefault();
+          return;
+        }
+        // Basic focus trap: cycle within modal
+        if (e.key === 'Tab') {
+          const focusable = openModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          const focusables = Array.prototype.slice.call(focusable).filter(el => !el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'));
+          if (focusables.length === 0) {
+            e.preventDefault();
+            return;
+          }
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          const active = document.activeElement;
+          if (e.shiftKey) {
+            // backward
+            if (active === first) {
+              last.focus();
+              e.preventDefault();
+            }
+          } else {
+            // forward
+            if (active === last) {
+              first.focus();
+              e.preventDefault();
+            }
+          }
+        }
+      }
+
+    })();
+  </script>
+
+</body>
+</html>

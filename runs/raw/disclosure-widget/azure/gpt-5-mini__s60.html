@@ -1,0 +1,277 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Expand / Collapse Widget Examples</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root{
+      --accent:#0b74de;
+      --bg:#f8f9fb;
+      --border:#e1e6ee;
+      --radius:8px;
+    }
+    body{
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      margin: 2rem;
+      background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+      color:#0b1a2b;
+      line-height:1.45;
+    }
+
+    h1{
+      margin:0 0 1rem;
+      font-size:1.2rem;
+    }
+
+    .example{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      padding:1rem;
+      margin:0 0 1rem;
+      box-shadow: 0 1px 2px rgba(11,10,15,0.03);
+      max-width:760px;
+    }
+
+    .widget-header{
+      display:flex;
+      align-items:center;
+      gap:.75rem;
+      margin-bottom:.5rem;
+    }
+
+    .expander{
+      appearance:none;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,#fff,#f7fbff);
+      color:var(--accent);
+      padding:.45rem .6rem;
+      border-radius:6px;
+      font-weight:600;
+      line-height:1;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      transition:all .15s ease;
+    }
+
+    .expander:focus{
+      outline:3px solid rgba(11,116,222,0.12);
+      outline-offset:2px;
+    }
+
+    .expander .chev{
+      display:inline-block;
+      transform:rotate(0turn);
+      transition:transform .25s ease;
+    }
+
+    /* rotate chevron when expanded (via aria-expanded attribute) */
+    .expander[aria-expanded="true"] .chev{
+      transform:rotate(.5turn);
+    }
+
+    .summary{
+      font-size:.95rem;
+      color:#0b2233;
+      margin:0;
+    }
+
+    .details{
+      overflow:hidden;
+      transition:max-height .25s ease, opacity .15s ease;
+      max-height:0;
+      opacity:0;
+      margin-top:.5rem;
+      padding-top:0;
+      border-top:0;
+    }
+
+    .details.open{
+      opacity:1;
+      /* max-height is set inline for smooth natural height */
+      margin-top:.75rem;
+      padding-top:.5rem;
+      border-top:1px dashed var(--border);
+    }
+
+    .details > *:first-child{
+      margin-top:0;
+    }
+
+    .details > *:last-child{
+      margin-bottom:0;
+    }
+
+    /* small utility */
+    .muted{
+      color:#4b5b6a;
+      font-size:.9rem;
+    }
+
+    /* provide a visible fallback if JS is disabled: make details visible */
+    .no-js .details{
+      max-height:none;
+      opacity:1;
+      margin-top:.75rem;
+      padding-top:.5rem;
+      border-top:1px dashed var(--border);
+    }
+
+    /* small demo styling */
+    pre.code{
+      padding:.6rem;
+      background:#0f1721;
+      color:#e6eefc;
+      border-radius:6px;
+      overflow:auto;
+      font-size:.85rem;
+    }
+  </style>
+</head>
+<body class="no-js">
+  <h1>Expand / Collapse Widget Examples</h1>
+
+  <div class="example">
+    <div class="widget-header">
+      <button id="toggle-1" class="expander" aria-expanded="false" aria-controls="details-1" type="button">
+        <span class="chev" aria-hidden="true">▾</span>
+        <span>Show more</span>
+      </button>
+      <p class="summary muted">A simple expandable region that reveals extra content.</p>
+    </div>
+
+    <div id="details-1" class="details" role="region" aria-labelledby="toggle-1" aria-hidden="true">
+      <p>This content is hidden by default. It becomes visible when you activate the control above. Use the button's aria-expanded attribute and aria-controls to connect the control to this content region.</p>
+      <p class="muted">Tip: You can control this widget with mouse, touch, or keyboard (Space / Enter).</p>
+    </div>
+  </div>
+
+  <div class="example">
+    <div class="widget-header">
+      <button id="toggle-2" class="expander" aria-expanded="true" aria-controls="details-2" type="button">
+        <span class="chev" aria-hidden="true">▾</span>
+        <span>Hide details</span>
+      </button>
+      <p class="summary muted">An example that starts opened.</p>
+    </div>
+
+    <div id="details-2" class="details open" role="region" aria-labelledby="toggle-2" aria-hidden="false">
+      <p>This panel starts open. Scripts that enhance the widget will set an explicit max-height during transitions so the open/close appears smoothly. When opened fully, the inline max-height is removed so long content can reflow naturally.</p>
+      <pre class="code">/* sample: how a script toggles attributes and max-height */</pre>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Remove no-js class to apply JS-enhanced behavior
+      document.documentElement.classList.remove('no-js');
+
+      // Utility functions to open/close details with smooth height transition
+      function openDetails(details, button){
+        // mark state
+        details.classList.add('open');
+        details.setAttribute('aria-hidden','false');
+        button.setAttribute('aria-expanded','true');
+        // set explicit max-height to animate from 0 to scrollHeight
+        // ensure start from 0 if previously collapsed
+        details.style.maxHeight = details.scrollHeight + 'px';
+        // after transition, clear maxHeight so content can grow/shrink naturally
+        const onEnd = function(e){
+          if (e.target !== details) return;
+          details.style.maxHeight = 'none';
+          details.removeEventListener('transitionend', onEnd);
+        };
+        details.addEventListener('transitionend', onEnd);
+      }
+
+      function closeDetails(details, button){
+        // For collapse we need to set maxHeight to current computed height then to 0
+        // so that the transition animates correctly.
+        // Compute current height: if maxHeight is 'none', set to scrollHeight
+        if (getComputedStyle(details).maxHeight === 'none'){
+          details.style.maxHeight = details.scrollHeight + 'px';
+        }
+        // Force a reflow so the browser acknowledges the set maxHeight
+        // before we change it to 0.
+        details.getBoundingClientRect();
+
+        details.style.maxHeight = '0px';
+        details.classList.remove('open');
+        details.setAttribute('aria-hidden','true');
+        button.setAttribute('aria-expanded','false');
+
+        const onEnd = function(e){
+          if (e.target !== details) return;
+          // keep maxHeight at 0 (or remove style) - leaving 0 is fine
+          details.removeEventListener('transitionend', onEnd);
+        };
+        details.addEventListener('transitionend', onEnd);
+      }
+
+      // Initialize widgets
+      var toggles = document.querySelectorAll('.example button[aria-controls]');
+      toggles.forEach(function(btn){
+        var targetId = btn.getAttribute('aria-controls');
+        var details = document.getElementById(targetId);
+        if (!details) return;
+
+        // ensure ARIA connection exists
+        details.setAttribute('role', details.getAttribute('role') || 'region');
+        details.setAttribute('aria-labelledby', details.getAttribute('aria-labelledby') || btn.id);
+
+        // If details has open class or aria-hidden false, make sure styles reflect that
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        if (expanded){
+          details.classList.add('open');
+          details.setAttribute('aria-hidden','false');
+          // set maxHeight to none so content is visible; we'll set explicit height only during animation
+          details.style.maxHeight = 'none';
+        } else {
+          details.classList.remove('open');
+          details.setAttribute('aria-hidden','true');
+          details.style.maxHeight = '0px';
+        }
+
+        // click toggles state
+        btn.addEventListener('click', function(){
+          var isExpanded = btn.getAttribute('aria-expanded') === 'true';
+          if (isExpanded){
+            closeDetails(details, btn);
+            btn.querySelector('span:nth-child(2)').textContent = 'Show more';
+          } else {
+            openDetails(details, btn);
+            btn.querySelector('span:nth-child(2)').textContent = 'Hide details';
+          }
+        });
+
+        // Allow the Escape key to close the region when focus is inside the details
+        details.addEventListener('keydown', function(e){
+          if (e.key === 'Escape' || e.key === 'Esc'){
+            closeDetails(details, btn);
+            btn.focus();
+            btn.querySelector('span:nth-child(2)').textContent = 'Show more';
+          }
+        });
+      });
+
+      // Optional: close open details when clicking outside (demo behavior)
+      document.addEventListener('click', function(e){
+        toggles.forEach(function(btn){
+          var tid = btn.getAttribute('aria-controls');
+          var det = document.getElementById(tid);
+          if (!det) return;
+          // if click happened inside the current open details or on the button, ignore
+          if (det.contains(e.target) || btn.contains(e.target)) return;
+          if (btn.getAttribute('aria-expanded') === 'true'){
+            closeDetails(det, btn);
+            btn.querySelector('span:nth-child(2)').textContent = 'Show more';
+          }
+        });
+      });
+
+    })();
+  </script>
+</body>
+</html>

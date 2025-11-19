@@ -1,0 +1,293 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --backdrop-color: rgba(0, 0, 0, 0.55);
+      --modal-bg: #fff;
+      --modal-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      --modal-radius: 12px;
+      --accent: #3b82f6;
+      --text-color: #111827;
+      --muted-text: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", Noto Sans, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      color: var(--text-color);
+      background: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .trigger {
+      appearance: none;
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+      transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+    }
+    .trigger:hover { filter: brightness(1.05); }
+    .trigger:active { transform: translateY(1px); box-shadow: 0 1px 6px rgba(59, 130, 246, 0.3); }
+    .trigger:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+
+    .modal-backdrop[hidden] { display: none !important; }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--backdrop-color);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 180ms ease, visibility 0s linear 180ms;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+    .modal-backdrop.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 180ms ease;
+    }
+
+    .modal {
+      background: var(--modal-bg);
+      color: var(--text-color);
+      width: min(600px, 95vw);
+      border-radius: var(--modal-radius);
+      box-shadow: var(--modal-shadow);
+      position: relative;
+      max-height: 85vh;
+      overflow: auto;
+      transform: translateY(10px) scale(0.98);
+      opacity: 0;
+      transition: transform 220ms cubic-bezier(.2,.7,.2,1), opacity 220ms ease;
+    }
+    .modal-backdrop.is-open .modal {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+    .modal-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      align-items: start;
+      padding: 1rem 1rem 0.5rem 1rem;
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.3;
+    }
+    .modal-close {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: #374151;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+    .modal-close:hover { background: #f3f4f6; }
+    .modal-close:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+
+    .modal-body {
+      padding: 0 1rem 1rem 1rem;
+      color: var(--muted-text);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem 1rem 1rem;
+      border-top: 1px solid #e5e7eb;
+      background: #fafafa;
+      border-bottom-left-radius: var(--modal-radius);
+      border-bottom-right-radius: var(--modal-radius);
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid #e5e7eb;
+      background: white;
+      color: var(--text-color);
+      padding: 0.5rem 0.875rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+    }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      box-shadow: 0 1px 6px rgba(59, 130, 246, 0.35);
+    }
+    .btn:hover { background: #f9fafb; }
+    .btn.primary:hover { filter: brightness(1.05); }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+
+    /* Prevent underlying page scroll when modal open */
+    body.modal-open { overflow: hidden; }
+
+    /* Demo content under modal to show backdrop coverage */
+    .demo-content {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #6b7280;
+      font-size: 0.875rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="modal-backdrop">Open Modal</button>
+
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Example Modal Dialog</h2>
+        <button class="modal-close" type="button" aria-label="Close dialog" data-close>&times;</button>
+      </div>
+      <div class="modal-body" id="modal-desc">
+        <p>This is a modal dialog. It is useful for focusing the user's attention on a specific task or message.</p>
+        <p>It supports keyboard navigation, Escape to close, clicking the backdrop to dismiss, and returns focus to the trigger button when closed.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn primary" type="button">Confirm</button>
+        <button class="btn" type="button" data-close>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-content">
+    Closed by default. Click the button above to open the modal.
+  </div>
+
+  <script>
+    (function () {
+      const backdrop = document.getElementById('modal-backdrop');
+      const modal = backdrop.querySelector('.modal');
+      const trigger = document.querySelector('.trigger');
+      const closeSelectors = '[data-close]';
+
+      let previouslyFocused = null;
+
+      const getFocusable = (container) => {
+        const selectors = [
+          'a[href]',
+          'area[href]',
+          'button:not([disabled])',
+          'input:not([disabled]):not([type="hidden"])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          '[tabindex]:not([tabindex="-1"])',
+          '[contenteditable="true"]'
+        ];
+        const nodes = Array.from(container.querySelectorAll(selectors.join(',')));
+        return nodes.filter(el => el.offsetParent !== null || el === document.activeElement);
+      };
+
+      const openModal = () => {
+        if (!backdrop.hasAttribute('hidden')) return;
+        previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+        backdrop.removeAttribute('hidden');
+        // Force reflow then add open class for transition
+        requestAnimationFrame(() => {
+          backdrop.classList.add('is-open');
+          document.body.classList.add('modal-open');
+
+          const focusables = getFocusable(modal);
+          const first = focusables[0] || modal;
+          first.focus({ preventScroll: true });
+        });
+
+        document.addEventListener('keydown', onKeydown);
+      };
+
+      const closeModal = () => {
+        if (backdrop.hasAttribute('hidden')) return;
+
+        backdrop.classList.remove('is-open');
+        document.body.classList.remove('modal-open');
+
+        const onTransitionEnd = (e) => {
+          if (e.target !== backdrop || e.propertyName !== 'opacity') return;
+          backdrop.setAttribute('hidden', '');
+          backdrop.removeEventListener('transitionend', onTransitionEnd);
+          if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+            previouslyFocused.focus({ preventScroll: true });
+          }
+        };
+        backdrop.addEventListener('transitionend', onTransitionEnd);
+        document.removeEventListener('keydown', onKeydown);
+      };
+
+      const onKeydown = (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+        if (e.key === 'Tab') {
+          const focusables = getFocusable(modal);
+          if (focusables.length === 0) return;
+          const idx = focusables.indexOf(document.activeElement);
+          if (e.shiftKey) {
+            if (idx <= 0) {
+              focusables[focusables.length - 1].focus();
+              e.preventDefault();
+            }
+          } else {
+            if (idx === -1 || idx >= focusables.length - 1) {
+              focusables[0].focus();
+              e.preventDefault();
+            }
+          }
+        }
+      };
+
+      trigger.addEventListener('click', openModal);
+
+      backdrop.addEventListener('click', (e) => {
+        // Close if clicking the backdrop (outside the modal content)
+        if (e.target === backdrop) {
+          closeModal();
+        }
+      });
+
+      backdrop.addEventListener('click', (e) => {
+        // Delegate close buttons inside the modal
+        const closeBtn = e.target.closest(closeSelectors);
+        if (closeBtn) {
+          closeModal();
+        }
+      });
+
+      // Assistive: prevent focus from leaving modal using focusin
+      document.addEventListener('focusin', (e) => {
+        if (!backdrop.hasAttribute('hidden') && !modal.contains(e.target)) {
+          const focusables = getFocusable(modal);
+          const first = focusables[0] || modal;
+          first.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand / Collapse Widget Examples</title>
+  <style>
+    :root{
+      --accent:#0366d6;
+      --bg:#f8fbff;
+      --muted:#6b7280;
+      --radius:8px;
+    }
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 24px;
+      line-height:1.5;
+      color:#111827;
+      background: #ffffff;
+    }
+    h1{
+      margin:0 0 18px 0;
+      font-size:20px;
+      color:var(--accent);
+    }
+    .examples {
+      display:grid;
+      gap:16px;
+      max-width:800px;
+    }
+
+    .example{
+      border:1px solid #e6eefc;
+      background: linear-gradient(180deg,var(--bg),#fff);
+      padding:12px;
+      border-radius:var(--radius);
+      box-shadow:0 1px 2px rgba(2,6,23,0.04);
+    }
+
+    .summary{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .toggle {
+      -webkit-appearance:none;
+      appearance:none;
+      border:0;
+      background:transparent;
+      padding:8px 10px;
+      font-size:15px;
+      font-weight:600;
+      color:var(--accent);
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      border-radius:6px;
+    }
+    .toggle:focus{
+      outline:3px solid rgba(3,102,214,0.16);
+      outline-offset:2px;
+    }
+    .chev{
+      width:18px;
+      height:18px;
+      display:inline-block;
+      transition:transform 180ms ease;
+      transform-origin:center;
+    }
+    .example.open .chev{
+      transform:rotate(90deg);
+    }
+
+    .meta{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* Controlled content: must have class "details" */
+    .details{
+      overflow:hidden;
+      transition: max-height 260ms cubic-bezier(.2,.9,.2,1), opacity 180ms ease;
+      will-change: max-height, opacity;
+      max-height:0;
+      opacity:0;
+      padding-top:0;
+      margin-top:8px;
+      border-top:1px dashed #e6eefc;
+    }
+    .example.open .details{
+      opacity:1;
+      padding-top:12px;
+      max-height:1000px; /* large enough to animate in; script will set precise height for smoothness */
+    }
+
+    /* Simple content styles */
+    .details p{
+      margin:0 0 10px 0;
+      color:#1f2937;
+    }
+    .details ul{
+      margin:6px 0 0 20px;
+    }
+
+    /* Make sure non-script users see content by default */
+    .no-js .details{
+      max-height:none;
+      opacity:1;
+      padding-top:12px;
+    }
+
+    .note{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand / Collapse Widget — Examples</h1>
+  <div class="examples" id="examples">
+
+    <div class="example" data-open="false">
+      <div class="summary">
+        <button class="toggle" aria-expanded="false" aria-controls="details-1" id="btn-1">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M8 5v14l11-7z" fill="currentColor"></path>
+          </svg>
+          Simple details
+        </button>
+        <div class="meta">Click to reveal</div>
+      </div>
+      <div class="details" id="details-1" role="region" aria-labelledby="btn-1" aria-hidden="true">
+        <p>This is a basic expand/collapse widget. It uses a button with aria-expanded and a controlled container with class "details".</p>
+        <ul>
+          <li>Accessible: the button toggles aria-expanded.</li>
+          <li>The content container has class "details".</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="example" data-open="true">
+      <div class="summary">
+        <button class="toggle" aria-expanded="true" aria-controls="details-2" id="btn-2">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M8 5v14l11-7z" fill="currentColor"></path>
+          </svg>
+          Expanded by default
+        </button>
+        <div class="meta">Initial state: open</div>
+      </div>
+      <div class="details" id="details-2" role="region" aria-labelledby="btn-2" aria-hidden="false">
+        <p>This example demonstrates an item that starts expanded. The widget sets aria-hidden="false" on the details container to reflect its visibility.</p>
+        <p class="note">Try toggling to see smooth height animation.</p>
+      </div>
+    </div>
+
+    <div class="example" data-open="false">
+      <div class="summary">
+        <button class="toggle" aria-expanded="false" aria-controls="details-3" id="btn-3">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M8 5v14l11-7z" fill="currentColor"></path>
+          </svg>
+          Nested content
+        </button>
+        <div class="meta">Contains interactive elements</div>
+      </div>
+      <div class="details" id="details-3" role="region" aria-labelledby="btn-3" aria-hidden="true">
+        <p>Details can include focusable controls:</p>
+        <label><input type="checkbox" /> Option A</label><br/>
+        <label><input type="checkbox" /> Option B</label>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    (function(){
+      // If JS is enabled, remove the .no-js behavior by adding a class to body/html and initializing widgets.
+      document.documentElement.classList.remove('no-js');
+
+      // Utility to generate unique ids (but IDs are set in markup; this helps if missing)
+      let uid = 1;
+      function ensureId(el, prefix){
+        if(!el.id){
+          el.id = (prefix||'id') + '-' + (uid++);
+        }
+        return el.id;
+      }
+
+      // Initialize each widget inside .example
+      const examples = document.querySelectorAll('.example');
+      examples.forEach((ex, i) => {
+        const btn = ex.querySelector('.toggle');
+        const details = ex.querySelector('.details');
+
+        if(!btn || !details) return;
+
+        // Ensure ids
+        const detailsId = ensureId(details, 'details');
+        const btnId = ensureId(btn, 'btn');
+
+        btn.setAttribute('aria-controls', detailsId);
+        details.setAttribute('role', details.getAttribute('role') || 'region');
+        details.setAttribute('aria-labelledby', btnId);
+
+        // Determine initial open state from data-open attribute or existing aria-expanded
+        const dataOpen = ex.getAttribute('data-open');
+        const initiallyOpen = (dataOpen === 'true') || btn.getAttribute('aria-expanded') === 'true' || details.getAttribute('aria-hidden') === 'false';
+        if(initiallyOpen){
+          ex.classList.add('open');
+          btn.setAttribute('aria-expanded','true');
+          details.setAttribute('aria-hidden','false');
+          // set max-height to actual content height for smooth starting point
+          details.style.maxHeight = details.scrollHeight + 'px';
+        } else {
+          ex.classList.remove('open');
+          btn.setAttribute('aria-expanded','false');
+          details.setAttribute('aria-hidden','true');
+          details.style.maxHeight = '0px';
+        }
+
+        // Click handler toggles state with smooth height animation
+        btn.addEventListener('click', () => {
+          const isOpen = btn.getAttribute('aria-expanded') === 'true';
+          if(isOpen){
+            // close
+            btn.setAttribute('aria-expanded','false');
+            details.setAttribute('aria-hidden','true');
+            ex.classList.remove('open');
+
+            // animate: set explicit height then to 0
+            const startHeight = details.scrollHeight;
+            details.style.maxHeight = startHeight + 'px';
+            // force reflow
+            void details.offsetHeight;
+            details.style.maxHeight = '0px';
+          } else {
+            // open
+            btn.setAttribute('aria-expanded','true');
+            details.setAttribute('aria-hidden','false');
+            ex.classList.add('open');
+
+            // animate: from 0 to scrollHeight
+            details.style.maxHeight = details.scrollHeight + 'px';
+            // After transition, remove max-height restriction so content can grow naturally
+            const onTransitionEnd = function(e){
+              if(e.propertyName === 'max-height'){
+                details.style.maxHeight = 'none';
+                details.removeEventListener('transitionend', onTransitionEnd);
+              }
+            };
+            details.addEventListener('transitionend', onTransitionEnd);
+          }
+        });
+
+        // If the details content changes size while open, keep max-height none so it can expand naturally.
+        // If closed and its content changes, leave max-height 0.
+        const ro = new ResizeObserver(() => {
+          if(ex.classList.contains('open')){
+            // clear any preset max-height before measuring
+            details.style.maxHeight = 'none';
+            // allow next animation to compute if closed again
+          }
+        });
+        ro.observe(details);
+
+      });
+
+      // Add .no-js class initially in case CSS should handle non-JS experience.
+    })();
+
+    // For users without JS, ensure .no-js exists by default (added here for completeness)
+    (function(){
+      if(!document.documentElement.classList.contains('no-js')){
+        // Do nothing; this document relies on JS. If you want to support no-JS, add 'no-js' to html before load.
+      }
+    })();
+  </script>
+</body>
+</html>
