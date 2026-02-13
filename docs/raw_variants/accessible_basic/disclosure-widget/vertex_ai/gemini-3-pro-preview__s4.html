@@ -1,0 +1,214 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Expand/Collapse Widget Example</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+        }
+
+        h1 {
+            margin-bottom: 1.5rem;
+        }
+
+        .example {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        /* 
+           Using the native <details> and <summary> elements is the most 
+           semantic and accessible way to create expand/collapse widgets.
+        */
+        details {
+            width: 100%;
+        }
+
+        summary {
+            padding: 1rem;
+            background-color: #f4f4f4;
+            cursor: pointer;
+            font-weight: bold;
+            list-style: none; /* Hides default triangle in some browsers */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        summary:hover {
+            background-color: #e9e9e9;
+        }
+
+        summary:focus-visible {
+            outline: 3px solid #005a9c;
+            outline-offset: -3px;
+            background-color: #e9e9e9;
+        }
+
+        /* Custom marker using pseudo-element for better control */
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: "+";
+            font-size: 1.5rem;
+            line-height: 1;
+            margin-left: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        details[open] summary::after {
+            transform: rotate(45deg);
+        }
+
+        /* The content container */
+        .details {
+            padding: 1rem;
+            background-color: #fff;
+            border-top: 1px solid #ccc;
+        }
+        
+        /* 
+           Alternative: ARIA-based implementation for when <details> isn't suitable 
+           (e.g., animated transitions required that are hard with <details>).
+        */
+        .aria-widget button {
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            background-color: #f4f4f4;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: inherit;
+        }
+
+        .aria-widget button:hover {
+            background-color: #e9e9e9;
+        }
+
+        .aria-widget button:focus-visible {
+            outline: 3px solid #005a9c;
+            outline-offset: -3px;
+            z-index: 1;
+        }
+
+        .aria-widget button[aria-expanded="true"]::after {
+            content: "-";
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .aria-widget button[aria-expanded="false"]::after {
+            content: "+";
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .aria-widget .details {
+            display: none;
+        }
+
+        .aria-widget .details:not([hidden]) {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Expand/Collapse Widget Examples</h1>
+    <p>Below are two accessible implementations of an expand/collapse pattern.</p>
+
+    <h2>Example 1: Native HTML Elements</h2>
+    <p>This implementation uses the semantic <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements. This is the preferred method as accessibility behavior is built-in by the browser.</p>
+
+    <div class="example">
+        <details>
+            <summary>Shipping Information</summary>
+            <div class="details">
+                <p>Standard shipping takes 3-5 business days. Expedited shipping is available for an additional fee at checkout.</p>
+                <a href="#">View shipping rates</a>
+            </div>
+        </details>
+    </div>
+
+    <div class="example">
+        <details>
+            <summary>Return Policy</summary>
+            <div class="details">
+                <p>Items can be returned within 30 days of receipt. Please ensure original packaging is intact.</p>
+            </div>
+        </details>
+    </div>
+
+    <h2>Example 2: ARIA Pattern (JavaScript Required)</h2>
+    <p>This implementation uses a <code>&lt;button&gt;</code> and a content <code>&lt;div&gt;</code> linked via ARIA attributes. This is useful if you need complex animations or legacy support.</p>
+
+    <div class="example aria-widget">
+        <h3>
+            <!-- The button is the interactive trigger -->
+            <button type="button" aria-expanded="false" aria-controls="content-1" id="btn-1">
+                Technical Specifications
+            </button>
+        </h3>
+        <!-- The content container -->
+        <div id="content-1" class="details" role="region" aria-labelledby="btn-1" hidden>
+            <ul>
+                <li>Weight: 2.5 lbs</li>
+                <li>Dimensions: 10x5x2 inches</li>
+                <li>Material: Aluminum alloy</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="example aria-widget">
+        <h3>
+            <button type="button" aria-expanded="false" aria-controls="content-2" id="btn-2">
+                Warranty Details
+            </button>
+        </h3>
+        <div id="content-2" class="details" role="region" aria-labelledby="btn-2" hidden>
+            <p>This product comes with a 2-year limited warranty covering manufacturing defects.</p>
+        </div>
+    </div>
+
+    <script>
+        // Script for the ARIA-based implementation (Example 2)
+        document.addEventListener('DOMContentLoaded', () => {
+            const triggers = document.querySelectorAll('.aria-widget button[aria-expanded]');
+
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+                    const contentId = trigger.getAttribute('aria-controls');
+                    const content = document.getElementById(contentId);
+
+                    if (!content) return;
+
+                    // Toggle state
+                    trigger.setAttribute('aria-expanded', !isExpanded);
+                    
+                    if (isExpanded) {
+                        content.setAttribute('hidden', '');
+                    } else {
+                        content.removeAttribute('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

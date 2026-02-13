@@ -1,0 +1,335 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expand/Collapse Widget - Component Examples - Accessibility Demo</title>
+    <style>
+        /* Base styles and tokens */
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #1a1a1a;
+            --color-muted-text: #4a5568;
+            --color-link: #0056b3;
+            --color-border: #cbd5e0;
+            --color-focus: #4d90fe;
+            --color-danger: #dc2626;
+            --color-success: #059669;
+            --color-surface: #f7fafc;
+            --spacing-unit: 0.5rem;
+            --border-radius: 0.375rem;
+            --focus-outline-width: 3px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.5;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Skip link */
+        .sr-only:not(:focus):not(:active) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        /* Layout */
+        header, nav, main, footer {
+            padding: 1rem;
+        }
+
+        header {
+            border-bottom: 1px solid var(--color-border);
+            background-color: var(--color-surface);
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        nav a {
+            color: var(--color-link);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.25rem;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        nav a:focus {
+            outline: var(--focus-outline-width) solid var(--color-focus);
+            outline-offset: 2px;
+            border-radius: var(--border-radius);
+        }
+
+        main {
+            max-width: 60rem;
+            margin: 0 auto;
+        }
+
+        footer {
+            border-top: 1px solid var(--color-border);
+            margin-top: 3rem;
+            font-size: 0.875rem;
+            color: var(--color-muted-text);
+            text-align: center;
+        }
+
+        /* Headings */
+        h1, h2, h3 {
+            line-height: 1.2;
+            margin-top: 0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Example container */
+        .example {
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            background-color: var(--color-surface);
+        }
+
+        /* Expand/Collapse Widget */
+        .expand-collapse {
+            margin: 1rem 0;
+        }
+
+        .expand-collapse__trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-align: left;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            border: 2px solid var(--color-border);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .expand-collapse__trigger:hover {
+            background-color: #edf2f7;
+        }
+
+        .expand-collapse__trigger:focus {
+            outline: var(--focus-outline-width) solid var(--color-focus);
+            outline-offset: 2px;
+        }
+
+        .expand-collapse__trigger-icon {
+            display: inline-block;
+            transition: transform 0.3s ease;
+            font-size: 1.25rem;
+            line-height: 1;
+            color: var(--color-muted-text);
+        }
+
+        .expand-collapse__trigger[aria-expanded="true"] .expand-collapse__trigger-icon {
+            transform: rotate(180deg);
+        }
+
+        .expand-collapse__trigger:focus .expand-collapse__trigger-icon {
+            color: var(--color-text);
+        }
+
+        .details {
+            padding: 1.5rem;
+            border: 1px solid var(--color-border);
+            border-top: none;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            background-color: var(--color-bg);
+            overflow-wrap: anywhere;
+        }
+
+        .details[hidden] {
+            display: none;
+        }
+
+        .details p:first-child {
+            margin-top: 0;
+        }
+
+        .details p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Forced Colors / High Contrast Support */
+        @media (forced-colors: active) {
+            .expand-collapse__trigger {
+                border: 2px solid ButtonBorder;
+            }
+            .expand-collapse__trigger:focus {
+                outline: var(--focus-outline-width) solid ButtonText;
+                outline-offset: 2px;
+            }
+            .details {
+                border: 1px solid ButtonBorder;
+                border-top: none;
+            }
+        }
+
+        /* Reflow support */
+        @media (max-width: 320px) {
+            .example {
+                padding: 1rem;
+            }
+            .expand-collapse__trigger {
+                padding: 0.75rem;
+                font-size: 1rem;
+            }
+            .details {
+                padding: 1rem;
+            }
+            nav ul {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+    <header>
+        <h1>Accessibility Demo</h1>
+        <p>Examples of accessible UI components</p>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Components</a></li>
+            <li><a href="#">Guidelines</a></li>
+            <li><a href="#">Resources</a></li>
+        </ul>
+    </nav>
+    <main id="maincontent" tabindex="-1">
+        <h2>Expand/Collapse Widget Examples</h2>
+        <p>These widgets demonstrate accessible expandable sections using native HTML and ARIA attributes.</p>
+
+        <div class="example">
+            <h3>Example 1: Frequently Asked Question</h3>
+            <div class="expand-collapse">
+                <button type="button" class="expand-collapse__trigger" aria-expanded="false" aria-controls="details-1">
+                    What accessibility standards does this demo follow?
+                    <span class="expand-collapse__trigger-icon" aria-hidden="true">▼</span>
+                </button>
+                <div id="details-1" class="details" hidden>
+                    <p>This demo is built to conform to <a href="https://www.w3.org/TR/WCAG22/">WCAG 2.2 Level AA</a> guidelines. It includes proper keyboard navigation, sufficient color contrast, semantic HTML, and support for assistive technologies.</p>
+                    <p>All interactive elements are focusable, have visible labels, and provide clear feedback. The code avoids unnecessary ARIA and prefers native HTML semantics where possible.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <h3>Example 2: Technical Details</h3>
+            <div class="expand-collapse">
+                <button type="button" class="expand-collapse__trigger" aria-expanded="false" aria-controls="details-2">
+                    Implementation notes for developers
+                    <span class="expand-collapse__trigger-icon" aria-hidden="true">▼</span>
+                </button>
+                <div id="details-2" class="details" hidden>
+                    <p>The widget uses a <code>&lt;button&gt;</code> element with <code>aria-expanded</code> to communicate state and <code>aria-controls</code> to associate it with the content region.</p>
+                    <p>The content container uses the <code>hidden</code> attribute for simple show/hide behavior. JavaScript toggles the attribute and updates <code>aria-expanded</code>.</p>
+                    <p>Focus management is handled naturally by the button. The <kbd>Tab</kbd> key moves to the button; <kbd>Enter</kbd> or <kbd>Space</kbd> activates it. The content that follows is in DOM order.</p>
+                    <ul>
+                        <li>Color contrast meets 4.5:1 for text.</li>
+                        <li>Focus indicator has a 3:1 contrast ratio.</li>
+                        <li>The layout reflows to 320px without horizontal scrolling.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="example">
+            <h3>Example 3: Additional Instructions</h3>
+            <div class="expand-collapse">
+                <button type="button" class="expand-collapse__trigger" aria-expanded="false" aria-controls="details-3">
+                    How to use this widget with a screen reader
+                    <span class="expand-collapse__trigger-icon" aria-hidden="true">▼</span>
+                </button>
+                <div id="details-3" class="details" hidden>
+                    <p>When using a screen reader:</p>
+                    <ol>
+                        <li>Navigate to the button using <kbd>Tab</kbd> or virtual cursor commands.</li>
+                        <li>The button will announce its role, name, and current state (e.g., "collapsed").</li>
+                        <li>Press <kbd>Enter</kbd> or <kbd>Space</kbd> to toggle the content.</li>
+                        <li>The updated state (e.g., "expanded") will be announced, and you can navigate into the newly revealed content.</li>
+                    </ol>
+                    <p>The decorative arrow icon is hidden from assistive technology with <code>aria-hidden="true"</code> because the state is communicated via <code>aria-expanded</code>.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>This demo is for educational purposes. Always test with real users and assistive technology.</p>
+        <p>© <span id="current-year">2024</span> Accessibility Examples. Color contrast verified with WCAG 2.2 AA thresholds.</p>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Expand/Collapse functionality
+        document.querySelectorAll('.expand-collapse__trigger').forEach(button => {
+            button.addEventListener('click', function() {
+                const expanded = this.getAttribute('aria-expanded') === 'true';
+                const targetId = this.getAttribute('aria-controls');
+                const target = document.getElementById(targetId);
+
+                this.setAttribute('aria-expanded', !expanded);
+                if (target) {
+                    target.hidden = expanded;
+                }
+            });
+
+            // Optional: Support Enter/Space keydown (button handles this natively, but ensure)
+            button.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault(); // Prevent space from scrolling
+                    this.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

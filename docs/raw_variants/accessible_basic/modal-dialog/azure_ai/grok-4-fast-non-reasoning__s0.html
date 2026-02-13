@@ -1,0 +1,234 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Dialog Example</title>
+    <style>
+        /* Reset and base styles for accessibility */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #fff;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:focus {
+            outline: 2px solid #007bff;
+            outline-offset: 2px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal[open] {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .modal-title {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close:focus {
+            outline: 2px solid #007bff;
+            border-radius: 50%;
+        }
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        @media (max-width: 600px) {
+            .modal-content {
+                width: 95%;
+                margin: 10px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Modal Dialog Example</h1>
+        <p>This page demonstrates an accessible modal dialog. Click the button below to open it.</p>
+        <button type="button" class="trigger" aria-haspopup="dialog" aria-controls="modal1">Open Modal</button>
+    </main>
+
+    <dialog id="modal1" class="modal" aria-labelledby="modal-title" aria-describedby="modal-description" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title">Modal Title</h2>
+                <button type="button" class="close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-description">This is the content of the modal dialog. It is fully accessible and can be navigated using only a keyboard.</p>
+                <p>Use the Tab key to navigate through focusable elements, and Escape to close the modal.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button">Secondary Action</button>
+                <button type="button">Primary Action</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        // Modal functionality
+        const modal = document.getElementById('modal1');
+        const trigger = document.querySelector('.trigger');
+        const closeBtn = modal.querySelector('.close');
+        const secondaryBtn = modal.querySelector('.modal-footer button:first-of-type');
+        const primaryBtn = modal.querySelector('.modal-footer button:last-of-type');
+
+        // Open modal
+        trigger.addEventListener('click', () => {
+            modal.showModal();
+            modal.querySelector('button').focus(); // Focus on first focusable element
+        });
+
+        // Close modal with close button
+        closeBtn.addEventListener('click', () => {
+            modal.close();
+            trigger.focus(); // Return focus to trigger
+        });
+
+        // Close modal with secondary button
+        secondaryBtn.addEventListener('click', () => {
+            modal.close();
+            trigger.focus();
+        });
+
+        // Close modal with primary button (example action)
+        primaryBtn.addEventListener('click', () => {
+            alert('Primary action performed!');
+            modal.close();
+            trigger.focus();
+        });
+
+        // Close modal with Escape key
+        modal.addEventListener('close', () => {
+            if (modal.returnValue === '') {
+                trigger.focus(); // Return focus only if closed by user action
+            }
+        });
+
+        // Trap focus within modal when open
+        modal.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                modal.close();
+                return;
+            }
+
+            const focusableElements = modal.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            const firstFocusable = focusableElements[0];
+            const lastFocusable = focusableElements[focusableElements.length - 1];
+
+            if (e.key === 'Tab') {
+                if (e.shiftKey) {
+                    if (document.activeElement === firstFocusable) {
+                        e.preventDefault();
+                        lastFocusable.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastFocusable) {
+                        e.preventDefault();
+                        firstFocusable.focus();
+                    }
+                }
+            }
+        });
+
+        // Prevent background scrolling when modal is open
+        modal.addEventListener('open', () => {
+            document.body.style.overflow = 'hidden';
+        });
+
+        modal.addEventListener('close', () => {
+            document.body.style.overflow = '';
+        });
+    </script>
+</body>
+</html>

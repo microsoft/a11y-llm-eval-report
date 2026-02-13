@@ -1,0 +1,463 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Contact us - Support - Example</title>
+  <meta name="description" content="Contact form for support inquiries. Full name and email are required. Phone is optional." />
+
+  <style>
+    /*
+      Design tokens (use tokens consistently)
+    */
+    :root{
+      --color-bg: #ffffff;
+      --color-panel: #f7f8fa;
+      --color-text: #0b1220; /* very dark for contrast */
+      --color-muted-text: #3b4752; /* still high contrast */
+      --color-link: #0b66ff;
+      --color-border: #d6d9de;
+      --color-focus: #ffb000; /* high-contrast focus color */
+      --color-danger: #b00020;
+      --color-success: #087f5b;
+      --radius: 8px;
+      --max-width: 680px;
+      --gap: 16px;
+      --field-padding: 12px 14px;
+      --label-font-size: 16px;
+      --helper-font-size: 13px;
+      --error-font-size: 13px;
+    }
+
+    /* Basic reset and layout */
+    *, *::before, *::after { box-sizing: border-box; }
+    html,body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.4;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding: 24px;
+    }
+
+    /* Skip link style (accessible) */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      border: 0;
+      white-space: nowrap;
+    }
+    .sr-only:not(:focus):not(:active) {
+      /* Keep hidden until focused or active */
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      border: 0;
+      white-space: nowrap;
+    }
+    .sr-only:focus, .sr-only:active {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0 0 16px 0;
+      padding: 8px 12px;
+      background: var(--color-panel);
+      color: var(--color-text);
+      border: 2px solid var(--color-border);
+      border-radius: 4px;
+      clip: auto;
+      clip-path: none;
+      white-space: normal;
+      z-index: 1000;
+    }
+
+    header, nav, main, footer { width: 100%; max-width: var(--max-width); margin-left: auto; margin-right: auto; }
+    header { margin-bottom: 18px; }
+    .brand {
+      display:flex;
+      align-items:center;
+      gap: 12px;
+    }
+    .brand h2 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--color-muted-text);
+      font-weight: 600;
+    }
+    nav {
+      margin: 12px 0 18px 0;
+    }
+    nav ul { list-style: none; padding: 0; margin: 0; display:flex; gap: 12px; flex-wrap:wrap; }
+    nav a {
+      color: var(--color-link);
+      text-decoration: none;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    nav a:focus { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+    main { background: var(--color-panel); padding: 20px; border-radius: var(--radius); }
+    h1 { margin-top: 0; font-size: 20px; color: var(--color-text); }
+
+    form { margin-top: 12px; display:flex; flex-direction:column; gap: var(--gap); }
+    .form-field { display:flex; flex-direction:column; gap: 6px; }
+    label {
+      font-size: var(--label-font-size);
+      color: var(--color-text);
+      font-weight: 600;
+      display:inline-flex;
+      gap: 6px;
+      align-items:center;
+    }
+    .required-asterisk { color: var(--color-danger); margin-left: 4px; font-weight:700; }
+    .required-asterisk[aria-hidden="true"] { font-weight:700; }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+      font-size: 16px;
+      padding: var(--field-padding);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: white;
+      color: var(--color-text);
+      width: 100%;
+      min-width: 0; /* important for flex children to shrink */
+    }
+    input:focus {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+      border-color: var(--color-focus);
+    }
+
+    .helper {
+      font-size: var(--helper-font-size);
+      color: var(--color-muted-text);
+      margin: 0;
+    }
+
+    .error {
+      font-size: var(--error-font-size);
+      color: var(--color-danger);
+      margin: 0;
+      display: none;
+    }
+    .error.visible { display: block; }
+
+    .error-summary {
+      border: 2px solid var(--color-danger);
+      background: #fff3f3;
+      color: var(--color-danger);
+      padding: 12px 14px;
+      border-radius: 8px;
+    }
+    .error-summary.hidden { display:none; }
+
+    .actions { display:flex; gap:12px; align-items:center; margin-top:6px; }
+    button[type="submit"] {
+      background: var(--color-link);
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    button[type="submit"]:focus {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+    button[type="submit"]:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Ensure long words wrap and don't force horizontal scroll */
+    .form-field, label, .helper, .error, input { overflow-wrap: anywhere; word-break: break-word; }
+
+    footer { margin-top: 20px; color: var(--color-muted-text); font-size: 13px; }
+
+    /* Responsive adjustments and reflow rules (must work at 320px) */
+    @media (max-width: 420px) {
+      body { padding: 12px; }
+      nav ul { gap: 8px; }
+    }
+
+    /* Forced colors mode support */
+    @media (forced-colors: active) {
+      :root {
+        /* In forced colors, rely on system colors */
+      }
+      input:focus, button:focus, nav a:focus {
+        outline: 3px solid LinkText;
+        outline-offset: 2px;
+        background: Canvas;
+      }
+      .error-summary {
+        border: 2px solid ButtonText;
+        background: Canvas;
+        color: ButtonText;
+      }
+      button[type="submit"] {
+        border: 2px solid ButtonBorder;
+        background: ButtonFace;
+        color: ButtonText;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+    <div class="brand" role="banner" aria-label="Example brand">
+      <svg width="36" height="36" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="flex:0 0 36px; color:var(--color-link);">
+        <rect width="24" height="24" rx="6" fill="currentColor"></rect>
+      </svg>
+      <h2>Example Support</h2>
+    </div>
+    <nav aria-label="Primary">
+      <ul>
+        <li><a href="#" tabindex="0">Home</a></li>
+        <li><a href="#" tabindex="0">Help</a></li>
+        <li><a href="#" tabindex="0">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="maincontent" tabindex="-1">
+    <h1>Contact us</h1>
+
+    <form id="contactForm" novalidate aria-describedby="formInstructions">
+      <p id="formInstructions" class="helper">We’ll use this information to get back to you. Fields marked with <span aria-hidden="true" style="color:var(--color-danger)">*</span> are required.</p>
+
+      <!-- Error summary (hidden until errors present) -->
+      <div id="formErrors" class="error-summary hidden" role="alert" aria-live="assertive"></div>
+
+      <!-- Full Name -->
+      <div class="form-field">
+        <label for="fullName">Full Name <span class="required-asterisk" aria-hidden="true">*</span></label>
+        <input id="fullName" name="fullName" type="text" required aria-required="true" aria-describedby="fullNameHelp" autocomplete="name" />
+        <p id="fullNameHelp" class="helper">Enter your full name as you would like us to address you.</p>
+        <p id="fullNameError" class="error" role="alert" aria-live="assertive"></p>
+      </div>
+
+      <!-- Email Address -->
+      <div class="form-field">
+        <label for="email">Email Address <span class="required-asterisk" aria-hidden="true">*</span></label>
+        <input id="email" name="email" type="email" required aria-required="true" aria-describedby="emailHelp" autocomplete="email" />
+        <p id="emailHelp" class="helper">We expect an address like "name@example.com". We'll send confirmation to this address.</p>
+        <p id="emailError" class="error" role="alert" aria-live="assertive"></p>
+      </div>
+
+      <!-- Phone Number -->
+      <div class="form-field">
+        <label for="phone">Phone Number <span style="font-weight:600;color:var(--color-muted-text);font-size:13px">(optional)</span></label>
+        <input id="phone" name="phone" type="tel" aria-describedby="phoneHelp" autocomplete="tel" />
+        <p id="phoneHelp" class="helper">Preferred formats: +1 555-555-5555 or (555) 555-5555. Include country code if outside the U.S.</p>
+        <p id="phoneError" class="error" role="alert" aria-live="assertive"></p>
+      </div>
+
+      <div class="actions">
+        <button type="submit" id="submitBtn">Submit</button>
+        <div aria-hidden="true" style="color:var(--color-muted-text);font-size:13px;">We’ll reply within 2 business days.</div>
+      </div>
+    </form>
+  </main>
+
+  <footer>
+    <p>Example Support • Accessible contact form</p>
+  </footer>
+
+  <script>
+    (function(){
+      // Elements
+      const form = document.getElementById('contactForm');
+      const fullName = document.getElementById('fullName');
+      const email = document.getElementById('email');
+      const phone = document.getElementById('phone');
+      const formErrors = document.getElementById('formErrors');
+
+      const fields = [
+        {
+          el: fullName,
+          helpId: 'fullNameHelp',
+          errorEl: document.getElementById('fullNameError'),
+          validate: value => {
+            if (!value.trim()) return 'Please enter your full name.';
+            if (value.trim().length < 2) return 'Please enter your full name (at least 2 characters).';
+            return '';
+          }
+        },
+        {
+          el: email,
+          helpId: 'emailHelp',
+          errorEl: document.getElementById('emailError'),
+          validate: value => {
+            if (!value.trim()) return 'Please enter your email address.';
+            // Simple email regex (sufficient for most cases)
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!re.test(value.trim())) return 'Please enter a valid email address in the format name@example.com.';
+            return '';
+          }
+        },
+        {
+          el: phone,
+          helpId: 'phoneHelp',
+          errorEl: document.getElementById('phoneError'),
+          validate: value => {
+            const v = value.trim();
+            if (!v) return ''; // optional
+            // Allow +, digits, spaces, parentheses, hyphens, dots; length check
+            const re = /^\+?[0-9\s().-]{7,30}$/;
+            if (!re.test(v)) return 'Please use a phone number like +1 555-555-5555 or (555) 555-5555.';
+            return '';
+          }
+        }
+      ];
+
+      // Utility to set error on field
+      function showFieldError(field, message) {
+        const { el, errorEl, helpId } = field;
+        if (message) {
+          errorEl.textContent = message;
+          errorEl.classList.add('visible');
+          el.setAttribute('aria-invalid', 'true');
+          // ensure aria-describedby includes both help and error
+          el.setAttribute('aria-describedby', helpId + ' ' + errorEl.id);
+        } else {
+          errorEl.textContent = '';
+          errorEl.classList.remove('visible');
+          el.removeAttribute('aria-invalid');
+          el.setAttribute('aria-describedby', helpId);
+        }
+      }
+
+      // Clear form-level errors
+      function clearFormErrors() {
+        formErrors.classList.add('hidden');
+        formErrors.innerHTML = '';
+      }
+
+      // On input, revalidate that field
+      fields.forEach(f => {
+        f.el.setAttribute('aria-describedby', f.helpId); // initial
+        f.el.addEventListener('input', function() {
+          const msg = f.validate(f.el.value);
+          showFieldError(f, msg);
+          // clear form-level errors if any when typing
+          clearFormErrors();
+        });
+      });
+
+      // On submit, validate all, focus first invalid
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        clearFormErrors();
+
+        const errors = [];
+        fields.forEach(f => {
+          const msg = f.validate(f.el.value);
+          showFieldError(f, msg);
+          if (msg) {
+            errors.push({ field: f, message: msg });
+          }
+        });
+
+        if (errors.length > 0) {
+          // Build an accessible error summary and focus the first invalid control
+          formErrors.classList.remove('hidden');
+          formErrors.innerHTML = '';
+          const heading = document.createElement('strong');
+          heading.textContent = 'Please fix the following:';
+          formErrors.appendChild(heading);
+
+          const list = document.createElement('ul');
+          list.style.margin = '8px 0 0 0';
+          list.style.paddingLeft = '18px';
+
+          errors.forEach(err => {
+            const li = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = '#' + err.field.el.id;
+            // Visible text should be meaningful; include label text
+            const label = document.querySelector('label[for="' + err.field.el.id + '"]');
+            const labelText = label ? label.textContent.replace('*','').trim() : err.field.el.name;
+            link.textContent = labelText + ': ' + err.message;
+            link.addEventListener('click', function(ev){
+              ev.preventDefault();
+              err.field.el.focus();
+            });
+            link.style.color = 'inherit';
+            link.style.textDecoration = 'underline';
+            li.appendChild(link);
+            list.appendChild(li);
+          });
+          formErrors.appendChild(list);
+
+          // Focus the first invalid field
+          const firstInvalid = errors[0].field.el;
+          firstInvalid.focus();
+          // Also ensure page scrolls to formErrors for sighted keyboard and keyboard-only users
+          formErrors.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        // If valid, proceed (for demo we'll show a success message)
+        // In a real app you'd submit the form data via fetch/XHR or let the form submit naturally.
+        // For accessibility, announce success and reset form.
+        const successMsg = document.createElement('div');
+        successMsg.setAttribute('role', 'status');
+        successMsg.setAttribute('aria-live', 'polite');
+        successMsg.style.marginTop = '12px';
+        successMsg.style.padding = '12px';
+        successMsg.style.background = '#f1fff7';
+        successMsg.style.border = '1px solid var(--color-success)';
+        successMsg.style.color = 'var(--color-success)';
+        successMsg.style.borderRadius = '8px';
+        successMsg.textContent = 'Thanks — your message was received. We’ll reply to the email address you provided.';
+        form.parentNode.insertBefore(successMsg, form.nextSibling);
+
+        // Reset form and clear aria-invalid attributes
+        fields.forEach(f => {
+          showFieldError(f, '');
+        });
+        form.reset();
+
+        // Move focus to the success message so screen reader users are informed
+        successMsg.tabIndex = -1;
+        successMsg.focus();
+      });
+
+      // Ensure no static content is tabbable: nothing extra added
+
+      // Final verification checks in console (non-blocking)
+      (function finalChecks(){
+        // landmarks: header, nav, main, footer exist — verified by structure
+        // main has one h1 — ensured
+        // skip link present and targets #maincontent
+        // buttons and inputs are keyboard operable by default
+        // aria-describedby used for helper text; aria-invalid used on errors
+        // colors and focus use tokens; forced-colors media query present
+        // reflow: layout uses fluid sizing and min-width:0 on inputs
+        // images/svg use currentColor fill
+        console.log('Accessibility quick-check: basic structural items added. Manual testing recommended.');
+      })();
+    })();
+  </script>
+</body>
+</html>

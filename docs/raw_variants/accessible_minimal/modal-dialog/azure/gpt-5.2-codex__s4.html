@@ -1,0 +1,99 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessible Modal Example</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: Arial, sans-serif; margin: 2rem; }
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center; justify-content: center;
+  }
+  .overlay[aria-hidden="false"] { display: flex; }
+  .modal {
+    background: #fff;
+    padding: 1.5rem;
+    max-width: 480px;
+    width: 90%;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  .modal header { display: flex; justify-content: space-between; align-items: center; }
+  .modal h2 { margin: 0; font-size: 1.25rem; }
+  .button-row { margin-top: 1rem; display: flex; gap: 0.5rem; }
+  button { padding: 0.5rem 1rem; }
+  .close-btn { background: #eee; border: 1px solid #ccc; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Modal Dialog Example</h1>
+  <p>This example demonstrates a modal dialog that is closed by default.</p>
+  <button class="trigger" aria-haspopup="dialog" aria-controls="example-modal">Open modal</button>
+</main>
+
+<div class="overlay" id="modal-overlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" tabindex="-1" id="example-modal">
+    <header>
+      <h2 id="modal-title">Modal Title</h2>
+      <button class="close-btn" type="button" aria-label="Close modal" id="close-x">✕</button>
+    </header>
+    <p id="modal-desc">This is an accessible modal dialog. Press Escape to close it.</p>
+    <div class="button-row">
+      <button type="button" id="confirm-btn">Confirm</button>
+      <button type="button" class="close-btn" id="close-btn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const openBtn = document.querySelector('.trigger');
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('example-modal');
+  const closeButtons = [document.getElementById('close-x'), document.getElementById('close-btn')];
+  const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  let lastFocused = null;
+
+  function openModal() {
+    lastFocused = document.activeElement;
+    overlay.setAttribute('aria-hidden', 'false');
+    const focusables = modal.querySelectorAll(focusableSelectors);
+    focusables[0].focus();
+    document.addEventListener('keydown', handleKeydown);
+  }
+
+  function closeModal() {
+    overlay.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', handleKeydown);
+    if (lastFocused) lastFocused.focus();
+  }
+
+  function handleKeydown(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+    if (e.key === 'Tab') {
+      const focusables = modal.querySelectorAll(focusableSelectors);
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  openBtn.addEventListener('click', openModal);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
+  closeButtons.forEach(btn => btn.addEventListener('click', closeModal));
+</script>
+</body>
+</html>

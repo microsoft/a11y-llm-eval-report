@@ -1,0 +1,280 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Modal Dialog Component - UI Patterns</title>
+    <style>
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #222222;
+            --color-primary: #005a9c;
+            --color-primary-hover: #004475;
+            --color-text-on-primary: #ffffff;
+            --color-border: #767676;
+            --color-focus: #005a9c;
+            --color-backdrop: rgba(0, 0, 0, 0.6);
+            --space-md: 1.5rem;
+            --space-sm: 0.75rem;
+        }
+
+        /* Base Reset & Typography */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Accessibility Utilities */
+        .sr-only:not(:focus):not(:active) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        /* Focus Management */
+        :focus-visible {
+            outline: 3px solid var(--color-focus);
+            outline-offset: 2px;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 60rem;
+            margin: 0 auto;
+            padding: var(--space-md);
+        }
+
+        header {
+            border-bottom: 1px solid var(--color-border);
+            padding: var(--space-sm) 0;
+        }
+
+        /* Button Styles */
+        button {
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .trigger {
+            background-color: var(--color-primary);
+            color: var(--color-text-on-primary);
+        }
+
+        .trigger:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 2px solid var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+        }
+
+        .btn-close-icon {
+            padding: 0.5rem;
+            line-height: 1;
+            border: 1px solid transparent; /* Ensure border for High Contrast mode */
+            background: transparent;
+            color: var(--color-text);
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+        
+        .btn-close-icon:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Modal Dialog Styles */
+        dialog {
+            padding: 0;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            max-width: min(90vw, 32rem); /* Responsive width */
+            width: 100%;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        dialog::backdrop {
+            background-color: var(--color-backdrop);
+            backdrop-filter: blur(2px);
+        }
+
+        /* Prevent scrolling on body when modal is open (handled by browser for <dialog> usually, but good practice) */
+        body:has(dialog[open]) {
+            overflow: hidden;
+        }
+
+        .modal-inner {
+            padding: var(--space-md);
+            position: relative;
+        }
+
+        .modal-header {
+            margin-bottom: var(--space-sm);
+            padding-right: 2rem; /* Space for close button */
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .modal-body {
+            margin-bottom: var(--space-md);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
+        /* Forced Colors Mode Adjustments */
+        @media (forced-colors: active) {
+            button {
+                border: 2px solid ButtonText;
+            }
+            dialog {
+                border: 2px solid CanvasText;
+            }
+            .btn-close-icon {
+                border: 1px solid ButtonText;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <a href="#main" class="sr-only">Skip to main content</a>
+            <nav aria-label="Main">
+                <span>Company Name</span>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main" class="container" tabindex="-1">
+        <h1>Account Settings</h1>
+        
+        <p>Manage your account preferences and subscription details below.</p>
+
+        <section aria-labelledby="delete-section">
+            <h2 id="delete-section">Danger Zone</h2>
+            <p>Once you delete your account, there is no going back. Please be certain.</p>
+            
+            <!-- Trigger Button -->
+            <button type="button" class="trigger" id="delete-account-trigger" aria-haspopup="dialog">
+                Delete Account
+            </button>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Company Name. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- 
+      Native <dialog> element provides:
+      1. Implicit role="dialog"
+      2. Focus trapping (when using .showModal())
+      3. 'Escape' key support to close
+      4. Restoration of focus to trigger on close
+      5. aria-modal="true" behavior
+    -->
+    <dialog id="confirmation-modal" aria-labelledby="modal-title" aria-describedby="modal-desc">
+        <div class="modal-inner">
+            <!-- Close X button (redundant to Cancel but good for usability) -->
+            <form method="dialog">
+                <button type="submit" class="btn-close-icon" aria-label="Close modal">
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title">Confirm Account Deletion</h2>
+            </div>
+
+            <div id="modal-desc" class="modal-body">
+                <p>Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.</p>
+            </div>
+
+            <div class="modal-footer">
+                <!-- 
+                  form[method="dialog"] handles closing the modal without JS.
+                  The value of the button clicked becomes the dialog's returnValue.
+                -->
+                <form method="dialog">
+                    <button type="submit" class="btn-secondary" value="cancel">Cancel</button>
+                    <button type="submit" class="trigger" value="confirm" style="background-color: #d32f2f; border-color: #d32f2f;">Yes, Delete Account</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('confirmation-modal');
+            const openButton = document.getElementById('delete-account-trigger');
+
+            // Open the modal
+            openButton.addEventListener('click', () => {
+                // .showModal() creates the backdrop and traps focus (accessibility requirement)
+                modal.showModal();
+            });
+
+            // Optional: Close when clicking the backdrop
+            // Note: Native <dialog> does not close on backdrop click by default.
+            modal.addEventListener('click', (event) => {
+                // If the click target is the dialog element itself (the backdrop), close it.
+                // This works because the backdrop is considered part of the dialog element in the DOM event path,
+                // but the content inside is wrapped in divs.
+                const rect = modal.getBoundingClientRect();
+                const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+                  rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+                
+                if (!isInDialog) {
+                    modal.close('dismissed');
+                }
+            });
+
+            // Handle close event (for logging or logic)
+            modal.addEventListener('close', () => {
+                console.log(`Modal closed. Return value: ${modal.returnValue}`);
+                // Focus automatically returns to the trigger button due to native browser behavior for <dialog>
+            });
+        });
+    </script>
+</body>
+</html>

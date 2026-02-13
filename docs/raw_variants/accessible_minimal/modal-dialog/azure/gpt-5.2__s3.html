@@ -1,0 +1,214 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessible Modal Dialog Example</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: Canvas;
+      --fg: CanvasText;
+      --overlay: rgba(0, 0, 0, 0.55);
+      --surface: Canvas;
+      --border: color-mix(in oklab, CanvasText 20%, Canvas 80%);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius: 14px;
+      --focus: Highlight;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 70ch;
+      padding: 2rem 1rem;
+      margin: 0 auto;
+    }
+
+    button {
+      font: inherit;
+      padding: 0.65rem 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
+      color: var(--fg);
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: color-mix(in oklab, var(--bg) 86%, var(--fg) 14%);
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    dialog {
+      width: min(560px, calc(100vw - 2rem));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0;
+      background: var(--surface);
+      color: var(--fg);
+      box-shadow: var(--shadow);
+    }
+
+    dialog::backdrop {
+      background: var(--overlay);
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      padding: 1rem 1.25rem;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.125rem;
+    }
+
+    .modal-body {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .icon-button {
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.6rem;
+      line-height: 1;
+    }
+
+    .field {
+      display: grid;
+      gap: 0.35rem;
+      margin-top: 0.75rem;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input[type="text"] {
+      font: inherit;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.6rem;
+      border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--bg) 96%, var(--fg) 4%);
+      color: var(--fg);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal dialog component</h1>
+    <p>This example uses the native <code>&lt;dialog&gt;</code> element for accessible focus management.</p>
+
+    <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="example-modal">
+      Open modal
+    </button>
+
+    <dialog id="example-modal" aria-labelledby="modal-title" aria-describedby="modal-desc">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Example modal</h2>
+        <button type="button" class="icon-button" data-close>
+          <span aria-hidden="true">×</span>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p id="modal-desc">
+          This is a modal dialog. Press Escape or use the Close button to dismiss it.
+        </p>
+
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" data-close>Cancel</button>
+        <button type="button" id="save-btn">Save</button>
+      </div>
+    </dialog>
+  </main>
+
+  <script>
+    (function () {
+      const trigger = document.querySelector('button.trigger');
+      const dialog = document.getElementById('example-modal');
+      const closeButtons = dialog.querySelectorAll('[data-close]');
+      const saveBtn = document.getElementById('save-btn');
+      const nameInput = document.getElementById('name');
+
+      let lastActiveElement = null;
+
+      function openModal() {
+        lastActiveElement = document.activeElement;
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+          nameInput.focus();
+        } else {
+          alert('Your browser does not support the dialog element.');
+        }
+      }
+
+      function closeModal() {
+        if (dialog.open) dialog.close();
+      }
+
+      trigger.addEventListener('click', openModal);
+
+      closeButtons.forEach((btn) => btn.addEventListener('click', closeModal));
+
+      saveBtn.addEventListener('click', () => {
+        closeModal();
+      });
+
+      dialog.addEventListener('close', () => {
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

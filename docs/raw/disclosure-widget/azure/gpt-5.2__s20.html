@@ -1,0 +1,318 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e8ecff;
+      --muted: #b7c0ff;
+      --border: rgba(255,255,255,0.14);
+      --focus: #7aa2ff;
+      --accent: #8ef0c8;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, #1a2a6a 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 14px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0 0 22px;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .example {
+      background: color-mix(in srgb, var(--panel) 92%, black 8%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .example h2 {
+      font-size: 1.05rem;
+      margin: 0 0 10px;
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+    }
+
+    .toggle:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--focus) 70%, white 30%);
+      outline-offset: 2px;
+    }
+
+    .toggle .label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .toggle .label strong {
+      font-weight: 700;
+    }
+
+    .toggle .label span {
+      color: var(--muted);
+      font-size: 0.92rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chev {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 auto;
+      transition: transform 180ms ease;
+      opacity: 0.95;
+    }
+
+    .toggle[aria-expanded="true"] .chev {
+      transform: rotate(180deg);
+    }
+
+    .details {
+      margin-top: 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      overflow: clip;
+    }
+
+    .details[hidden] {
+      display: none !important;
+    }
+
+    .details .content {
+      padding: 12px 12px 14px;
+      color: var(--text);
+    }
+
+    .details .content p {
+      margin: 0 0 10px;
+      color: color-mix(in srgb, var(--text) 92%, var(--muted) 8%);
+    }
+
+    .details .content ul {
+      margin: 0;
+      padding-left: 18px;
+      color: color-mix(in srgb, var(--text) 92%, var(--muted) 8%);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--accent);
+      font-size: 0.85rem;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .small-btn {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .small-btn:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .small-btn:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--focus) 70%, white 30%);
+      outline-offset: 2px;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+      color: color-mix(in srgb, var(--accent) 70%, white 30%);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget Demo</h1>
+    <p class="lead">
+      Each widget is wrapped in a <code>div.example</code>. The controlled content container uses the <code>details</code> class and is toggled via a button with <code>aria-expanded</code> and <code>aria-controls</code>.
+    </p>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example">
+        <h2>Example 1: Basic toggle <span class="pill">single panel</span></h2>
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-1" id="toggle-1">
+          <span class="label">
+            <strong>What is included?</strong>
+            <span>Click to reveal the list of items.</span>
+          </span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/>
+          </svg>
+        </button>
+
+        <div class="details" id="panel-1" role="region" aria-labelledby="toggle-1" hidden>
+          <div class="content">
+            <p>This panel is controlled by the button above.</p>
+            <ul>
+              <li>Keyboard accessible toggle</li>
+              <li>ARIA attributes kept in sync</li>
+              <li>Content container uses <code>details</code> class</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <h2>Example 2: Accordion behavior <span class="pill">one open at a time</span></h2>
+
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-2a" id="toggle-2a" data-accordion="group-2">
+          <span class="label">
+            <strong>Shipping</strong>
+            <span>Delivery times and tracking.</span>
+          </span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/>
+          </svg>
+        </button>
+        <div class="details" id="panel-2a" role="region" aria-labelledby="toggle-2a" hidden>
+          <div class="content">
+            <p>Most orders arrive in 2–5 business days. Tracking is emailed once shipped.</p>
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-2b" id="toggle-2b" data-accordion="group-2">
+          <span class="label">
+            <strong>Returns</strong>
+            <span>How to send items back.</span>
+          </span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/>
+          </svg>
+        </button>
+        <div class="details" id="panel-2b" role="region" aria-labelledby="toggle-2b" hidden>
+          <div class="content">
+            <p>Returns are accepted within 30 days. Keep the original packaging if possible.</p>
+          </div>
+        </div>
+
+        <div class="row" aria-label="Accordion controls">
+          <button class="small-btn" type="button" data-open-all="group-2">Open all</button>
+          <button class="small-btn" type="button" data-close-all="group-2">Close all</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function setExpanded(btn, expanded) {
+      btn.setAttribute('aria-expanded', String(expanded));
+      const panelId = btn.getAttribute('aria-controls');
+      const panel = panelId ? document.getElementById(panelId) : null;
+      if (panel) panel.hidden = !expanded;
+    }
+
+    function closeAccordionSiblings(btn) {
+      const group = btn.getAttribute('data-accordion');
+      if (!group) return;
+      const buttons = document.querySelectorAll('button.toggle[data-accordion="' + CSS.escape(group) + '"]');
+      buttons.forEach(b => {
+        if (b !== btn) setExpanded(b, false);
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('button.toggle');
+      if (btn) {
+        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        if (!isExpanded) closeAccordionSiblings(btn);
+        setExpanded(btn, !isExpanded);
+        return;
+      }
+
+      const openAll = e.target.closest('button[data-open-all]');
+      if (openAll) {
+        const group = openAll.getAttribute('data-open-all');
+        const buttons = document.querySelectorAll('button.toggle[data-accordion="' + CSS.escape(group) + '"]');
+        buttons.forEach(b => setExpanded(b, true));
+        return;
+      }
+
+      const closeAll = e.target.closest('button[data-close-all]');
+      if (closeAll) {
+        const group = closeAll.getAttribute('data-close-all');
+        const buttons = document.querySelectorAll('button.toggle[data-accordion="' + CSS.escape(group) + '"]');
+        buttons.forEach(b => setExpanded(b, false));
+        return;
+      }
+    });
+  </script>
+</body>
+</html>

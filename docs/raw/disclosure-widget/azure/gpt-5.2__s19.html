@@ -1,0 +1,284 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e8ecff;
+      --muted: #b8c0ff;
+      --border: rgba(255,255,255,0.14);
+      --accent: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+      --focus: 0 0 0 3px rgba(122,162,255,0.35);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px 18px;
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(122,162,255,0.18), transparent 60%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(120,255,214,0.10), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 10px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    .example header {
+      padding: 14px 16px 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .widget {
+      padding: 14px 16px 16px;
+    }
+
+    /* Button-based widget */
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 650;
+      letter-spacing: 0.2px;
+    }
+
+    .toggle:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+      border-color: rgba(122,162,255,0.55);
+    }
+
+    .chev {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      transition: transform 180ms ease;
+      opacity: 0.9;
+    }
+
+    .toggle[aria-expanded="true"] .chev {
+      transform: rotate(180deg);
+    }
+
+    .details {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+
+    .details[hidden] {
+      display: none;
+    }
+
+    .details .content {
+      padding: 12px 12px 14px;
+      color: rgba(232,236,255,0.92);
+      line-height: 1.45;
+    }
+
+    .details .meta {
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+      color: #d7ddff;
+      background: rgba(255,255,255,0.06);
+      padding: 0.12em 0.35em;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    /* Native <details> widget styling */
+    details.native {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      overflow: hidden;
+    }
+
+    details.native > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 12px;
+      font-weight: 650;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    details.native > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.native > summary:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    details.native .details {
+      margin: 0;
+      border: 0;
+      border-top: 1px solid var(--border);
+      border-radius: 0;
+      background: rgba(0,0,0,0.18);
+    }
+
+    .kbd {
+      font-size: 0.86rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget</h1>
+    <p class="lead">
+      Two examples: a custom button-controlled panel and a native <code>&lt;details&gt;</code> element.
+      Each widget is wrapped in a <code>div.example</code>, and the controlled content container uses the <code>details</code> class.
+    </p>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example">
+        <header>Example 1 — Button + ARIA (JS controlled)</header>
+        <div class="widget">
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-1" id="toggle-1">
+            <span>Shipping &amp; returns</span>
+            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29Z"/>
+            </svg>
+          </button>
+
+          <div class="details" id="panel-1" role="region" aria-labelledby="toggle-1" hidden>
+            <div class="content">
+              <p>
+                Orders ship within 1–2 business days. Returns are accepted within 30 days in original condition.
+              </p>
+              <ul>
+                <li>Free standard shipping over $50</li>
+                <li>Expedited options at checkout</li>
+                <li>Refunds processed within 3–5 business days</li>
+              </ul>
+            </div>
+            <div class="meta">
+              <span>Tip: Press <code>Tab</code> then <code>Enter</code>/<code>Space</code> to toggle.</span>
+              <span class="kbd">ARIA: <code>aria-expanded</code> + <code>aria-controls</code></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <header>Example 2 — Native &lt;details&gt; (no JS required)</header>
+        <div class="widget">
+          <details class="native">
+            <summary>
+              <span>FAQ</span>
+              <span class="kbd">Native toggle</span>
+            </summary>
+
+            <div class="details">
+              <div class="content">
+                <p><strong>Q:</strong> Does this work without JavaScript?</p>
+                <p><strong>A:</strong> Yes. The <code>&lt;details&gt;</code> element provides built-in expand/collapse behavior.</p>
+                <p><strong>Q:</strong> Can I style it?</p>
+                <p><strong>A:</strong> Yes—use CSS on <code>details</code>, <code>summary</code>, and the content container.</p>
+              </div>
+              <div class="meta">
+                <span>Accessible by default in modern browsers.</span>
+                <span class="kbd">Element: <code>&lt;details&gt;</code> / <code>&lt;summary&gt;</code></span>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const toggle = document.getElementById('toggle-1');
+      const panel = document.getElementById('panel-1');
+
+      function setExpanded(expanded) {
+        toggle.setAttribute('aria-expanded', String(expanded));
+        panel.hidden = !expanded;
+      }
+
+      toggle.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        setExpanded(!expanded);
+      });
+
+      // Optional: allow Escape to collapse when focus is inside the panel
+      panel.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          setExpanded(false);
+          toggle.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

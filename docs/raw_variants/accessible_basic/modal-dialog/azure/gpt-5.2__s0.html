@@ -1,0 +1,268 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessible Modal Dialog Example</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #ffffff;
+      --fg: #111827;
+      --muted: #4b5563;
+      --border: #d1d5db;
+      --overlay: rgba(0, 0, 0, 0.6);
+      --focus: #1d4ed8;
+      --btn: #111827;
+      --btnfg: #ffffff;
+      --btn2: #ffffff;
+      --btn2fg: #111827;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220;
+        --fg: #e5e7eb;
+        --muted: #cbd5e1;
+        --border: #334155;
+        --overlay: rgba(0, 0, 0, 0.7);
+        --btn: #e5e7eb;
+        --btnfg: #0b1220;
+        --btn2: #0b1220;
+        --btn2fg: #e5e7eb;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    main {
+      max-width: 60rem;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 0.75rem;
+    }
+
+    p {
+      margin: 0 0 1rem;
+      color: var(--muted);
+      max-width: 65ch;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    button {
+      font: inherit;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.9rem;
+      cursor: pointer;
+      background: var(--btn2);
+      color: var(--btn2fg);
+    }
+
+    button.primary {
+      background: var(--btn);
+      color: var(--btnfg);
+      border-color: transparent;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Modal */
+    dialog {
+      width: min(42rem, calc(100% - 2rem));
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    dialog::backdrop {
+      background: var(--overlay);
+    }
+
+    .modal-header {
+      padding: 1rem 1rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .modal-body {
+      padding: 1rem;
+    }
+
+    .modal-footer {
+      padding: 0.75rem 1rem 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .field {
+      display: grid;
+      gap: 0.35rem;
+      margin-top: 0.75rem;
+      max-width: 28rem;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input[type="text"] {
+      font: inherit;
+      padding: 0.6rem 0.7rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    .hint {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin: 0.25rem 0 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal dialog component (closed by default)</h1>
+    <p>
+      Activate the button to open the modal. While open, focus is kept inside the dialog.
+      Press <kbd>Escape</kbd> or use the Close button to dismiss it.
+    </p>
+
+    <div class="button-row">
+      <button type="button" class="trigger primary" id="openModal">
+        Open modal dialog
+      </button>
+      <button type="button" id="otherAction">
+        Another page action
+      </button>
+    </div>
+
+    <dialog id="exampleModal" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Example modal dialog</h2>
+      </div>
+
+      <div class="modal-body">
+        <p id="modalDesc">
+          This is an accessible modal dialog using the native <code>&lt;dialog&gt;</code> element.
+          It traps focus while open and returns focus to the trigger when closed.
+        </p>
+
+        <div class="field">
+          <label for="nameInput">Your name</label>
+          <input id="nameInput" name="name" type="text" autocomplete="name" />
+          <p class="hint" id="nameHint">Optional. Type a name to demonstrate focusable content.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="cancelBtn">Cancel</button>
+        <button type="button" class="primary" id="confirmBtn">Confirm</button>
+      </div>
+    </dialog>
+  </main>
+
+  <script>
+    (function () {
+      const dialog = document.getElementById('exampleModal');
+      const openBtn = document.getElementById('openModal');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const confirmBtn = document.getElementById('confirmBtn');
+      const nameInput = document.getElementById('nameInput');
+
+      let lastActiveElement = null;
+
+      function openModal() {
+        lastActiveElement = document.activeElement;
+
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        } else {
+          // Basic fallback: if <dialog> isn't supported, make it visible and emulate modal behavior.
+          dialog.setAttribute('open', '');
+          dialog.style.position = 'fixed';
+          dialog.style.inset = '0';
+          dialog.style.margin = 'auto';
+        }
+
+        // Move focus to the first meaningful control.
+        requestAnimationFrame(() => nameInput.focus());
+      }
+
+      function closeModal() {
+        if (dialog.open) dialog.close();
+      }
+
+      openBtn.addEventListener('click', openModal);
+
+      cancelBtn.addEventListener('click', closeModal);
+
+      confirmBtn.addEventListener('click', () => {
+        closeModal();
+      });
+
+      // Close when clicking on the backdrop (outside the dialog content).
+      dialog.addEventListener('click', (event) => {
+        const rect = dialog.getBoundingClientRect();
+        const clickedInDialog =
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom;
+
+        if (!clickedInDialog) closeModal();
+      });
+
+      // Return focus to the trigger after closing.
+      dialog.addEventListener('close', () => {
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        } else {
+          openBtn.focus();
+        }
+      });
+
+      // Ensure Escape closes (native <dialog> does this; fallback keeps it consistent).
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeModal();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

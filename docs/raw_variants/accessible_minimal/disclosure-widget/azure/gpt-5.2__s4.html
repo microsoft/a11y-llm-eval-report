@@ -1,0 +1,198 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #111827;
+      --muted: #4b5563;
+      --border: #d1d5db;
+      --focus: #1d4ed8;
+      --panel: #f9fafb;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 1rem;
+    }
+
+    p {
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      background: #fff;
+    }
+
+    .example h2 {
+      font-size: 1.1rem;
+      margin: 0 0 0.75rem;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: #fff;
+      color: var(--fg);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .toggle:hover {
+      background: #f3f4f6;
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .toggle .chev {
+      width: 1.1rem;
+      height: 1.1rem;
+      flex: 0 0 auto;
+      transition: transform 160ms ease;
+    }
+
+    .toggle[aria-expanded="true"] .chev {
+      transform: rotate(90deg);
+    }
+
+    .details {
+      margin-top: 0.75rem;
+      padding: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--panel);
+    }
+
+    .details[hidden] {
+      display: none;
+    }
+
+    .details > :first-child {
+      margin-top: 0;
+    }
+
+    .details > :last-child {
+      margin-bottom: 0;
+    }
+
+    .hint {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-top: 0.75rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget Demo</h1>
+    <p>
+      Each example uses an accessible button with <code>aria-expanded</code> and <code>aria-controls</code> to show/hide a content container with the <code>details</code> class.
+    </p>
+
+    <div class="example">
+      <h2>Example 1: Basic details panel</h2>
+      <button type="button" class="toggle" aria-expanded="false" aria-controls="details-1" id="toggle-1">
+        <svg class="chev" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>Show more</span>
+      </button>
+
+      <div class="details" id="details-1" role="region" aria-labelledby="toggle-1" hidden>
+        <p>
+          This is the controlled content. It is hidden by default and becomes visible when the button is activated.
+        </p>
+        <ul>
+          <li>Keyboard accessible (Tab to focus, Enter/Space to toggle).</li>
+          <li>Screen-reader friendly via ARIA relationships.</li>
+          <li>Uses the <code>details</code> class as requested.</li>
+        </ul>
+      </div>
+
+      <p class="hint">Tip: Press <kbd>Tab</kbd> to focus the button, then press <kbd>Enter</kbd> or <kbd>Space</kbd>.</p>
+    </div>
+
+    <div class="example">
+      <h2>Example 2: FAQ-style panel</h2>
+      <button type="button" class="toggle" aria-expanded="true" aria-controls="details-2" id="toggle-2">
+        <svg class="chev" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>What happens when I collapse this?</span>
+      </button>
+
+      <div class="details" id="details-2" role="region" aria-labelledby="toggle-2">
+        <p>
+          When collapsed, the panel is removed from the layout using the <code>hidden</code> attribute.
+          The button’s <code>aria-expanded</code> state updates accordingly.
+        </p>
+        <p>
+          This example starts expanded to demonstrate both states.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      function setExpanded(button, expanded) {
+        button.setAttribute("aria-expanded", String(expanded));
+        const labelSpan = button.querySelector("span");
+        const controlsId = button.getAttribute("aria-controls");
+        const panel = controlsId ? document.getElementById(controlsId) : null;
+
+        if (panel) {
+          panel.hidden = !expanded;
+        }
+
+        if (labelSpan && button.id === "toggle-1") {
+          labelSpan.textContent = expanded ? "Show less" : "Show more";
+        }
+      }
+
+      document.querySelectorAll('button.toggle[aria-controls]').forEach((button) => {
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        setExpanded(button, expanded);
+
+        button.addEventListener("click", () => {
+          const isExpanded = button.getAttribute("aria-expanded") === "true";
+          setExpanded(button, !isExpanded);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

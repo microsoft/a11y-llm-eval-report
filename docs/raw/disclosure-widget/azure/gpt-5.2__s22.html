@@ -1,0 +1,357 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e8ecff;
+      --muted: #b7c0ff;
+      --border: rgba(255,255,255,0.14);
+      --focus: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+      --gap: 14px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(122,162,255,0.25), transparent 55%),
+                  radial-gradient(900px 600px at 80% 20%, rgba(167,139,250,0.18), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+
+    header {
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 6px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    .example .header {
+      padding: 14px 14px 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .example .content {
+      padding: 14px;
+      padding-top: 10px;
+    }
+
+    /* Widget base */
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(18, 26, 51, 0.65);
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      text-align: left;
+      font: inherit;
+    }
+
+    .toggle:hover {
+      border-color: rgba(255,255,255,0.22);
+      background: rgba(18, 26, 51, 0.8);
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid rgba(122,162,255,0.55);
+      outline-offset: 2px;
+    }
+
+    .toggle .label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .toggle .title {
+      font-weight: 650;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toggle .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chev {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+    }
+
+    .toggle[aria-expanded="true"] .chev {
+      transform: rotate(180deg);
+      background: rgba(122,162,255,0.14);
+      border-color: rgba(122,162,255,0.35);
+    }
+
+    /* Controlled content container must be .details */
+    .details {
+      margin-top: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(18, 26, 51, 0.45);
+      overflow: hidden;
+    }
+
+    .details[hidden] { display: none; }
+
+    .details .inner {
+      padding: 12px 12px;
+      color: rgba(232,236,255,0.92);
+    }
+
+    .details ul {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: rgba(232,236,255,0.88);
+    }
+
+    .details code {
+      background: rgba(255,255,255,0.08);
+      padding: 0.12em 0.35em;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    /* Native <details> example styling */
+    details.native {
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(18, 26, 51, 0.65);
+      padding: 0;
+      overflow: hidden;
+    }
+
+    details.native > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      user-select: none;
+    }
+
+    details.native > summary::-webkit-details-marker { display: none; }
+
+    details.native > summary:focus-visible {
+      outline: 3px solid rgba(122,162,255,0.55);
+      outline-offset: 2px;
+      border-radius: 12px;
+    }
+
+    details.native .summary-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    details.native .summary-text .title {
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    details.native .summary-text .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    details.native .chev {
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+    }
+
+    details.native[open] .chev {
+      transform: rotate(180deg);
+      background: rgba(122,162,255,0.14);
+      border-color: rgba(122,162,255,0.35);
+    }
+
+    details.native .details {
+      margin: 0;
+      border: 0;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      border-radius: 0;
+      background: rgba(18, 26, 51, 0.45);
+    }
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.92em;
+      padding: 0.12em 0.35em;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.08);
+      color: rgba(232,236,255,0.95);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Expand/Collapse Widget Demo</h1>
+      <p class="lead">
+        Two examples: a custom button-controlled panel and a native <code>&lt;details&gt;</code> element.
+        In both cases, the controlled content container uses the <code>details</code> class.
+        Tip: use <span class="kbd">Tab</span> then <span class="kbd">Enter</span>/<span class="kbd">Space</span>.
+      </p>
+    </header>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <!-- Example 1: Custom button + controlled panel -->
+      <div class="example">
+        <div class="header">Example 1 — Button + ARIA</div>
+        <div class="content">
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-a" id="toggle-a">
+            <span class="label">
+              <span class="title">Shipping & delivery</span>
+              <span class="subtitle">Estimated times, tracking, and fees</span>
+            </span>
+            <span class="chev" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M6.5 9.5L12 15l5.5-5.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+
+          <div class="details" id="panel-a" role="region" aria-labelledby="toggle-a" hidden>
+            <div class="inner">
+              <div>
+                Orders typically ship within <strong>1–2 business days</strong>. You’ll receive a tracking link once the label is created.
+              </div>
+              <ul>
+                <li>Standard: 3–5 business days</li>
+                <li>Express: 1–2 business days</li>
+                <li>International: varies by destination</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example 2: Native details/summary, with controlled content container using .details -->
+      <div class="example">
+        <div class="header">Example 2 — Native &lt;details&gt;</div>
+        <div class="content">
+          <details class="native" id="native-b">
+            <summary>
+              <span class="summary-text">
+                <span class="title">Account security</span>
+                <span class="subtitle">Passwords, 2FA, and recovery</span>
+              </span>
+              <span class="chev" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M6.5 9.5L12 15l5.5-5.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </summary>
+
+            <div class="details">
+              <div class="inner">
+                <div>
+                  Enable <strong>two-factor authentication</strong> for better protection. Keep recovery codes in a safe place.
+                </div>
+                <ul>
+                  <li>Use a password manager to generate unique passwords.</li>
+                  <li>Prefer authenticator apps over SMS when possible.</li>
+                  <li>Review active sessions regularly.</li>
+                </ul>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      function wireToggle(button, panel) {
+        function setExpanded(expanded) {
+          button.setAttribute('aria-expanded', String(expanded));
+          panel.hidden = !expanded;
+        }
+
+        button.addEventListener('click', function () {
+          const expanded = button.getAttribute('aria-expanded') === 'true';
+          setExpanded(!expanded);
+        });
+
+        // Initialize state
+        setExpanded(button.getAttribute('aria-expanded') === 'true');
+      }
+
+      const btnA = document.getElementById('toggle-a');
+      const panelA = document.getElementById('panel-a');
+      if (btnA && panelA) wireToggle(btnA, panelA);
+    })();
+  </script>
+</body>
+</html>

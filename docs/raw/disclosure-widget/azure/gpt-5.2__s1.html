@@ -1,0 +1,358 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e8ecff;
+      --muted: #b9c2ff;
+      --border: rgba(255,255,255,0.14);
+      --accent: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(122,162,255,0.25), transparent 60%),
+                  radial-gradient(900px 500px at 80% 20%, rgba(122,255,214,0.18), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    header {
+      padding: 28px 18px 10px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 1.35rem;
+      letter-spacing: 0.2px;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    .example .titlebar {
+      padding: 14px 14px 0;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .example .titlebar h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 650;
+    }
+
+    .example .titlebar code {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: rgba(232,236,255,0.85);
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .example .content {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    /* Widget 1: Native <details> */
+    details.native {
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+
+    details.native summary {
+      cursor: pointer;
+      padding: 12px 12px;
+      list-style: none;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      outline: none;
+    }
+
+    details.native summary::-webkit-details-marker { display: none; }
+
+    details.native summary .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    details.native summary .chev {
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid rgba(232,236,255,0.85);
+      border-bottom: 2px solid rgba(232,236,255,0.85);
+      transform: rotate(-45deg);
+      transition: transform 160ms ease;
+      margin-left: auto;
+      opacity: 0.9;
+    }
+
+    details.native[open] summary .chev {
+      transform: rotate(45deg);
+    }
+
+    .details {
+      padding: 0 12px 12px;
+      color: rgba(232,236,255,0.9);
+    }
+
+    .details p {
+      margin: 10px 0 0;
+      color: rgba(232,236,255,0.88);
+    }
+
+    .details ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: rgba(232,236,255,0.88);
+    }
+
+    /* Widget 2: Button-controlled region */
+    .toggleRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.18);
+    }
+
+    .toggleRow .meta {
+      display: grid;
+      gap: 2px;
+    }
+
+    .toggleRow .meta .name {
+      font-weight: 650;
+    }
+
+    .toggleRow .meta .hint {
+      color: rgba(232,236,255,0.72);
+      font-size: 0.92rem;
+    }
+
+    button.toggle {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(122,162,255,0.18);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 650;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 140ms ease, border-color 140ms ease, transform 80ms ease;
+    }
+
+    button.toggle:hover {
+      background: rgba(122,162,255,0.26);
+      border-color: rgba(255,255,255,0.26);
+    }
+
+    button.toggle:active {
+      transform: translateY(1px);
+    }
+
+    button.toggle:focus-visible,
+    details.native summary:focus-visible {
+      outline: 2px solid rgba(122,162,255,0.9);
+      outline-offset: 2px;
+    }
+
+    .toggle .icon {
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid rgba(232,236,255,0.9);
+      border-bottom: 2px solid rgba(232,236,255,0.9);
+      transform: rotate(-45deg);
+      transition: transform 160ms ease;
+      opacity: 0.95;
+    }
+
+    button.toggle[aria-expanded="true"] .icon {
+      transform: rotate(45deg);
+    }
+
+    /* Animated collapse for the controlled region */
+    .details.collapsible {
+      padding: 0 12px 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.18);
+      margin-top: 10px;
+
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 200ms ease;
+      overflow: hidden;
+    }
+
+    .details.collapsible > .inner {
+      min-height: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .details.collapsible[data-open="true"] {
+      grid-template-rows: 1fr;
+    }
+
+    .details.collapsible[data-open="true"] > .inner {
+      padding: 12px 0 0;
+    }
+
+    .kbd {
+      font-family: var(--mono);
+      font-size: 0.9em;
+      padding: 1px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.25);
+      color: rgba(232,236,255,0.92);
+    }
+
+    footer {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 8px 18px 26px;
+      color: rgba(232,236,255,0.65);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widget Demo</h1>
+    <p>Two examples: a native <span class="kbd">&lt;details&gt;</span> element and a button-controlled region. Each widget is wrapped in a <span class="kbd">div.example</span>, and the controlled content container uses the <span class="kbd">details</span> class.</p>
+  </header>
+
+  <main>
+    <div class="example">
+      <div class="titlebar">
+        <h2>Example 1: Native details/summary</h2>
+        <code>div.example</code>
+      </div>
+      <div class="content">
+        <details class="native">
+          <summary>
+            <span class="label">What’s included?</span>
+            <span class="chev" aria-hidden="true"></span>
+          </summary>
+          <div class="details">
+            <p>This section expands/collapses using the browser’s built-in <span class="kbd">&lt;details&gt;</span> behavior.</p>
+            <ul>
+              <li>Keyboard accessible by default</li>
+              <li>Works without JavaScript</li>
+              <li>Uses <span class="kbd">.details</span> for the controlled content container</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="titlebar">
+        <h2>Example 2: Button-controlled region</h2>
+        <code>div.example</code>
+      </div>
+      <div class="content">
+        <div class="toggleRow">
+          <div class="meta">
+            <div class="name">Advanced settings</div>
+            <div class="hint">Toggle with the button (updates <span class="kbd">aria-expanded</span>).</div>
+          </div>
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="advanced-details">
+            <span class="icon" aria-hidden="true"></span>
+            <span class="text">Expand</span>
+          </button>
+        </div>
+
+        <div id="advanced-details" class="details collapsible" data-open="false" role="region" aria-label="Advanced settings">
+          <div class="inner">
+            <p>These settings are controlled by the button above.</p>
+            <ul>
+              <li>Animated open/close</li>
+              <li>Accessible state via <span class="kbd">aria-expanded</span></li>
+              <li>Controlled content container uses <span class="kbd">.details</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Tip: Use <span class="kbd">Tab</span> to focus the controls and <span class="kbd">Enter</span>/<span class="kbd">Space</span> to toggle.
+  </footer>
+
+  <script>
+    (function () {
+      const btn = document.querySelector('button.toggle');
+      const region = document.getElementById(btn.getAttribute('aria-controls'));
+      const text = btn.querySelector('.text');
+
+      function setOpen(open) {
+        btn.setAttribute('aria-expanded', String(open));
+        region.dataset.open = String(open);
+        text.textContent = open ? 'Collapse' : 'Expand';
+      }
+
+      btn.addEventListener('click', () => {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        setOpen(!open);
+      });
+
+      setOpen(false);
+    })();
+  </script>
+</body>
+</html>

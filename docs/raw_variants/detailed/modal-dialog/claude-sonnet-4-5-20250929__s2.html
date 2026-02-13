@@ -1,0 +1,382 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modal Dialog Example - Accessible Component</title>
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-text: #1a1a1a;
+      --color-muted-text: #4a4a4a;
+      --color-link: #0056b3;
+      --color-border: #cccccc;
+      --color-focus: #0056b3;
+      --color-danger: #c41e3a;
+      --color-success: #2d7a2d;
+      --color-overlay: rgba(0, 0, 0, 0.6);
+      --color-button-bg: #0056b3;
+      --color-button-text: #ffffff;
+      --color-button-hover: #003d82;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--color-text);
+      background-color: var(--color-bg);
+    }
+
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    header {
+      background-color: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      padding: 1rem 1.5rem;
+    }
+
+    main {
+      padding: 2rem 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    main:focus {
+      outline: none;
+    }
+
+    h1 {
+      margin: 0 0 1.5rem 0;
+      font-size: 2rem;
+      line-height: 1.2;
+    }
+
+    p {
+      margin: 0 0 1rem 0;
+      max-width: 65ch;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 0.75rem 1.5rem;
+      border: 2px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    button:focus {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.2);
+    }
+
+    @media (forced-colors: active) {
+      button:focus {
+        outline: 2px solid ButtonBorder;
+        outline-offset: 2px;
+      }
+    }
+
+    .trigger {
+      background-color: var(--color-button-bg);
+      color: var(--color-button-text);
+      border-color: var(--color-button-bg);
+    }
+
+    .trigger:hover {
+      background-color: var(--color-button-hover);
+      border-color: var(--color-button-hover);
+    }
+
+    .trigger:active {
+      background-color: #002a5c;
+      border-color: #002a5c;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--color-overlay);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay[data-open="true"] {
+      display: flex;
+    }
+
+    .modal-dialog {
+      background-color: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      max-width: 600px;
+      width: 100%;
+      max-height: calc(100vh - 2rem);
+      overflow-y: auto;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (forced-colors: active) {
+      .modal-dialog {
+        border: 2px solid ButtonBorder;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.5rem;
+      line-height: 1.3;
+      color: var(--color-text);
+    }
+
+    .modal-close {
+      background-color: transparent;
+      color: var(--color-text);
+      border: 2px solid var(--color-border);
+      padding: 0.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-left: 1rem;
+    }
+
+    .modal-close:hover {
+      background-color: #f5f5f5;
+      border-color: var(--color-text);
+    }
+
+    .modal-close:active {
+      background-color: #e0e0e0;
+    }
+
+    .modal-close svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      fill: currentColor;
+      stroke: currentColor;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .button-secondary {
+      background-color: transparent;
+      color: var(--color-text);
+      border-color: var(--color-border);
+    }
+
+    .button-secondary:hover {
+      background-color: #f5f5f5;
+      border-color: var(--color-text);
+    }
+
+    .button-secondary:active {
+      background-color: #e0e0e0;
+    }
+
+    .button-primary {
+      background-color: var(--color-button-bg);
+      color: var(--color-button-text);
+      border-color: var(--color-button-bg);
+    }
+
+    .button-primary:hover {
+      background-color: var(--color-button-hover);
+      border-color: var(--color-button-hover);
+    }
+
+    .button-primary:active {
+      background-color: #002a5c;
+      border-color: #002a5c;
+    }
+
+    @media (max-width: 640px) {
+      .modal-footer {
+        flex-direction: column;
+      }
+
+      .modal-footer button {
+        width: 100%;
+      }
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+  </header>
+
+  <main id="maincontent" tabindex="-1">
+    <h1>Modal Dialog Example</h1>
+    <p>This page demonstrates an accessible modal dialog component. The modal is closed by default and can be opened by clicking the button below.</p>
+    <p>The modal implements proper focus management, keyboard navigation, and ARIA attributes to ensure accessibility for all users.</p>
+    <button type="button" class="trigger" id="openModal">Open Modal Dialog</button>
+  </main>
+
+  <div class="modal-overlay" id="modalOverlay" data-open="false" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Example Modal Dialog</h2>
+        <button type="button" class="modal-close" id="closeModal" aria-label="Close dialog">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>This is an example modal dialog. It demonstrates proper accessibility features including:</p>
+        <ul>
+          <li>Focus is trapped within the modal while open</li>
+          <li>Pressing Escape closes the modal</li>
+          <li>Focus returns to the trigger button when closed</li>
+          <li>Background content is inert while modal is open</li>
+          <li>Proper ARIA attributes for screen readers</li>
+        </ul>
+        <p>You can interact with the buttons below or press Escape to close this dialog.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="button-secondary" id="cancelButton">Cancel</button>
+        <button type="button" class="button-primary" id="confirmButton">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const openModalButton = document.getElementById('openModal');
+      const modalOverlay = document.getElementById('modalOverlay');
+      const closeModalButton = document.getElementById('closeModal');
+      const cancelButton = document.getElementById('cancelButton');
+      const confirmButton = document.getElementById('confirmButton');
+      const modalDialog = modalOverlay.querySelector('.modal-dialog');
+      
+      let previouslyFocusedElement = null;
+      const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+      function getFocusableElements() {
+        return Array.from(modalDialog.querySelectorAll(focusableSelectors))
+          .filter(el => !el.hasAttribute('disabled') && el.offsetParent !== null);
+      }
+
+      function openModal() {
+        previouslyFocusedElement = document.activeElement;
+        modalOverlay.setAttribute('data-open', 'true');
+        document.body.classList.add('modal-open');
+        
+        const focusableElements = getFocusableElements();
+        if (focusableElements.length > 0) {
+          focusableElements[0].focus();
+        }
+      }
+
+      function closeModal() {
+        modalOverlay.setAttribute('data-open', 'false');
+        document.body.classList.remove('modal-open');
+        
+        if (previouslyFocusedElement) {
+          previouslyFocusedElement.focus();
+          previouslyFocusedElement = null;
+        }
+      }
+
+      function handleKeyDown(event) {
+        if (modalOverlay.getAttribute('data-open') !== 'true') {
+          return;
+        }
+
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeModal();
+          return;
+        }
+
+        if (event.key === 'Tab') {
+          const focusableElements = getFocusableElements();
+          if (focusableElements.length === 0) {
+            event.preventDefault();
+            return;
+          }
+
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          if (event.shiftKey) {
+            if (document.activeElement === firstElement) {
+              event.preventDefault();
+              lastElement.focus();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              event.preventDefault();
+              firstElement.focus();
+            }
+          }
+        }
+      }
+
+      function handleOverlayClick(event) {
+        if (event.target === modalOverlay) {
+          closeModal();
+        }
+      }
+
+      openModalButton.addEventListener('click', openModal);
+      closeModalButton.addEventListener('click', closeModal);
+      cancelButton.addEventListener('click', closeModal);
+      confirmButton.addEventListener('click', function() {
+        closeModal();
+      });
+      
+      document.addEventListener('keydown', handleKeyDown);
+      modalOverlay.addEventListener('click', handleOverlayClick);
+    })();
+  </script>
+</body>
+</html>

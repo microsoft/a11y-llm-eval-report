@@ -1,0 +1,363 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e9eefc;
+      --muted: #a9b4d6;
+      --border: rgba(255,255,255,0.14);
+      --accent: #7aa2ff;
+      --focus: #ffd166;
+      --radius: 12px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(122,162,255,0.25), transparent 60%),
+                  radial-gradient(900px 700px at 90% 30%, rgba(255,209,102,0.18), transparent 55%),
+                  var(--bg);
+      min-height: 100vh;
+      padding: 32px 18px 60px;
+    }
+
+    header {
+      max-width: 980px;
+      margin: 0 auto 18px;
+      padding: 0 6px;
+    }
+
+    h1 {
+      font-size: clamp(20px, 2.2vw, 28px);
+      margin: 0 0 6px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 70ch;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 18px auto 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      padding: 0 6px;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    .example .header {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .example .header .title {
+      font-weight: 650;
+      letter-spacing: 0.2px;
+      margin: 0;
+      font-size: 14px;
+      color: rgba(233,238,252,0.95);
+    }
+
+    .example .header .hint {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      opacity: 0.9;
+      white-space: nowrap;
+    }
+
+    /* Shared widget styles */
+    .widget {
+      padding: 12px 14px 14px;
+    }
+
+    .toggle {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(18,26,51,0.55);
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .toggle:hover {
+      border-color: rgba(122,162,255,0.55);
+      background: rgba(18,26,51,0.75);
+    }
+
+    .toggle:active { transform: translateY(1px); }
+
+    .toggle:focus-visible {
+      outline: 3px solid rgba(255, 209, 102, 0.55);
+      outline-offset: 2px;
+    }
+
+    .toggle .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      color: rgba(233,238,252,0.9);
+      background: rgba(255,255,255,0.06);
+      flex: 0 0 auto;
+    }
+
+    .toggle .text {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chev {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      transition: transform 160ms ease;
+      opacity: 0.9;
+    }
+
+    /* Required: controlled content container uses .details */
+    .details {
+      margin-top: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+
+    .details .content {
+      padding: 12px 12px 12px;
+      color: rgba(233,238,252,0.92);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .details .content p { margin: 0 0 10px; }
+    .details .content p:last-child { margin-bottom: 0; }
+
+    .details .content code {
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 1px 6px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    /* Collapsed state (JS-controlled) */
+    .details[hidden] { display: none; }
+
+    /* When expanded, rotate chevron */
+    .toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+    /* Native <details> example styling */
+    details.native {
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 10px;
+      background: rgba(18,26,51,0.55);
+      overflow: hidden;
+    }
+
+    details.native > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+      font-weight: 600;
+    }
+
+    details.native > summary::-webkit-details-marker { display: none; }
+
+    details.native > summary:focus-visible {
+      outline: 3px solid rgba(255, 209, 102, 0.55);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
+    details.native .chev { transition: transform 160ms ease; }
+    details.native[open] .chev { transform: rotate(180deg); }
+
+    details.native .details {
+      margin: 0;
+      border: 0;
+      border-top: 1px solid rgba(255,255,255,0.10);
+      border-radius: 0;
+      background: rgba(0,0,0,0.18);
+    }
+
+    .footer-note {
+      max-width: 980px;
+      margin: 18px auto 0;
+      padding: 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .kbd {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+      color: rgba(233,238,252,0.9);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widget Demo</h1>
+    <p class="lead">
+      Two examples: a JavaScript-controlled disclosure button and a native <code>&lt;details&gt;</code> element.
+      Each widget is wrapped in a <span class="kbd">div.example</span>, and the controlled content container uses the <span class="kbd">.details</span> class.
+    </p>
+  </header>
+
+  <main>
+    <!-- Example 1: Button controls a .details region -->
+    <div class="example">
+      <div class="header">
+        <p class="title">JS-controlled widget</p>
+        <p class="hint">button + aria-expanded</p>
+      </div>
+
+      <div class="widget">
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="details-a" id="toggle-a">
+          <span class="label">
+            <span class="badge">FAQ</span>
+            <span class="text">What happens when I expand this?</span>
+          </span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 1 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29Z"/>
+          </svg>
+        </button>
+
+        <div class="details" id="details-a" role="region" aria-labelledby="toggle-a" hidden>
+          <div class="content">
+            <p>
+              This panel is shown/hidden by toggling the <code>hidden</code> attribute and updating
+              <code>aria-expanded</code> on the button.
+            </p>
+            <p>
+              Keyboard: focus the button and press <code>Enter</code> or <code>Space</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 2: Native <details> with a .details content container -->
+    <div class="example">
+      <div class="header">
+        <p class="title">Native widget</p>
+        <p class="hint">&lt;details&gt; + summary</p>
+      </div>
+
+      <div class="widget">
+        <details class="native">
+          <summary>
+            <span class="label">
+              <span class="badge">INFO</span>
+              <span class="text">Show more details</span>
+            </span>
+            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 1 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29Z"/>
+            </svg>
+          </summary>
+
+          <div class="details">
+            <div class="content">
+              <p>
+                This uses the browser’s built-in disclosure behavior. The content container is still a
+                <code>div.details</code> to match the same structure as the JS example.
+              </p>
+              <p>
+                You can style the open state via the <code>[open]</code> attribute on <code>&lt;details&gt;</code>.
+              </p>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </main>
+
+  <p class="footer-note">
+    Tip: For the JS widget, the controlled region has <code>role="region"</code> and is labeled by the toggle via <code>aria-labelledby</code>.
+  </p>
+
+  <script>
+    (function () {
+      function wireToggle(button) {
+        var id = button.getAttribute('aria-controls');
+        if (!id) return;
+        var panel = document.getElementById(id);
+        if (!panel) return;
+
+        function setExpanded(expanded) {
+          button.setAttribute('aria-expanded', String(expanded));
+          if (expanded) panel.removeAttribute('hidden');
+          else panel.setAttribute('hidden', '');
+        }
+
+        button.addEventListener('click', function () {
+          var expanded = button.getAttribute('aria-expanded') === 'true';
+          setExpanded(!expanded);
+        });
+
+        // Initialize from markup
+        setExpanded(button.getAttribute('aria-expanded') === 'true');
+      }
+
+      document.querySelectorAll('.toggle[aria-controls]').forEach(wireToggle);
+    })();
+  </script>
+</body>
+</html>

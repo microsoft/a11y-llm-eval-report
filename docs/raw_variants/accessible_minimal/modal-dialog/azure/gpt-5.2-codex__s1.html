@@ -1,0 +1,144 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accessible Modal Dialog Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 2rem;
+      line-height: 1.5;
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .overlay[aria-hidden="false"] {
+      display: flex;
+    }
+    .modal {
+      background: #fff;
+      color: #111;
+      max-width: 32rem;
+      width: 100%;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      padding: 1.5rem;
+    }
+    .modal header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .modal h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+    button {
+      font: inherit;
+      padding: 0.5rem 0.9rem;
+      border-radius: 0.4rem;
+      border: 1px solid #444;
+      background: #fff;
+      cursor: pointer;
+    }
+    button:focus-visible {
+      outline: 3px solid #0a84ff;
+      outline-offset: 2px;
+    }
+    .primary {
+      background: #0a84ff;
+      color: #fff;
+      border-color: #0a84ff;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal Dialog Component</h1>
+    <p>This example uses a button to open an accessible modal dialog.</p>
+    <button class="trigger" id="openModal" aria-haspopup="dialog" aria-controls="exampleModal">Open modal</button>
+  </main>
+
+  <div class="overlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+      <header>
+        <h2 id="modalTitle">Confirm action</h2>
+        <button id="closeModal" aria-label="Close dialog">Close</button>
+      </header>
+      <p id="modalDesc">Would you like to proceed with this action? This dialog can be closed with Escape or the Close button.</p>
+      <div class="actions">
+        <button class="primary" id="confirmBtn">Confirm</button>
+        <button id="cancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const openButton = document.getElementById('openModal');
+      const overlay = document.getElementById('modalOverlay');
+      const closeButton = document.getElementById('closeModal');
+      const cancelButton = document.getElementById('cancelBtn');
+      const confirmButton = document.getElementById('confirmBtn');
+      let lastFocusedElement = null;
+
+      function openModal() {
+        lastFocusedElement = document.activeElement;
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeButton.focus();
+      }
+
+      function closeModal() {
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        if (lastFocusedElement) lastFocusedElement.focus();
+      }
+
+      openButton.addEventListener('click', openModal);
+      closeButton.addEventListener('click', closeModal);
+      cancelButton.addEventListener('click', closeModal);
+      confirmButton.addEventListener('click', closeModal);
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.getAttribute('aria-hidden') === 'false') {
+          e.preventDefault();
+          closeModal();
+        }
+      });
+
+      // Basic focus trap
+      overlay.addEventListener('keydown', (e) => {
+        if (overlay.getAttribute('aria-hidden') === 'true' || e.key !== 'Tab') return;
+        const focusable = overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

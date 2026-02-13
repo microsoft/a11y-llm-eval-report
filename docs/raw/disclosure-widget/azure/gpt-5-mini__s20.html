@@ -6,306 +6,406 @@
   <style>
     :root{
       --accent:#2563eb;
-      --muted:#6b7280;
       --bg:#f8fafc;
-      --card:#fff;
+      --muted:#6b7280;
+      --panel:#ffffff;
       --radius:8px;
+      --transition:300ms;
     }
+
     body{
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin: 24px;
-      background: linear-gradient(180deg,#f8fafc 0%, #eef2ff 100%);
-      color:#0f172a;
-    }
-    h1{ margin: 0 0 18px 0; font-size: 20px;}
-    .examples { display: grid; gap: 16px; max-width: 900px; margin-top: 12px; }
-    .example{
-      background: var(--card);
-      border: 1px solid rgba(15,23,42,0.06);
-      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
-      padding: 14px;
-      border-radius: var(--radius);
-    }
-    .example h2{
-      font-size: 15px;
-      margin: 0 0 8px 0;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .note { font-size: 13px; color: var(--muted); margin: 6px 0 12px 0; }
-
-    /* Button style used for custom widgets */
-    .expander{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      background: linear-gradient(180deg,#fff,#f7fbff);
-      border:1px solid rgba(15,23,42,0.08);
-      padding:8px 12px;
-      border-radius: 8px;
-      cursor:pointer;
-      font-size:14px;
-      color:#0f172a;
-    }
-    .expander:focus{ outline:3px solid rgba(37,99,235,0.15); outline-offset:2px; }
-
-    /* triangle icon (CSS) */
-    .expander::after{
-      content: "";
-      width: 0;
-      height: 0;
-      border-left:6px solid transparent;
-      border-right:6px solid transparent;
-      border-top:8px solid var(--muted);
-      transition: transform 180ms ease;
-      margin-left:4px;
-    }
-    .expander[aria-expanded="true"]::after{
-      transform: rotate(180deg);
-      border-top-color: var(--accent);
-    }
-
-    /* Controlled content containers */
-    .details{
-      margin-top:10px;
-      padding:12px;
-      border-radius:8px;
-      background: linear-gradient(180deg,#ffffff,#fbfdff);
-      border:1px solid rgba(15,23,42,0.04);
-      color:#0b1220;
+      background: linear-gradient(180deg,#eef2ff 0%, #ffffff 100%);
+      color: #0f172a;
+      margin: 32px;
       line-height:1.45;
     }
 
-    /* Small visual for native <details> summary */
-    details summary{
-      list-style: none;
+    h1{
+      font-size: 1.25rem;
+      margin: 0 0 18px 0;
+    }
+
+    p.lead{
+      margin: 0 0 24px 0;
+      color: var(--muted);
+    }
+
+    .examples {
+      display: grid;
+      gap: 18px;
+      max-width: 820px;
+    }
+
+    .example{
+      background: var(--panel);
+      border: 1px solid rgba(15,23,42,0.06);
+      box-shadow: 0 6px 18px rgba(12,18,45,0.04);
+      padding: 14px;
+      border-radius: var(--radius);
+    }
+
+    .widget {
+      display: flex;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .toggle-button{
+      appearance: none;
+      border: 1px solid rgba(15,23,42,0.06);
+      background: linear-gradient(180deg,#ffffff,#fbfdff);
+      padding: 10px 12px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       cursor: pointer;
-      padding:8px 12px;
-      border-radius:8px;
-      border:1px solid rgba(15,23,42,0.04);
+      font-weight: 600;
+      color: #0f172a;
+      outline: none;
+      line-height: 1;
+      box-shadow: 0 2px 6px rgba(12,18,45,0.04);
+      transition: box-shadow 160ms ease, transform 120ms ease;
+    }
+
+    .toggle-button:focus{
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+    }
+
+    .toggle-button:hover{
+      transform: translateY(-1px);
+    }
+
+    .toggle-button .label{
+      display:block;
+      text-align:left;
+    }
+
+    .toggle-button .title{
+      font-size: 0.95rem;
+    }
+
+    .toggle-button .subtitle{
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .toggle-button .arrow{
+      width: 16px;
+      height: 16px;
+      transition: transform var(--transition) ease;
       display:inline-block;
-      margin-bottom:8px;
-      background: #fff;
-    }
-    details summary::-webkit-details-marker { display:none; }
-    details[open] summary{ box-shadow: 0 1px 0 rgba(15,23,42,0.02); }
-
-    /* Animated variant */
-    .details.animated{
-      overflow: hidden;
-      transition: max-height 280ms cubic-bezier(.2,.8,.2,1), opacity 180ms ease;
-      opacity: 1;
-    }
-    .details.animated.collapsed{
-      opacity: 0;
-      /* max-height will be set inline by JS */
+      transform-origin: center;
+      color: var(--accent);
     }
 
-    /* small helper */
-    pre.sample { background:#0b1220; color:#e6eef8; padding:10px; border-radius:6px; overflow:auto; font-size:13px; }
+    /* rotate arrow when expanded */
+    .toggle-button[aria-expanded="true"] .arrow{
+      transform: rotate(180deg);
+    }
 
-    @media (prefers-reduced-motion: reduce){
-      .expander::after, .details.animated { transition: none !important; }
+    /* details area visuals */
+    .details {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 12px;
+      box-sizing: border-box;
+      overflow: hidden; /* JS will control height for animation */
+      border: 1px dashed rgba(15,23,42,0.04);
+      margin-top: 6px;
+    }
+
+    .details > *:first-child{
+      margin-top: 0;
+    }
+
+    .note {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* small helper styles inside details */
+    .card{
+      background:#fff;
+      padding:10px;
+      border-radius:6px;
+      border:1px solid rgba(2,6,23,0.04);
+      margin-bottom:10px;
+    }
+
+    /* make sure transition doesn't fire when JS disabled */
+    .no-js .details{ transition: none !important; }
+
+    /* Example header area layout */
+    .header {
+      flex: 1 1 auto;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:2px;
+    }
+
+    /* small code-like block */
+    pre.snippet{
+      background:#0b1220;
+      color:#dbeafe;
+      padding:10px;
+      border-radius:6px;
+      font-size:0.8rem;
+      overflow:auto;
     }
   </style>
 </head>
-<body>
-  <h1>Expand / Collapse Widget Examples</h1>
-  <p class="note">Each widget is wrapped with a container having class="example". The controlled content container uses class="details".</p>
+<body class="no-js">
+  <main>
+    <h1>Expand / Collapse Widgets</h1>
+    <p class="lead">Each widget is wrapped with a div.example. The content container uses the class "details". Buttons control showing and hiding the details content with smooth animation and accessible ARIA attributes.</p>
 
-  <div class="examples">
+    <div class="examples">
 
-    <!-- Example 1: Native details element -->
-    <div class="example" id="ex-native">
-      <h2>Native &lt;details&gt; element</h2>
-      <p class="note">This uses the built-in browser widget. The content container below has class="details".</p>
-
-      <details>
-        <summary id="native-summary-1">Show basic details</summary>
-        <div class="details" id="native-details-1" role="region" aria-labelledby="native-summary-1">
-          <p>
-            The native &lt;details&gt; element provides expand/collapse functionality without custom scripting.
-            Use it when you want a simple, accessible disclosure. Styling is limited by the browser, but it's robust.
-          </p>
-          <ul>
-            <li>Automatic keyboard support (Enter / Space).</li>
-            <li>State reflected via the "open" attribute on the details element.</li>
-          </ul>
+      <!-- Example 1: Simple description -->
+      <div class="example">
+        <div class="widget">
+          <button class="toggle-button"
+                  id="toggle-1"
+                  aria-expanded="false"
+                  aria-controls="details-1"
+                  type="button">
+            <span class="arrow" aria-hidden="true">
+              <!-- simple chevron -->
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+            <span class="label">
+              <span class="title">Show more details</span>
+              <span class="subtitle">Click to expand a short description</span>
+            </span>
+          </button>
         </div>
-      </details>
-    </div>
 
-    <!-- Example 2: Simple custom toggle -->
-    <div class="example" id="ex-custom">
-      <h2>Custom button-controlled panel</h2>
-      <p class="note">A simple accessible widget controlled by a button. The content container uses class="details".</p>
-
-      <button class="expander" id="btn-panel-1" aria-expanded="false" aria-controls="panel-1">
-        Show more information
-      </button>
-
-      <div class="details" id="panel-1" role="region" aria-labelledby="btn-panel-1" hidden aria-hidden="true">
-        <p>
-          This panel is toggled by a button. When collapsed, it uses the "hidden" attribute and aria-hidden="true".
-          When open, "hidden" is removed and aria-hidden="false" is set. The button reflects the state via aria-expanded.
-        </p>
-        <p>Because the toggle uses a real button element, keyboard and focus behaviors are built-in.</p>
+        <div id="details-1" class="details" role="region" aria-labelledby="toggle-1" hidden>
+          <p class="note">This panel uses a scripted height transition for a smooth expand/collapse. The toggle button updates aria-expanded and aria-controls for accessibility.</p>
+          <div class="card">
+            <strong>Summary</strong>
+            <p style="margin:6px 0 0 0;">Expandable content can contain any HTML: text, images, forms, or nested widgets. Use role="region" and aria-labelledby to help assistive tech.</p>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Example 3: Smooth animated expand/collapse -->
-    <div class="example" id="ex-animated">
-      <h2>Smooth animated expand/collapse</h2>
-      <p class="note">A slightly more advanced widget that animates the height for a smooth transition. The container has class="details".</p>
+      <!-- Example 2: Nested widget inside details -->
+      <div class="example">
+        <div class="widget">
+          <button class="toggle-button"
+                  id="toggle-2"
+                  aria-expanded="false"
+                  aria-controls="details-2"
+                  type="button">
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+            <span class="label">
+              <span class="title">More actions</span>
+              <span class="subtitle">Example with a nested expandable item</span>
+            </span>
+          </button>
+        </div>
 
-      <button class="expander" id="btn-panel-2" aria-expanded="false" aria-controls="panel-2">
-        Toggle advanced details
-      </button>
+        <div id="details-2" class="details" role="region" aria-labelledby="toggle-2" hidden>
+          <p class="note">Below is a nested widget. The nested widget is itself wrapped in an .example and uses its own .details container.</p>
 
-      <div class="details animated collapsed" id="panel-2" role="region" aria-labelledby="btn-panel-2" aria-hidden="true" style="max-height:0;">
-        <p>
-          Animated panels need script to adjust max-height based on content size for smooth transitions.
-          This implementation measures the content height and sets max-height accordingly when opening.
-        </p>
-        <p>
-          The example also toggles aria-hidden and the button's aria-expanded attribute for accessibility.
-        </p>
-        <p>
-          Tip: For large or dynamic content, you may want to recalculate the target height (e.g. on window resize).
-        </p>
+          <div class="card">
+            <p style="margin:0 0 8px 0;"><strong>Nested controls</strong></p>
+
+            <!-- Nested example inside details -->
+            <div class="example" style="margin-top:8px;">
+              <div class="widget">
+                <button class="toggle-button"
+                        id="toggle-2a"
+                        aria-expanded="false"
+                        aria-controls="details-2a"
+                        type="button">
+                  <span class="arrow" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </span>
+                  <span class="label">
+                    <span class="title">Show nested info</span>
+                    <span class="subtitle">A second-level expand</span>
+                  </span>
+                </button>
+              </div>
+
+              <div id="details-2a" class="details" role="region" aria-labelledby="toggle-2a" hidden>
+                <p style="margin:0;">This nested panel demonstrates multiple independent widgets on the same page. Focus remains on each toggle when used with keyboard navigation.</p>
+              </div>
+            </div>
+            <!-- end nested example -->
+          </div>
+        </div>
       </div>
-    </div>
 
-  </div>
+      <!-- Example 3: Larger content with code snippet -->
+      <div class="example">
+        <div class="widget">
+          <button class="toggle-button"
+                  id="toggle-3"
+                  aria-expanded="false"
+                  aria-controls="details-3"
+                  type="button">
+            <span class="arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+            <span class="label">
+              <span class="title">View example code</span>
+              <span class="subtitle">Larger content with scrolling</span>
+            </span>
+          </button>
+        </div>
+
+        <div id="details-3" class="details" role="region" aria-labelledby="toggle-3" hidden>
+          <p class="note">If content is larger than the available viewport, the details area can scroll when open. The JS transitions keep the animation smooth.</p>
+          <pre class="snippet" aria-hidden="false">
+function toggle(element){
+  if(element.open) close(element);
+  else open(element);
+}
+          </pre>
+        </div>
+      </div>
+
+    </div>
+  </main>
 
   <script>
-    // Generic toggle handler for simple button-controlled panels (non-animated)
+    // Remove no-js class to allow CSS fallback differences
+    document.body.classList.remove('no-js');
+
     (function(){
-      const simpleButton = document.getElementById('btn-panel-1');
-      const simplePanel = document.getElementById('panel-1');
+      // Helper: get all toggle buttons that control a .details element
+      var toggles = Array.from(document.querySelectorAll('.toggle-button[aria-controls]'));
 
-      simpleButton.addEventListener('click', function(){
-        const expanded = simpleButton.getAttribute('aria-expanded') === 'true';
-        simpleButton.setAttribute('aria-expanded', String(!expanded));
-        if (expanded) {
-          simplePanel.setAttribute('hidden', '');
-          simplePanel.setAttribute('aria-hidden', 'true');
+      // If no toggles, nothing to do
+      if(!toggles.length) return;
+
+      // For animation duration and easing, keep in sync with CSS
+      var animationDuration = 300; // match --transition
+
+      toggles.forEach(function(button){
+        var detailsId = button.getAttribute('aria-controls');
+        var details = document.getElementById(detailsId);
+        if(!details || !details.classList.contains('details')) return; // only accept .details
+
+        // Ensure details has appropriate attributes
+        details.setAttribute('role', details.getAttribute('role') || 'region');
+        details.setAttribute('aria-labelledby', details.getAttribute('aria-labelledby') || button.id);
+
+        // Initialize collapsed state if no explicit open
+        if(button.getAttribute('aria-expanded') === 'true'){
+          open(details, button, /*immediate=*/true);
         } else {
-          simplePanel.removeAttribute('hidden');
-          simplePanel.setAttribute('aria-hidden', 'false');
+          // keep hidden attribute for collapsed state
+          details.hidden = true;
         }
-      });
 
-      // Keep attributes in sync if markup is manipulated elsewhere
-      // (e.g. server-rendered open state).
-      // Initialize based on current attributes:
-      (function initSimple(){
-        const isHidden = simplePanel.hasAttribute('hidden');
-        simpleButton.setAttribute('aria-expanded', String(!isHidden));
-        simplePanel.setAttribute('aria-hidden', String(isHidden ? 'true' : 'false'));
-      })();
-    })();
-
-    // Animated expander implementation
-    (function(){
-      const btn = document.getElementById('btn-panel-2');
-      const panel = document.getElementById('panel-2');
-
-      // Utility to open panel with animation
-      function openPanel(){
-        panel.classList.remove('collapsed');
-        // make sure it's visible for measurement
-        panel.style.display = 'block';
-        // remove inline max-height so scrollHeight is accurate
-        panel.style.maxHeight = 'none';
-        // measure
-        const target = panel.scrollHeight + 'px';
-        // set to 0 then to target to trigger transition
-        panel.style.maxHeight = '0px';
-        // force reflow
-        // eslint-disable-next-line no-unused-expressions
-        panel.offsetHeight;
-        panel.style.maxHeight = target;
-        panel.setAttribute('aria-hidden', 'false');
-        btn.setAttribute('aria-expanded', 'true');
-      }
-
-      function closePanel(){
-        // set explicit max-height to current height then force it to 0
-        const current = panel.scrollHeight + 'px';
-        panel.style.maxHeight = current; // current measured height
-        // force reflow
-        // eslint-disable-next-line no-unused-expressions
-        panel.offsetHeight;
-        panel.style.maxHeight = '0px';
-        panel.classList.add('collapsed');
-        panel.setAttribute('aria-hidden', 'true');
-        btn.setAttribute('aria-expanded', 'false');
-      }
-
-      // After transition ends, if opened, remove max-height limit to allow dynamic content.
-      panel.addEventListener('transitionend', function (e) {
-        if (e.propertyName !== 'max-height') return;
-        const expanded = btn.getAttribute('aria-expanded') === 'true';
-        if (expanded) {
-          panel.style.maxHeight = 'none';
-        } else {
-          // keep it at 0 and use collapsed class for opacity
-          panel.style.display = '';
-        }
-      });
-
-      btn.addEventListener('click', function(){
-        const expanded = btn.getAttribute('aria-expanded') === 'true';
-        if (expanded) {
-          closePanel();
-        } else {
-          openPanel();
-        }
-      });
-
-      // Initialize state (collapsed by default)
-      (function init(){
-        const expanded = btn.getAttribute('aria-expanded') === 'true';
-        if (expanded) {
-          panel.classList.remove('collapsed');
-          panel.setAttribute('aria-hidden','false');
-          panel.style.maxHeight = 'none';
-        } else {
-          panel.classList.add('collapsed');
-          panel.setAttribute('aria-hidden','true');
-          panel.style.maxHeight = '0';
-        }
-      })();
-
-      // Recompute open height on window resize if currently open
-      let resizeTimer;
-      window.addEventListener('resize', function(){
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function(){
-          if (btn.getAttribute('aria-expanded') === 'true') {
-            // if open, temporarily remove max-height then set it to scrollHeight
-            panel.style.maxHeight = 'none';
-            const h = panel.scrollHeight + 'px';
-            panel.style.maxHeight = h;
+        // click toggles
+        button.addEventListener('click', function(){
+          var expanded = button.getAttribute('aria-expanded') === 'true';
+          if(expanded){
+            close(details, button);
+          } else {
+            open(details, button);
           }
-        }, 120);
+        });
       });
-    })();
 
-    // Small enhancement: when native <details> toggles, set aria-expanded on summary for parity
-    (function syncNativeDetails(){
-      const detailsEl = document.querySelector('#ex-native details');
-      const summary = document.getElementById('native-summary-1');
-      if (!detailsEl || !summary) return;
-      function update(){
-        const open = detailsEl.hasAttribute('open');
-        summary.setAttribute('aria-expanded', String(open));
+      function open(details, button, immediate){
+        // Cancel ongoing transition
+        details.style.transition = 'none';
+        details.hidden = false; // make visible to measure
+        // Force layout to calculate sizes
+        var startHeight = details.getBoundingClientRect().height;
+        // Temporarily set height to current (0 if previously hidden)
+        details.style.height = startHeight + 'px';
+        // compute target
+        var target = details.scrollHeight + 'px';
+
+        // set aria
+        button.setAttribute('aria-expanded', 'true');
+
+        // next frame animate to target
+        requestAnimationFrame(function(){
+          details.style.transition = 'height ' + animationDuration + 'ms ease';
+          // If immediate (no animation), jump to end state
+          if(immediate){
+            details.style.height = 'auto';
+            details.style.transition = 'none';
+            details.style.overflow = '';
+            // ensure visible
+            details.hidden = false;
+            return;
+          }
+          details.style.height = target;
+          details.style.overflow = 'hidden';
+          details.addEventListener('transitionend', function handler(e){
+            if(e.propertyName !== 'height') return;
+            details.style.transition = 'none';
+            details.style.height = 'auto';
+            details.style.overflow = '';
+          }, {once:true});
+        });
       }
-      detailsEl.addEventListener('toggle', update);
-      // initialize
-      update();
+
+      function close(details, button){
+        // Cancel ongoing transition
+        details.style.transition = 'none';
+        // set height to current computed height (might be 'auto')
+        var height = details.getBoundingClientRect().height;
+        details.style.height = height + 'px';
+        details.style.overflow = 'hidden';
+
+        // force layout
+        details.offsetHeight; // eslint-disable-line no-unused-expressions
+
+        // update aria
+        button.setAttribute('aria-expanded', 'false');
+
+        // animate to 0
+        requestAnimationFrame(function(){
+          details.style.transition = 'height ' + animationDuration + 'ms ease';
+          details.style.height = '0px';
+          details.addEventListener('transitionend', function handler(e){
+            if(e.propertyName !== 'height') return;
+            details.style.transition = 'none';
+            details.style.height = '';
+            details.style.overflow = '';
+            details.hidden = true;
+          }, {once:true});
+        });
+      }
+
+      // Optional: support escape key to close any open details when focused inside
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' || e.key === 'Esc'){
+          // find any open toggles
+          toggles.forEach(function(button){
+            if(button.getAttribute('aria-expanded') === 'true'){
+              var details = document.getElementById(button.getAttribute('aria-controls'));
+              if(details){
+                close(details, button);
+              }
+            }
+          });
+        }
+      });
+
     })();
   </script>
 </body>

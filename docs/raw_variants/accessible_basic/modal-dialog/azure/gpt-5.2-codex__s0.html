@@ -1,0 +1,114 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessible Modal Dialog Example</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    margin: 2rem;
+  }
+  .trigger {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+  }
+  dialog {
+    max-width: 32rem;
+    width: 90%;
+    padding: 0;
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.75rem 2rem rgba(0,0,0,0.25);
+  }
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+  .dialog-content {
+    padding: 1.25rem;
+  }
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .dialog-actions {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  button {
+    font-size: 1rem;
+    padding: 0.5rem 0.9rem;
+  }
+  .close-button {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Modal Dialog Example</h1>
+  <p>This example uses a native dialog element. The modal is closed by default.</p>
+  <button class="trigger" type="button" id="openModal">Open dialog</button>
+
+  <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+    <div class="dialog-header">
+      <h2 id="dialogTitle">Dialog title</h2>
+      <button class="close-button" type="button" aria-label="Close dialog" id="closeX">×</button>
+    </div>
+    <div class="dialog-content">
+      <p id="dialogDesc">This is an accessible modal dialog. Press Escape or use the close buttons to exit.</p>
+      <label for="nameInput">Your name</label>
+      <input id="nameInput" type="text" style="display:block; width:100%; max-width:100%; margin-top:0.5rem;">
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="closeBtn">Close</button>
+      <button type="button">Save</button>
+    </div>
+  </dialog>
+</main>
+
+<script>
+  const dialog = document.getElementById('exampleDialog');
+  const openButton = document.getElementById('openModal');
+  const closeButton = document.getElementById('closeBtn');
+  const closeX = document.getElementById('closeX');
+  let lastFocusedElement = null;
+
+  function openDialog() {
+    lastFocusedElement = document.activeElement;
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+      const focusTarget = dialog.querySelector('input, button, [href], select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (focusTarget) focusTarget.focus();
+    }
+  }
+
+  function closeDialog() {
+    if (dialog.open) dialog.close();
+    if (lastFocusedElement) lastFocusedElement.focus();
+  }
+
+  openButton.addEventListener('click', openDialog);
+  closeButton.addEventListener('click', closeDialog);
+  closeX.addEventListener('click', closeDialog);
+
+  dialog.addEventListener('click', (event) => {
+    const rect = dialog.getBoundingClientRect();
+    const inDialog = (
+      rect.top <= event.clientY && event.clientY <= rect.bottom &&
+      rect.left <= event.clientX && event.clientX <= rect.right
+    );
+    if (!inDialog) closeDialog();
+  });
+</script>
+</body>
+</html>

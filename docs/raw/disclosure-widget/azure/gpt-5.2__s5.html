@@ -1,0 +1,363 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e9eefc;
+      --muted: #b7c2e6;
+      --border: rgba(255,255,255,.14);
+      --accent: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+      --focus: 0 0 0 3px rgba(122,162,255,.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(122,162,255,.18), transparent 60%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(122,255,214,.10), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+
+    header {
+      margin: 10px 0 22px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 6px;
+      letter-spacing: .2px;
+    }
+
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 860px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .example h2 {
+      font-size: 1.05rem;
+      margin: 0 0 10px;
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    /* Shared widget styling */
+    .widget {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: clip;
+      background: rgba(18, 26, 51, .55);
+    }
+
+    .widget .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 12px;
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border: 0;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+    }
+
+    .widget .toggle:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+      position: relative;
+      z-index: 1;
+    }
+
+    .widget .toggle .label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .widget .toggle .title {
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .widget .toggle .subtitle {
+      font-size: .9rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chev {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      transition: transform 180ms ease;
+      opacity: .95;
+    }
+
+    /* Controlled content container must have class "details" */
+    .details {
+      padding: 12px 12px 14px;
+      border-top: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .details p {
+      margin: 0 0 10px;
+      color: var(--muted);
+    }
+
+    .details ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .details code {
+      color: #d7e2ff;
+      background: rgba(122,162,255,.12);
+      border: 1px solid rgba(122,162,255,.22);
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: .92em;
+    }
+
+    /* JS-controlled collapse animation */
+    .details[data-collapsible="true"] {
+      padding-top: 0;
+      padding-bottom: 0;
+      border-top: 0;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 220ms ease, opacity 160ms ease;
+    }
+
+    .widget[data-open="true"] .details[data-collapsible="true"] {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      padding-bottom: 14px;
+      opacity: 1;
+    }
+
+    .widget[data-open="true"] .chev { transform: rotate(180deg); }
+
+    /* Native <details> styling */
+    details.native {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(18, 26, 51, .55);
+      overflow: clip;
+    }
+
+    details.native > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 12px;
+      background: rgba(255,255,255,.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+    }
+
+    details.native > summary::-webkit-details-marker { display: none; }
+
+    details.native > summary:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+      position: relative;
+      z-index: 1;
+    }
+
+    details.native[open] .chev { transform: rotate(180deg); }
+
+    /* Ensure the controlled content container has class "details" even in native example */
+    details.native > .details {
+      border-top: 1px solid var(--border);
+      padding: 12px 12px 14px;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: .92rem;
+      color: var(--muted);
+    }
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .92em;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Expand/Collapse Widget</h1>
+      <p class="lead">Two examples: a JavaScript-controlled widget and a native <span class="kbd">&lt;details&gt;</span> widget. In both cases, the controlled content container uses the <code>details</code> class, and each widget is wrapped in a <code>div.example</code>.</p>
+    </header>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example">
+        <h2>Example 1: Button + controlled panel (ARIA)</h2>
+
+        <div class="widget" data-open="false">
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-1" id="toggle-1">
+            <span class="label">
+              <span class="title">Shipping &amp; returns</span>
+              <span class="subtitle">Click to view policy details</span>
+            </span>
+            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.1l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.28Z"/>
+            </svg>
+          </button>
+
+          <div class="details" id="panel-1" role="region" aria-labelledby="toggle-1" data-collapsible="true">
+            <p>
+              Orders ship within 1–2 business days. Returns are accepted within 30 days of delivery.
+              Keep your receipt and original packaging.
+            </p>
+            <ul>
+              <li>Free standard shipping over $50</li>
+              <li>Return label provided for eligible items</li>
+              <li>Refunds processed in 3–5 business days</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="hint">Keyboard: focus the button and press <span class="kbd">Enter</span> or <span class="kbd">Space</span>.</div>
+      </div>
+
+      <div class="example">
+        <h2>Example 2: Native &lt;details&gt; + summary</h2>
+
+        <details class="native">
+          <summary>
+            <span class="label">
+              <span class="title">FAQ</span>
+              <span class="subtitle">Native disclosure element</span>
+            </span>
+            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.1l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.28Z"/>
+            </svg>
+          </summary>
+
+          <div class="details">
+            <p><strong>Q:</strong> Does this work without JavaScript?</p>
+            <p><strong>A:</strong> Yes—this example uses the browser’s built-in expand/collapse behavior.</p>
+            <p><strong>Tip:</strong> You can style the controlled content via the shared <code>details</code> class.</p>
+          </div>
+        </details>
+
+        <div class="hint">Keyboard: focus the summary and press <span class="kbd">Enter</span>.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const widgets = document.querySelectorAll('.widget');
+
+      function setOpen(widget, open) {
+        widget.dataset.open = open ? 'true' : 'false';
+        const btn = widget.querySelector('.toggle');
+        const panel = widget.querySelector('.details');
+
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+        // Animate max-height based on content height
+        if (panel && panel.dataset.collapsible === 'true') {
+          if (open) {
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+            // After transition, remove explicit maxHeight so it can grow with content
+            window.setTimeout(() => {
+              if (widget.dataset.open === 'true') panel.style.maxHeight = 'none';
+            }, 240);
+          } else {
+            // If it was 'none', set to current height first so it can animate closed
+            if (getComputedStyle(panel).maxHeight === 'none') {
+              panel.style.maxHeight = panel.scrollHeight + 'px';
+              // Force reflow
+              panel.offsetHeight;
+            }
+            panel.style.maxHeight = '0px';
+          }
+        }
+      }
+
+      widgets.forEach(widget => {
+        const btn = widget.querySelector('.toggle');
+        const panel = widget.querySelector('.details');
+
+        if (!btn || !panel) return;
+
+        // Initialize collapsed state
+        panel.dataset.collapsible = 'true';
+        panel.style.maxHeight = '0px';
+        setOpen(widget, false);
+
+        btn.addEventListener('click', () => {
+          const isOpen = widget.dataset.open === 'true';
+          setOpen(widget, !isOpen);
+        });
+
+        // Keep height correct on resize when open
+        window.addEventListener('resize', () => {
+          if (widget.dataset.open === 'true' && panel.dataset.collapsible === 'true') {
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+            window.setTimeout(() => {
+              if (widget.dataset.open === 'true') panel.style.maxHeight = 'none';
+            }, 240);
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Modal Dialog Example - Component Library</title>
+    <style>
+        /* 
+         * Design Tokens & Variables 
+         * Conforming to contrast requirements (AA/AAA)
+         */
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #1a1a1a; /* Very dark gray for high contrast */
+            --color-muted-text: #4a4a4a;
+            --color-primary: #005a9c; /* Accessible blue */
+            --color-primary-hover: #003d6b;
+            --color-focus: #005a9c;
+            --color-focus-ring: #7fbfff;
+            --color-border: #767676; /* 3:1 contrast against white */
+            --color-dialog-bg: #ffffff;
+            --color-backdrop: rgba(0, 0, 0, 0.6);
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+        }
+
+        /* 
+         * Reset & Base Styles 
+         */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 
+         * Accessibility Utilities 
+         */
+        .sr-only:not(:focus):not(:active) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        /* Focus indicators - High visibility */
+        :focus-visible {
+            outline: 3px solid var(--color-focus);
+            outline-offset: 2px;
+        }
+
+        /* 
+         * Layout Landmarks 
+         */
+        header, main, footer {
+            padding: var(--space-lg);
+            max-width: 60rem;
+            margin: 0 auto;
+        }
+
+        /* 
+         * Component: Button 
+         */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border-color: var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 50%;
+            line-height: 1;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--color-text);
+        }
+        
+        .btn-icon:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* 
+         * Component: Modal Dialog 
+         */
+        dialog {
+            padding: 0;
+            border: none;
+            border-radius: var(--radius-md);
+            background-color: var(--color-dialog-bg);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-width: min(500px, 100% - 2rem); /* Reflow: ensures margin on small screens */
+            width: 100%;
+            color: var(--color-text);
+        }
+
+        /* Native backdrop styling */
+        dialog::backdrop {
+            background-color: var(--color-backdrop);
+        }
+
+        /* Lock body scroll when open (handled via JS class usually, but dialog prevents interaction) */
+        body:has(dialog[open]) {
+            overflow: hidden;
+        }
+
+        .modal-inner {
+            padding: var(--space-lg);
+            /* Ensure content scrolls if viewport is short (landscape phone) */
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-md);
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .modal-footer {
+            margin-top: var(--space-lg);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-md);
+            flex-wrap: wrap; /* Reflow: buttons stack on very small screens */
+        }
+
+        /* 
+         * High Contrast / Forced Colors Mode Support 
+         */
+        @media (forced-colors: active) {
+            .btn {
+                border: 2px solid ButtonText;
+            }
+            dialog {
+                border: 2px solid CanvasText;
+            }
+            :focus-visible {
+                outline: 2px solid ButtonText;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#maincontent" class="sr-only">Skip to main content</a>
+        <nav aria-label="Main Navigation">
+            <!-- Navigation items would go here -->
+        </nav>
+    </header>
+
+    <main id="maincontent" tabindex="-1">
+        <h1>Dashboard Settings</h1>
+        
+        <p>Manage your account preferences and settings below.</p>
+
+        <!-- 
+          The Trigger Button 
+          - Uses the requested 'trigger' class.
+          - Clearly labeled.
+        -->
+        <button type="button" class="btn btn-primary trigger" aria-haspopup="dialog" aria-controls="newsletter-modal">
+            Subscribe to Newsletter
+        </button>
+
+        <!-- 
+          The Modal Component 
+          - Uses native <dialog> for robust accessibility (focus trap, aria-modal, etc.).
+          - aria-labelledby connects the dialog to its visible title.
+        -->
+        <dialog id="newsletter-modal" aria-labelledby="modal-title">
+            <!-- Wrapper for padding and scrolling logic -->
+            <div class="modal-inner">
+                
+                <div class="modal-header">
+                    <h2 id="modal-title" class="modal-title">Subscribe to updates</h2>
+                    <!-- Close button: Icon-only button needs an accessible label -->
+                    <button type="button" class="btn-icon close-modal" aria-label="Close modal">
+                        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <p id="modal-desc">Enter your email address to receive our weekly engineering newsletter.</p>
+                    
+                    <form id="subscribe-form" method="dialog">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="email" style="display:block; margin-bottom: 0.5rem; font-weight: 600;">
+                                Email address <span aria-hidden="true" style="color: #d00;">*</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                required 
+                                aria-required="true"
+                                aria-describedby="modal-desc"
+                                style="width: 100%; padding: 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm);"
+                            >
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <!-- 
+                        formmethod="dialog" prevents actual submission and closes the dialog 
+                        sending the button value as the return value.
+                    -->
+                    <button type="submit" form="subscribe-form" class="btn btn-secondary" value="cancel">Cancel</button>
+                    <button type="submit" form="subscribe-form" class="btn btn-primary" value="subscribe">Subscribe</button>
+                </div>
+
+            </div>
+        </dialog>
+
+        <div style="margin-top: 2rem;">
+            <p>More content on the page to demonstrate background inertness when modal is open.</p>
+            <a href="#" style="color: var(--color-primary);">Example link</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Example Company</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('newsletter-modal');
+            const openBtn = document.querySelector('.trigger');
+            const closeBtns = modal.querySelectorAll('.close-modal'); // Selects the X button
+            
+            // 1. Open the modal
+            openBtn.addEventListener('click', () => {
+                // .showModal() is the key to accessibility here.
+                // It creates the backdrop, traps focus, and sets aria-modal="true".
+                modal.showModal();
+            });
+
+            // 2. Close the modal via explicit buttons (The X icon)
+            // Note: The Cancel/Subscribe buttons in the form use method="dialog" 
+            // which handles closing natively without extra JS.
+            closeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    modal.close();
+                });
+            });
+
+            // 3. Close when clicking the backdrop
+            // Native <dialog> does not close on backdrop click by default.
+            modal.addEventListener('click', (event) => {
+                // The backdrop is a pseudo-element of the dialog.
+                // If the click target is the dialog element itself (and not its children),
+                // it means the user clicked the backdrop.
+                if (event.target === modal) {
+                    modal.close();
+                }
+            });
+
+            // 4. Handle close event to return focus
+            // Modern browsers usually return focus to the trigger automatically after .close(),
+            // but explicit handling ensures robustness across versions.
+            modal.addEventListener('close', () => {
+                openBtn.focus();
+            });
+        });
+    </script>
+</body>
+</html>

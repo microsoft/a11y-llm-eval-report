@@ -1,0 +1,338 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e9eefc;
+      --muted: #b9c3e6;
+      --border: rgba(255,255,255,0.14);
+      --accent: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(122,162,255,0.25), transparent 60%),
+                  radial-gradient(900px 700px at 80% 20%, rgba(122,255,214,0.12), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+
+    header {
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: 1.55rem;
+      margin: 0 0 6px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .example .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.12);
+    }
+
+    .example .header .title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .example .header .title strong {
+      font-size: 0.98rem;
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .example .header .title span {
+      font-size: 0.86rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toggle {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(122,162,255,0.12);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+      white-space: nowrap;
+    }
+
+    .toggle:hover {
+      background: rgba(122,162,255,0.18);
+      border-color: rgba(122,162,255,0.45);
+    }
+
+    .toggle:active {
+      transform: translateY(1px);
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid rgba(122,162,255,0.55);
+      outline-offset: 2px;
+    }
+
+    .chev {
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: rotate(-45deg);
+      transition: transform 160ms ease;
+      opacity: 0.9;
+    }
+
+    .toggle[aria-expanded="true"] .chev {
+      transform: rotate(45deg);
+    }
+
+    .details {
+      padding: 12px 14px 14px;
+    }
+
+    .details[hidden] {
+      display: none;
+    }
+
+    .details .card {
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .details p {
+      margin: 0 0 10px;
+      color: rgba(233,238,252,0.92);
+    }
+
+    .details p:last-child {
+      margin-bottom: 0;
+    }
+
+    code, pre {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+    }
+
+    pre {
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.10);
+      overflow: auto;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .mini {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .mini:hover {
+      border-color: rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.09);
+    }
+
+    .mini:focus-visible {
+      outline: 3px solid rgba(122,162,255,0.55);
+      outline-offset: 2px;
+    }
+
+    footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Expand/Collapse Widget</h1>
+      <p class="lead">Two examples: a custom accessible toggle (with a <span style="font-family: var(--mono);">.details</span> container) and a native <span style="font-family: var(--mono);">&lt;details&gt;</span> element (also given the <span style="font-family: var(--mono);">details</span> class).</p>
+    </header>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example" data-widget="custom">
+        <div class="header">
+          <div class="title">
+            <strong>Custom widget (button controls content)</strong>
+            <span>Uses <code>aria-expanded</code> + <code>hidden</code></span>
+          </div>
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="custom-details-1">
+            <span class="chev" aria-hidden="true"></span>
+            <span class="label">Expand</span>
+          </button>
+        </div>
+
+        <div class="details" id="custom-details-1" hidden>
+          <div class="card">
+            <p>This content is controlled by the button above. It starts collapsed and toggles open/closed.</p>
+            <p>Keyboard: Tab to the button, then press Enter/Space.</p>
+            <pre><code>// State is reflected via:
+button[aria-expanded]
+details[hidden]</code></pre>
+
+            <div class="row" aria-label="Extra controls">
+              <button class="mini" type="button" data-action="open">Open</button>
+              <button class="mini" type="button" data-action="close">Close</button>
+              <button class="mini" type="button" data-action="toggle">Toggle</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example" data-widget="native">
+        <div class="header">
+          <div class="title">
+            <strong>Native widget (<code>&lt;details&gt;</code>)</strong>
+            <span>Built-in semantics and keyboard support</span>
+          </div>
+          <span style="color: var(--muted); font-size: 0.9rem;">No JS required</span>
+        </div>
+
+        <details class="details">
+          <summary class="toggle" style="list-style: none;">
+            <span class="chev" aria-hidden="true"></span>
+            <span class="label">Expand</span>
+          </summary>
+          <div class="card" style="margin-top: 10px;">
+            <p>This uses the native <code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> element. It’s accessible by default.</p>
+            <p>The summary label updates via a small script to match the first example.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <footer>
+      Tip: Each widget is wrapped in a <code>div.example</code>, and the controlled content container uses the <code>details</code> class.
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      function setButtonState(btn, detailsEl, expanded) {
+        btn.setAttribute('aria-expanded', String(expanded));
+        detailsEl.hidden = !expanded;
+        const label = btn.querySelector('.label');
+        if (label) label.textContent = expanded ? 'Collapse' : 'Expand';
+      }
+
+      // Custom widget
+      document.querySelectorAll('.example[data-widget="custom"]').forEach(example => {
+        const btn = example.querySelector('.toggle');
+        const detailsId = btn.getAttribute('aria-controls');
+        const detailsEl = document.getElementById(detailsId);
+
+        setButtonState(btn, detailsEl, false);
+
+        btn.addEventListener('click', () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          setButtonState(btn, detailsEl, !expanded);
+        });
+
+        example.querySelectorAll('button.mini[data-action]').forEach(b => {
+          b.addEventListener('click', () => {
+            const action = b.getAttribute('data-action');
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            if (action === 'open') setButtonState(btn, detailsEl, true);
+            if (action === 'close') setButtonState(btn, detailsEl, false);
+            if (action === 'toggle') setButtonState(btn, detailsEl, !expanded);
+          });
+        });
+      });
+
+      // Native <details> label sync + chevron rotation sync
+      document.querySelectorAll('.example[data-widget="native"] details.details').forEach(d => {
+        const summary = d.querySelector('summary');
+        const label = summary ? summary.querySelector('.label') : null;
+
+        function sync() {
+          if (label) label.textContent = d.open ? 'Collapse' : 'Expand';
+          if (summary) summary.setAttribute('aria-expanded', String(d.open));
+        }
+
+        sync();
+        d.addEventListener('toggle', sync);
+      });
+    })();
+  </script>
+</body>
+</html>

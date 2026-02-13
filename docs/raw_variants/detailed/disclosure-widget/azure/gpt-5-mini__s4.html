@@ -1,0 +1,439 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accessible expand/collapse - examples - Demo</title>
+  <style>
+    /*
+      Design tokens (small palette)
+      Use only these tokens for UI colors to ensure consistent contrast handling.
+    */
+    :root{
+      --color-bg: #ffffff;
+      --color-text: #0b0b0b;           /* very dark for body text (>=4.5:1) */
+      --color-muted-text: #374151;     /* dark gray for secondary text */
+      --color-border: #d1d5db;         /* light border */
+      --color-link: #1d4ed8;           /* blue for links and accents */
+      --color-focus: #f97316;          /* orange focus ring with contrast against white */
+      --color-danger: #b91c1c;
+      --color-success: #064e3b;
+      --max-width: 900px;
+      --radius: 6px;
+      --gap: 16px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    /* Reset-ish */
+    * { box-sizing: border-box; }
+    html,body { height: 100%; margin: 0; background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing:antialiased; }
+    a { color: var(--color-link); }
+    img, svg { max-width: 100%; height: auto; }
+
+    /* Accessible skip link — first focusable element */
+    .skip-link { position: absolute; left: 0; top: 0; z-index: 1000; }
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+    .skip-visible {
+      position: static;
+      clip: auto;
+      clip-path: none;
+      height: auto;
+      width: auto;
+      padding: 8px 12px;
+      margin: 8px;
+      background: var(--color-link);
+      color: white;
+      border-radius: 4px;
+      text-decoration: none;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+    }
+
+    header, nav, main, footer { padding: 16px; }
+    header { border-bottom: 1px solid var(--color-border); }
+    .container { max-width: var(--max-width); margin: 0 auto; }
+
+    nav ul { list-style: none; padding: 0; margin: 0; display:flex; gap: 12px; flex-wrap:wrap;}
+    nav a { text-decoration: none; padding: 6px 8px; border-radius: 4px; color: var(--color-link); }
+    nav a:focus { outline: none; box-shadow: 0 0 0 4px rgba(29,78,216,0.12); border-radius:4px; }
+
+    main { padding-top: 20px; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px 0; }
+    p.lead { margin-top: 0; color: var(--color-muted-text); }
+
+    /* Example wrapper */
+    .example { border: 1px solid var(--color-border); border-radius: var(--radius); padding: 16px; margin: 16px 0; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+
+    /* Disclosure button */
+    .disclosure {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: 1px solid var(--color-border);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--color-text);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .disclosure:hover { box-shadow: 0 1px 0 rgba(0,0,0,0.03); }
+    .disclosure:active { transform: translateY(1px); }
+
+    /* Focus indicator:
+       Use an outline that contrasts with adjacent color (here white background). We also provide a transparent outline so forced-colors can show focus using system colors.
+    */
+    .disclosure:focus {
+      outline: 3px solid var(--color-focus); /* ensures at least 3:1 vs adjacent */
+      outline-offset: 2px;
+    }
+    /* For forced-colors mode, prefer system color tokens */
+    @media (forced-colors: active) {
+      .disclosure:focus {
+        outline: 3px solid ButtonText;
+        outline-offset: 2px;
+        box-shadow: none;
+      }
+      .disclosure { border: 2px solid ButtonBorder; background: ButtonFace; color: ButtonText; }
+    }
+
+    /* Icon styling: svg uses currentColor */
+    .icon {
+      width: 1em;
+      height: 1em;
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .visually-hidden { 
+      position: absolute !important;
+      height: 1px; width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap; 
+    }
+
+    /* The controlled content container must have class "details" per requirement */
+    .details {
+      margin-top: 12px;
+      border-top: 1px dashed var(--color-border);
+      padding-top: 12px;
+    }
+    .details h2 { font-size: 1.125rem; margin: 0 0 8px 0; }
+    .details p { margin: 0 0 12px 0; color: var(--color-muted-text); }
+
+    /* Ensure focusable elements are visible inside details at small widths */
+    .details a, .details button, .details input, .details textarea { max-width: 100%; }
+
+    /* Responsive layout: stack naturally at small widths */
+    @media (max-width: 420px) {
+      .disclosure { width: 100%; justify-content: center; }
+      nav ul { gap: 8px; }
+    }
+
+    /* Ensure long words don't force horizontal scroll */
+    body, .example, .details { overflow-wrap: anywhere; word-break: break-word; }
+
+    footer { border-top: 1px solid var(--color-border); margin-top: 20px; color: var(--color-muted-text); }
+
+    /* Simple visually distinct status for examples showing expanded state textually (not only color) */
+    .state-note { font-size: 0.875rem; color: var(--color-muted-text); margin-top: 8px; }
+
+    /* Make sure hidden content is not focusable; we will rely on the hidden attribute in JS/CSS */
+    .details[hidden] { display: none; }
+
+    /* Ensure static content is not tabbable */
+    [tabindex="-1"] { outline: none; }
+  </style>
+</head>
+<body>
+  <header class="container" role="banner" aria-label="Demo header">
+    <a href="#maincontent" class="skip-link sr-only">Skip to main content</a>
+    <div style="display:flex; align-items:center; gap:12px; justify-content:space-between;">
+      <div>
+        <h1 style="margin:0; font-size:1.125rem;">Accessible expand/collapse examples</h1>
+        <p style="margin:4px 0 0 0; color:var(--color-muted-text);">Demonstrations of an expand/collapse widget using native controls and accessible patterns.</p>
+      </div>
+      <nav aria-label="Main navigation">
+        <ul>
+          <li><a href="#example1">Simple disclosure</a></li>
+          <li><a href="#example2">Disclosure with focusable content</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="maincontent" tabindex="-1" class="container" role="main" aria-labelledby="main-heading">
+    <h1 id="main-heading" style="position:relative; top:-1px; margin-top:0;">Expand / Collapse widget examples</h1>
+    <p class="lead">Each example shows a button that controls a content region. The button uses aria-expanded and aria-controls. The controlled region has the class "details". Hidden content is not focusable.</p>
+
+    <!-- Example 1: Simple disclosure -->
+    <div class="example" id="example1" aria-labelledby="ex1-heading">
+      <h2 id="ex1-heading" style="font-size:1rem; margin:0 0 12px 0;">Example 1 — Simple disclosure</h2>
+
+      <p style="margin:0 0 12px 0; color:var(--color-muted-text);">A minimal, native-button-based disclosure. The button toggles the content region below.</p>
+
+      <button
+        class="disclosure"
+        id="disclosure-1"
+        aria-expanded="false"
+        aria-controls="details-1"
+        type="button"
+        >
+        <!-- SVG icon with currentColor -->
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M7 10l5 5 5-5H7z" fill="currentColor"></path>
+        </svg>
+        <span class="disclosure-label">Show details</span>
+      </button>
+
+      <div class="details" id="details-1" role="region" aria-labelledby="disclosure-1" hidden aria-hidden="true">
+        <h2 style="margin-top:0;">Details</h2>
+        <p>This content is controlled by the "Show details" button. When collapsed the content is removed from the accessibility tree and is not focusable.</p>
+        <p class="state-note">Visible when the disclosure button is expanded. Provide textual cues and not rely on color alone.</p>
+      </div>
+    </div>
+
+    <!-- Example 2: Disclosure with focusable content (form) -->
+    <div class="example" id="example2" aria-labelledby="ex2-heading">
+      <h2 id="ex2-heading" style="font-size:1rem; margin:0 0 12px 0;">Example 2 — Disclosure with focusable content</h2>
+
+      <p style="margin:0 0 12px 0; color:var(--color-muted-text);">This example contains a small form in the controlled region. When open, form controls are reachable via keyboard.</p>
+
+      <button
+        class="disclosure"
+        id="disclosure-2"
+        aria-expanded="false"
+        aria-controls="details-2"
+        type="button"
+        >
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M7 10l5 5 5-5H7z" fill="currentColor"></path>
+        </svg>
+        <span class="disclosure-label">Show form</span>
+      </button>
+
+      <div class="details" id="details-2" role="region" aria-labelledby="disclosure-2" hidden aria-hidden="true">
+        <h2 style="margin-top:0;">Contact preferences</h2>
+        <p style="color:var(--color-muted-text); margin-top:0;">Set your contact preference below. Fields are labeled and associated with the inputs.</p>
+
+        <form id="contact-form" novalidate>
+          <div style="display:flex; flex-direction:column; gap:8px; max-width:420px;">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" aria-describedby="email-help" required style="padding:8px; border:1px solid var(--color-border); border-radius:6px;" />
+            <div id="email-help" style="font-size:0.875rem; color:var(--color-muted-text);">We'll only use this to contact you about account activity.</div>
+
+            <fieldset style="border:0; padding:0; margin:0; margin-top:8px;">
+              <legend style="font-weight:600; margin-bottom:6px;">Preferred contact method</legend>
+              <label><input type="radio" name="method" value="email" checked /> Email</label>
+              <label><input type="radio" name="method" value="phone" style="margin-left:8px;" /> Phone</label>
+            </fieldset>
+
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button type="submit" style="padding:8px 12px; border-radius:6px; border:1px solid var(--color-border); background:var(--color-link); color:white;">Save</button>
+              <button type="button" id="demo-cancel" style="padding:8px 12px; border-radius:6px; border:1px solid var(--color-border); background:transparent;">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <section aria-labelledby="notes-heading" style="margin-top:12px;">
+      <h2 id="notes-heading" style="font-size:1rem; margin:0 0 8px 0;">Notes</h2>
+      <ul style="color:var(--color-muted-text); margin-top:0; padding-left:20px;">
+        <li>Buttons use aria-expanded and aria-controls. The controlled region has class "details".</li>
+        <li>Hidden content is not focusable (uses the hidden attribute) and is removed from assistive technology until expanded.</li>
+        <li>Keyboard: Enter / Space activate the buttons. Escape closes an open panel when focus is inside it (see behavior).</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="container" role="contentinfo">
+    <p style="margin:0; font-size:0.875rem; color:var(--color-muted-text);">Demo — accessibility-minded expand/collapse patterns. This page uses semantic landmarks and visible focus styles. Manual accessibility testing is recommended.</p>
+  </footer>
+
+  <script>
+    (function () {
+      // Utility: toggle an element that is controlled by a button
+      function toggle(button, detailsEl, wantOpen) {
+        var isOpen = button.getAttribute('aria-expanded') === 'true';
+        var open = typeof wantOpen === 'boolean' ? wantOpen : !isOpen;
+
+        button.setAttribute('aria-expanded', String(open));
+        if (open) {
+          detailsEl.removeAttribute('hidden');
+          detailsEl.setAttribute('aria-hidden', 'false');
+        } else {
+          detailsEl.setAttribute('hidden', '');
+          detailsEl.setAttribute('aria-hidden', 'true');
+        }
+
+        // Update visible label text (the accessible name is the visible text)
+        var label = button.querySelector('.disclosure-label');
+        if (label) {
+          if (open) {
+            // Keep the icon; update text only
+            if (button.id === 'disclosure-1') label.textContent = 'Hide details';
+            else if (button.id === 'disclosure-2') label.textContent = 'Hide form';
+            else label.textContent = 'Hide';
+          } else {
+            if (button.id === 'disclosure-1') label.textContent = 'Show details';
+            else if (button.id === 'disclosure-2') label.textContent = 'Show form';
+            else label.textContent = 'Show';
+          }
+        }
+
+        // When opening, don't unexpectedly move keyboard focus away from where it is.
+        // When closing and focus is inside the details, move focus back to the controlling button.
+        if (!open) {
+          var active = document.activeElement;
+          if (detailsEl.contains(active)) {
+            button.focus();
+          }
+        }
+      }
+
+      // Close panel on Escape if focus is inside the details
+      function onKeydownEscape(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+          // Find any open panels that contain the activeElement
+          var active = document.activeElement;
+          var detailsEls = document.querySelectorAll('.details');
+          detailsEls.forEach(function (d) {
+            if (d.hasAttribute('hidden')) return;
+            if (d.contains(active)) {
+              // Find the controlling button (aria-controls)
+              var id = d.id;
+              var button = document.querySelector('[aria-controls="' + id + '"]');
+              if (button) toggle(button, d, false);
+              // Prevent the Escape from doing other things
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          });
+        }
+      }
+
+      // Attach click handlers to disclosure buttons
+      document.querySelectorAll('button[aria-controls]').forEach(function (btn) {
+        var controls = btn.getAttribute('aria-controls');
+        var detailsEl = document.getElementById(controls);
+        if (!detailsEl) return;
+
+        // Ensure the details element has the required class
+        if (!detailsEl.classList.contains('details')) {
+          console.warn('Controlled element #' + controls + ' should have class "details" per the example requirement.');
+        }
+
+        // Initialize states in case HTML didn't match (keeps aria-hidden consistent)
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        if (expanded) {
+          detailsEl.removeAttribute('hidden');
+          detailsEl.setAttribute('aria-hidden', 'false');
+        } else {
+          detailsEl.setAttribute('hidden', '');
+          detailsEl.setAttribute('aria-hidden', 'true');
+        }
+
+        btn.addEventListener('click', function () {
+          toggle(btn, detailsEl);
+        });
+
+        // Keyboard: allow Home/End to move focus semantics are left as native; no composite behavior here
+      });
+
+      // Global keydown for Escape
+      document.addEventListener('keydown', onKeydownEscape, true);
+
+      // Demo: Cancel button in example 2 closes the panel and returns focus to the control
+      var cancel = document.getElementById('demo-cancel');
+      if (cancel) {
+        cancel.addEventListener('click', function () {
+          var details = document.getElementById('details-2');
+          var button = document.getElementById('disclosure-2');
+          if (details && button) toggle(button, details, false);
+        });
+      }
+
+      // Ensure that when the page receives a fragment link to a details region, it opens that region
+      // so the linked content is visible and in the accessibility tree.
+      function openDetailsForHash() {
+        var hash = window.location.hash;
+        if (!hash) return;
+        // If hash points to an element inside a .details, open the hosting details.
+        var target = document.getElementById(hash.slice(1));
+        if (!target) return;
+        var detailsAncestor = target.closest('.details');
+        if (detailsAncestor) {
+          var button = document.querySelector('[aria-controls="' + detailsAncestor.id + '"]');
+          if (button) toggle(button, detailsAncestor, true);
+          // Move focus to the target
+          setTimeout(function () {
+            // If target is focusable, focus it; otherwise make it programmatically focusable temporarily.
+            if (isFocusable(target)) {
+              target.focus();
+            } else {
+              target.setAttribute('tabindex', '-1');
+              target.focus();
+              target.removeAttribute('tabindex');
+            }
+          }, 0);
+        }
+      }
+
+      function isFocusable(el) {
+        if (!el) return false;
+        var focusableSelectors = 'a, button, input, textarea, select, [tabindex]';
+        if (el.matches(focusableSelectors)) return true;
+        return el.hasAttribute && el.hasAttribute('tabindex');
+      }
+
+      window.addEventListener('hashchange', openDetailsForHash);
+      // On load handle current hash
+      window.addEventListener('load', openDetailsForHash);
+
+      // Make skip link visible when focused (matches sr-only rule)
+      var skip = document.querySelector('.skip-link');
+      if (skip) {
+        skip.addEventListener('focus', function () {
+          skip.classList.add('skip-visible');
+        });
+        skip.addEventListener('blur', function () {
+          skip.classList.remove('skip-visible');
+        });
+      }
+
+      // Final safety: ensure no hidden element contains focusable items when hidden
+      // (If any are found, set tabindex="-1" to them; this is defensive.)
+      function sanitizeHiddenFocus() {
+        document.querySelectorAll('.details[hidden]').forEach(function (d) {
+          d.querySelectorAll('a, button, input, textarea, select, [tabindex]').forEach(function (el) {
+            // only adjust if it has a positive tabindex or 0
+            var tb = el.getAttribute('tabindex');
+            if (tb !== null && tb !== '-1') {
+              el.dataset._savedTabindex = tb;
+              el.setAttribute('tabindex', '-1');
+            }
+            // For form controls, use disabled when hidden is used? We avoid changing disabled state.
+          });
+        });
+      }
+      // Run at start and when toggling (we run periodically when toggles happen)
+      var observer = new MutationObserver(function () {
+        sanitizeHiddenFocus();
+      });
+      observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['hidden'] });
+      // initial sanitize
+      sanitizeHiddenFocus();
+
+    })();
+  </script>
+</body>
+</html>

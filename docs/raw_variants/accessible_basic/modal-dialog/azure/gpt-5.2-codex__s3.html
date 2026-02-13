@@ -1,0 +1,181 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessible Modal Dialog Example</title>
+<style>
+  :root {
+    color-scheme: light dark;
+  }
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    margin: 0;
+    padding: 2rem;
+    background: #f6f7f9;
+    color: #1b1b1b;
+  }
+  .container {
+    max-width: 60rem;
+    margin: 0 auto;
+  }
+  .trigger {
+    padding: 0.75rem 1.25rem;
+    border: 2px solid #0a4ea3;
+    background: #0a4ea3;
+    color: #fff;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .trigger:focus-visible,
+  button:focus-visible {
+    outline: 3px solid #ffb400;
+    outline-offset: 2px;
+  }
+  dialog {
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0;
+    max-width: 34rem;
+    width: calc(100% - 2rem);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+  .modal-content {
+    padding: 1.5rem;
+    background: #ffffff;
+    color: #1b1b1b;
+    border-radius: 0.75rem;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+  .secondary {
+    background: transparent;
+    border: 2px solid #3a3a3a;
+    color: #1b1b1b;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+  }
+  .primary {
+    background: #0a4ea3;
+    border: 2px solid #0a4ea3;
+    color: #ffffff;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+</head>
+<body>
+<main class="container">
+  <h1>Modal Dialog Example</h1>
+  <p>This modal dialog is closed by default. Activate the button to open it.</p>
+  <button class="trigger" type="button">Open modal</button>
+
+  <dialog id="exampleModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Confirm your action</h2>
+        <button type="button" class="secondary" data-close>Close</button>
+      </div>
+      <p id="modalDescription">This is an example modal dialog. Use Tab to move through controls, and press Escape to close the dialog.</p>
+      <div class="modal-actions">
+        <button type="button" class="primary">Continue</button>
+        <button type="button" class="secondary" data-close>Cancel</button>
+      </div>
+    </div>
+  </dialog>
+</main>
+
+<script>
+  const trigger = document.querySelector('.trigger');
+  const dialog = document.getElementById('exampleModal');
+  const closeButtons = dialog.querySelectorAll('[data-close]');
+  let lastFocusedElement = null;
+
+  function getFocusableElements(container) {
+    return Array.from(container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+      .filter(el => !el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'));
+  }
+
+  function trapFocus(event) {
+    if (event.key !== 'Tab') return;
+    const focusables = getFocusableElements(dialog);
+    if (focusables.length === 0) return;
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function openDialog() {
+    lastFocusedElement = document.activeElement;
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+    } else {
+      dialog.setAttribute('open', '');
+    }
+    const focusables = getFocusableElements(dialog);
+    (focusables[0] || dialog).focus();
+    dialog.addEventListener('keydown', trapFocus);
+  }
+
+  function closeDialog() {
+    if (dialog.open) dialog.close();
+    dialog.removeEventListener('keydown', trapFocus);
+    if (lastFocusedElement) lastFocusedElement.focus();
+  }
+
+  trigger.addEventListener('click', openDialog);
+
+  closeButtons.forEach(btn => btn.addEventListener('click', closeDialog));
+
+  dialog.addEventListener('click', (event) => {
+    const rect = dialog.getBoundingClientRect();
+    const isInDialog = (
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom
+    );
+    if (!isInDialog) {
+      closeDialog();
+    }
+  });
+
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeDialog();
+  });
+</script>
+</body>
+</html>

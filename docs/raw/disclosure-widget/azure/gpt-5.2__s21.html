@@ -1,0 +1,289 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e8ecff;
+      --muted: #b7c0ff;
+      --border: rgba(255,255,255,0.14);
+      --focus: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(122,162,255,0.25), transparent 60%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(168,85,247,0.18), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 920px;
+      margin: 40px auto;
+      padding: 0 18px 60px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 10px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0 0 22px;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .example header {
+      padding: 14px 14px 0;
+    }
+
+    .example header .label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 10px;
+    }
+
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      border: 0;
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1rem;
+      text-align: left;
+    }
+
+    .toggle:hover { background: rgba(255,255,255,0.06); }
+    .toggle:active { background: rgba(255,255,255,0.08); }
+
+    .toggle:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--focus), transparent 35%);
+      outline-offset: 2px;
+    }
+
+    .toggle .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .toggle .title {
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toggle .subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chev {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      transition: transform 180ms ease;
+      opacity: 0.9;
+    }
+
+    .toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+    .details {
+      padding: 0 14px 14px;
+      border-top: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.12);
+    }
+
+    .details[hidden] { display: none; }
+
+    .details .content {
+      padding-top: 12px;
+      color: rgba(232,236,255,0.92);
+      font-size: 0.95rem;
+    }
+
+    .details ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: rgba(232,236,255,0.9);
+    }
+
+    .pillrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: rgba(232,236,255,0.92);
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.85em;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.25);
+      color: rgba(232,236,255,0.95);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget</h1>
+    <p class="lead">
+      Each widget is wrapped in a <span class="kbd">div.example</span>. The controlled content container uses the <span class="kbd">details</span> class.
+      Use mouse/touch, or focus the button and press <span class="kbd">Enter</span>/<span class="kbd">Space</span>.
+    </p>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example">
+        <header>
+          <p class="label">Example 1</p>
+        </header>
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="details-1" id="toggle-1">
+          <span class="meta">
+            <span class="title">Shipping & delivery</span>
+            <span class="subtitle">Estimated times and tracking</span>
+          </span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/>
+          </svg>
+        </button>
+        <div class="details" id="details-1" role="region" aria-labelledby="toggle-1" hidden>
+          <div class="content">
+            Orders typically ship within 1–2 business days. Once shipped, you’ll receive a tracking link by email.
+            <ul>
+              <li>Standard: 3–5 business days</li>
+              <li>Express: 1–2 business days</li>
+              <li>International: varies by destination</li>
+            </ul>
+            <div class="note">Tip: Tracking may take up to 24 hours to update after label creation.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <header>
+          <p class="label">Example 2</p>
+        </header>
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="details-2" id="toggle-2">
+          <span class="meta">
+            <span class="title">Keyboard shortcuts</span>
+            <span class="subtitle">Quick actions for power users</span>
+          </span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/>
+          </svg>
+        </button>
+        <div class="details" id="details-2" role="region" aria-labelledby="toggle-2" hidden>
+          <div class="content">
+            Common shortcuts:
+            <div class="pillrow" aria-label="Shortcut list">
+              <span class="pill"><span class="kbd">Ctrl</span> + <span class="kbd">K</span> — Search</span>
+              <span class="pill"><span class="kbd">G</span> then <span class="kbd">H</span> — Home</span>
+              <span class="pill"><span class="kbd">?</span> — Help</span>
+              <span class="pill"><span class="kbd">Esc</span> — Close</span>
+            </div>
+            <div class="note">These are examples; wire them up in your app as needed.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <header>
+          <p class="label">Example 3</p>
+        </header>
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="details-3" id="toggle-3">
+          <span class="meta">
+            <span class="title">What’s included?</span>
+            <span class="subtitle">A quick checklist</span>
+          </span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/>
+          </svg>
+        </button>
+        <div class="details" id="details-3" role="region" aria-labelledby="toggle-3" hidden>
+          <div class="content">
+            <ul>
+              <li>One expandable header button</li>
+              <li>A controlled content container with class <span class="kbd">details</span></li>
+              <li>Accessible ARIA attributes (<span class="kbd">aria-expanded</span>, <span class="kbd">aria-controls</span>)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      function setExpanded(btn, expanded) {
+        const id = btn.getAttribute('aria-controls');
+        const panel = document.getElementById(id);
+        btn.setAttribute('aria-expanded', String(expanded));
+        if (panel) panel.hidden = !expanded;
+      }
+
+      document.querySelectorAll('.example .toggle[aria-controls]').forEach((btn) => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        setExpanded(btn, expanded);
+
+        btn.addEventListener('click', () => {
+          const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+          setExpanded(btn, !isExpanded);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

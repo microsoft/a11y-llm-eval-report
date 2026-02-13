@@ -1,0 +1,529 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Contact form - Contact - Example Site</title>
+
+  <style>
+    /* Design tokens (use these tokens only for UI colors) */
+    :root{
+      --color-bg: #ffffff;
+      --color-panel: #f8fafb;
+      --color-text: #0b0b0b;
+      --color-muted-text: #2f3b45; /* high contrast muted */
+      --color-border: #d1d5db;
+      --color-focus: #0b84ff;
+      --color-danger: #b91c1c;
+      --color-button-text: #ffffff;
+      --color-button-bg: #0b84ff;
+      --max-content-width: 720px;
+      --radius: 6px;
+      --gap: 16px;
+      --control-height: 44px;
+      --font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      --font-size: 16px;
+      --line-height: 1.4;
+    }
+
+    /* Reset and base */
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--color-bg);
+      color:var(--color-text);
+      font-family:var(--font-family);
+      font-size:var(--font-size);
+      line-height:var(--line-height);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Skip link (visible when focused) */
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+    .skip-link{
+      background: #000;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      z-index: 100;
+    }
+
+    header{
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-panel);
+      padding: 12px 16px;
+    }
+    nav ul{
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display:flex;
+      gap:12px;
+    }
+    nav a{
+      color:var(--color-link, var(--color-focus));
+      text-decoration: none;
+    }
+    main{
+      padding: 24px 16px;
+      display:flex;
+      justify-content:center;
+    }
+    .content{
+      width:100%;
+      max-width:var(--max-content-width);
+      box-sizing:border-box;
+    }
+
+    h1{
+      margin:0 0 18px 0;
+      font-size:1.5rem;
+      font-weight:600;
+    }
+
+    form{
+      background: #fff;
+      border: 1px solid var(--color-border);
+      padding: 20px;
+      border-radius: var(--radius);
+      box-shadow: 0 1px 2px rgba(16,24,40,0.03);
+    }
+
+    .form-field{
+      margin-bottom: 16px;
+    }
+
+    label{
+      display:block;
+      font-weight:600;
+      margin-bottom:6px;
+      color:var(--color-text);
+      font-size: 0.95rem;
+    }
+
+    .required-indicator{
+      color: var(--color-danger);
+      margin-left: 6px;
+      font-weight:700;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"]{
+      width:100%;
+      box-sizing:border-box;
+      height: var(--control-height);
+      padding: 8px 12px;
+      font-size: 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--color-text);
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+      min-width: 0; /* allow flex children to shrink */
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus{
+      border-color: var(--color-focus);
+      box-shadow: 0 0 0 4px rgba(11,132,255,0.12);
+    }
+
+    /* Visible focus style that works with Forced Colors mode */
+    :focus {
+      outline: 3px solid transparent; /* create stacking context for forced-colors fallback */
+      border-radius: 6px;
+    }
+    input:focus {
+      outline-offset: 2px;
+      /* keep outline for forced-colors; use box-shadow for normal */
+    }
+
+    .helper-text{
+      margin-top:6px;
+      font-size:0.9rem;
+      color:var(--color-muted-text);
+    }
+
+    .error-text{
+      margin-top:6px;
+      font-size:0.9rem;
+      color:var(--color-danger);
+      display:none;
+    }
+    .error-text[aria-hidden="false"]{
+      display:block;
+    }
+
+    .btn-row{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:8px;
+    }
+
+    button[type="submit"]{
+      background:var(--color-button-bg);
+      color:var(--color-button-text);
+      border: none;
+      padding: 10px 16px;
+      font-size:1rem;
+      border-radius:6px;
+      cursor: pointer;
+      height: var(--control-height);
+    }
+    button[type="submit"]:hover{
+      filter:brightness(0.98);
+    }
+    button[type="submit"]:active{
+      transform: translateY(1px);
+    }
+    button[type="submit"]:focus{
+      box-shadow: 0 0 0 4px rgba(11,132,255,0.18);
+    }
+
+    /* Disabled state */
+    button[disabled]{
+      opacity:0.6;
+      cursor: not-allowed;
+    }
+
+    /* Small screens: ensure reflow and no horizontal scroll */
+    @media (max-width: 420px){
+      :root{
+        --gap: 12px;
+      }
+      form{
+        padding: 16px;
+      }
+      .btn-row{
+        justify-content: stretch;
+      }
+      button[type="submit"]{
+        width:100%;
+      }
+    }
+
+    /* Ensure long words wrap */
+    input, label, .helper-text, .error-text{
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    /* Forced colors / High Contrast adjustments */
+    @media (forced-colors: active) {
+      :root {
+        /* rely on system colors */
+      }
+      input:focus, button:focus {
+        /* Use system focus colors */
+        outline: 3px solid Highlight;
+        box-shadow: none;
+      }
+      .error-text {
+        color: HighlightText;
+        background: none;
+        border: none;
+      }
+      button[type="submit"]{
+        background: ButtonFace;
+        color: ButtonText;
+        border: 2px solid ButtonText;
+      }
+    }
+
+    footer{
+      margin-top: 18px;
+      font-size: 0.9rem;
+      color:var(--color-muted-text);
+    }
+
+    /* Small utility */
+    .field-meta{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#maincontent" class="sr-only skip-link">Skip to main content</a>
+    <nav aria-label="Primary">
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#contact" aria-current="page">Contact</a></li>
+        <li><a href="#help">Help</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="maincontent" tabindex="-1">
+    <div class="content" role="region" aria-labelledby="page-title">
+      <h1 id="page-title">Contact us</h1>
+
+      <form id="contactForm" novalidate>
+        <p style="margin-top:0;margin-bottom:16px;color:var(--color-muted-text);">
+          We welcome your messages. Fields marked with <span aria-hidden="true" class="required-indicator">*</span> are required.
+        </p>
+
+        <!-- Full Name (required) -->
+        <div class="form-field" id="field-name">
+          <label for="fullName">Full Name <span aria-hidden="true" class="required-indicator">*</span></label>
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            required
+            aria-required="true"
+            aria-describedby="name-helper"
+            autocomplete="name"
+            minlength="2"
+            />
+          <div class="field-meta">
+            <small id="name-helper" class="helper-text">Enter your full name as you would like us to address you.</small>
+          </div>
+          <div id="name-error" class="error-text" aria-hidden="true" role="alert"></div>
+        </div>
+
+        <!-- Email Address (required, helper text) -->
+        <div class="form-field" id="field-email">
+          <label for="email">Email Address <span aria-hidden="true" class="required-indicator">*</span></label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            aria-required="true"
+            aria-describedby="email-help"
+            autocomplete="email"
+            />
+          <div class="field-meta">
+            <small id="email-help" class="helper-text">Please provide a valid email address (for example: name@example.com).</small>
+          </div>
+          <div id="email-error" class="error-text" aria-hidden="true" role="alert"></div>
+        </div>
+
+        <!-- Phone Number (optional, helper text) -->
+        <div class="form-field" id="field-phone">
+          <label for="phone">Phone Number <small style="font-weight:600;color:var(--color-muted-text)">(optional)</small></label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            inputmode="tel"
+            aria-describedby="phone-help"
+            pattern="^[0-9()+\-\s]{7,20}$"
+            />
+          <div class="field-meta">
+            <small id="phone-help" class="helper-text">Preferred format: +1 (555) 555-0123 or 555-555-0123. Include country code for international numbers.</small>
+          </div>
+          <div id="phone-error" class="error-text" aria-hidden="true" role="alert"></div>
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" id="submitBtn">Send message</button>
+        </div>
+      </form>
+
+      <footer aria-label="Form information">
+        <p style="margin:12px 0 0 0;">We respect your privacy. By contacting us you agree to our privacy policy.</p>
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      // Elements
+      const form = document.getElementById('contactForm');
+      const submitBtn = document.getElementById('submitBtn');
+
+      const fullName = document.getElementById('fullName');
+      const email = document.getElementById('email');
+      const phone = document.getElementById('phone');
+
+      const nameError = document.getElementById('name-error');
+      const emailError = document.getElementById('email-error');
+      const phoneError = document.getElementById('phone-error');
+
+      const nameHelperId = 'name-helper';
+      const emailHelperId = 'email-help';
+      const phoneHelperId = 'phone-help';
+
+      // Phone regex same as pattern attribute: allows digits, spaces, parentheses, plus, hyphen; length 7-20
+      const phoneRegex = /^[0-9()+\-\s]{7,20}$/;
+
+      // Utility: show error
+      function showError(inputEl, errorEl, message, helperId) {
+        errorEl.textContent = message;
+        errorEl.setAttribute('aria-hidden','false');
+        inputEl.setAttribute('aria-invalid','true');
+
+        // update aria-describedby to include helper and error
+        const describedBy = [helperId, errorEl.id].join(' ');
+        inputEl.setAttribute('aria-describedby', describedBy);
+      }
+
+      function clearError(inputEl, errorEl, helperId) {
+        errorEl.textContent = '';
+        errorEl.setAttribute('aria-hidden','true');
+        inputEl.removeAttribute('aria-invalid');
+
+        // reset aria-describedby to helper only
+        inputEl.setAttribute('aria-describedby', helperId);
+      }
+
+      // Validation checks
+      function validateName() {
+        const value = fullName.value.trim();
+        if (!value) {
+          showError(fullName, nameError, 'Full name is required. Please enter your name.', nameHelperId);
+          return false;
+        }
+        if (value.length < 2) {
+          showError(fullName, nameError, 'Please enter at least two characters for your name.', nameHelperId);
+          return false;
+        }
+        clearError(fullName, nameError, nameHelperId);
+        return true;
+      }
+
+      function validateEmail() {
+        const value = email.value.trim();
+        if (!value) {
+          showError(email, emailError, 'Email address is required. Please provide an email address.', emailHelperId);
+          return false;
+        }
+        // Use the browser's validation API if possible for type="email"
+        if (!email.checkValidity()) {
+          showError(email, emailError, 'Enter a valid email address (example: name@example.com).', emailHelperId);
+          return false;
+        }
+        clearError(email, emailError, emailHelperId);
+        return true;
+      }
+
+      function validatePhone() {
+        const value = phone.value.trim();
+        if (!value) {
+          // optional -> valid if empty
+          clearError(phone, phoneError, phoneHelperId);
+          return true;
+        }
+        if (!phoneRegex.test(value)) {
+          showError(phone, phoneError, 'Enter a valid phone number using digits, spaces, parentheses, +, or -; 7–20 characters.', phoneHelperId);
+          return false;
+        }
+        clearError(phone, phoneError, phoneHelperId);
+        return true;
+      }
+
+      // On input, validate and clear errors proactively
+      fullName.addEventListener('input', validateName);
+      email.addEventListener('input', validateEmail);
+      phone.addEventListener('input', validatePhone);
+
+      // On blur, also validate (helps screen reader users)
+      fullName.addEventListener('blur', validateName);
+      email.addEventListener('blur', validateEmail);
+      phone.addEventListener('blur', validatePhone);
+
+      // On submit, validate and focus first invalid field
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+
+        // Run validations
+        const nameOk = validateName();
+        const emailOk = validateEmail();
+        const phoneOk = validatePhone();
+
+        // If all valid, simulate form submission
+        if (nameOk && emailOk && phoneOk) {
+          // Clear any previous aria-invalid states
+          clearError(fullName, nameError, nameHelperId);
+          clearError(email, emailError, emailHelperId);
+          clearError(phone, phoneError, phoneHelperId);
+
+          // Disable the submit button to prevent duplicate submissions
+          submitBtn.disabled = true;
+          submitBtn.setAttribute('aria-disabled', 'true');
+
+          // For demo: simulate async submit and show success to screen reader
+          const successMsg = document.createElement('div');
+          successMsg.setAttribute('role','status');
+          successMsg.setAttribute('aria-live','polite');
+          successMsg.style.position = 'absolute';
+          successMsg.style.left = '-9999px';
+          successMsg.textContent = 'Your message has been sent. Thank you.';
+          document.body.appendChild(successMsg);
+
+          // In a real implementation, replace the following with an XHR/fetch:
+          setTimeout(function(){
+            submitBtn.disabled = false;
+            submitBtn.removeAttribute('aria-disabled');
+            // Optionally, reset form after successful submit:
+            form.reset();
+            // Reset aria-describedby to helpers
+            fullName.setAttribute('aria-describedby', nameHelperId);
+            email.setAttribute('aria-describedby', emailHelperId);
+            phone.setAttribute('aria-describedby', phoneHelperId);
+
+            // Move focus back to the form heading for context
+            const mainHeading = document.getElementById('page-title');
+            if (mainHeading) {
+              mainHeading.focus && mainHeading.focus();
+            }
+            // remove the hidden status message after a short while
+            setTimeout(()=>document.body.removeChild(successMsg), 2000);
+          }, 700);
+          return;
+        }
+
+        // Focus first invalid field in a predictable order
+        if (!nameOk) {
+          fullName.focus();
+        } else if (!emailOk) {
+          email.focus();
+        } else if (!phoneOk) {
+          phone.focus();
+        }
+      });
+
+      // Ensure the skip link works by focusing main when used (some browsers may not focus automatically)
+      const skipLink = document.querySelector('.skip-link');
+      const main = document.getElementById('maincontent');
+      if (skipLink && main) {
+        skipLink.addEventListener('click', function(){
+          main.focus();
+        });
+      }
+
+      // Initialize aria-describedby attributes for inputs (helper only)
+      fullName.setAttribute('aria-describedby', nameHelperId);
+      email.setAttribute('aria-describedby', emailHelperId);
+      phone.setAttribute('aria-describedby', phoneHelperId);
+
+      // Make page-title focusable for programmatic focus (but not tabbable)
+      const pageTitle = document.getElementById('page-title');
+      if (pageTitle){
+        pageTitle.setAttribute('tabindex','-1');
+      }
+    })();
+  </script>
+</body>
+</html>

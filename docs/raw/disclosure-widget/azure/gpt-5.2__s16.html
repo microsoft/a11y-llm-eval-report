@@ -1,0 +1,311 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #111a33;
+      --text: #e8ecff;
+      --muted: #b8c0ff;
+      --border: rgba(255,255,255,0.14);
+      --focus: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+      --gap: 14px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: radial-gradient(1200px 600px at 20% 0%, #1a2a6a 0%, transparent 60%),
+                  radial-gradient(900px 500px at 80% 10%, #3a1a6a 0%, transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    header {
+      padding: 28px 18px 10px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      letter-spacing: 0.2px;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    .example .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.12);
+    }
+
+    .example .bar .title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .example .bar .title strong {
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .example .bar .title span {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toggle {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      user-select: none;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+    }
+
+    .toggle:hover {
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.26);
+    }
+
+    .toggle:active {
+      transform: translateY(1px);
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid rgba(122,162,255,0.35);
+      outline-offset: 2px;
+      border-color: rgba(122,162,255,0.7);
+    }
+
+    .chev {
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: rotate(-45deg);
+      transition: transform 160ms ease;
+      opacity: 0.9;
+    }
+
+    .example[data-open="true"] .chev {
+      transform: rotate(45deg);
+    }
+
+    .details {
+      padding: 14px;
+    }
+
+    .details[hidden] {
+      display: none !important;
+    }
+
+    .details .card {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.18);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .details p {
+      margin: 0 0 10px;
+      color: rgba(232,236,255,0.92);
+      font-size: 14px;
+    }
+
+    .details ul {
+      margin: 0;
+      padding-left: 18px;
+      color: rgba(232,236,255,0.88);
+      font-size: 14px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 760px) {
+      main {
+        grid-template-columns: 1fr 1fr;
+      }
+      header {
+        padding-top: 34px;
+      }
+    }
+
+    code.kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color: rgba(232,236,255,0.95);
+    }
+
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widgets</h1>
+    <p>Each widget is wrapped in <code class="kbd">div.example</code> and the controlled content container uses <code class="kbd">.details</code>.</p>
+  </header>
+
+  <main>
+    <div class="example" data-open="false">
+      <div class="bar">
+        <div class="title">
+          <strong>Custom toggle (button + JS)</strong>
+          <span>Accessible: aria-expanded + aria-controls</span>
+        </div>
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="details-a" data-toggle>
+          <span class="chev" aria-hidden="true"></span>
+          <span class="label">Expand</span>
+        </button>
+      </div>
+
+      <div class="details" id="details-a" hidden>
+        <div class="card">
+          <p>This content is controlled by the button above.</p>
+          <ul>
+            <li>Press <code class="kbd">Tab</code> to focus the button.</li>
+            <li>Press <code class="kbd">Enter</code> or <code class="kbd">Space</code> to toggle.</li>
+            <li>The widget updates <code class="kbd">aria-expanded</code> and <code class="kbd">hidden</code>.</li>
+          </ul>
+          <div class="note">Tip: You can place any HTML inside <code class="kbd">.details</code>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example" data-open="true">
+      <div class="bar">
+        <div class="title">
+          <strong>Native details/summary</strong>
+          <span>Uses built-in browser behavior</span>
+        </div>
+        <span class="note" style="margin:0;">(Open by default)</span>
+      </div>
+
+      <details open style="padding: 14px;">
+        <summary class="toggle" style="list-style:none; display:inline-flex; margin-bottom:12px;">
+          <span class="chev" aria-hidden="true" style="transform: rotate(45deg);"></span>
+          <span>Collapse</span>
+        </summary>
+
+        <div class="details">
+          <div class="card">
+            <p>This example uses the native <code class="kbd">&lt;details&gt;</code> element, but still places the controlled content inside a <code class="kbd">.details</code> container.</p>
+            <ul>
+              <li>Keyboard and accessibility are handled by the browser.</li>
+              <li>Great for simple disclosure patterns.</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      function setOpen(exampleEl, buttonEl, detailsEl, open) {
+        exampleEl.dataset.open = open ? "true" : "false";
+        buttonEl.setAttribute("aria-expanded", open ? "true" : "false");
+        detailsEl.hidden = !open;
+        var label = buttonEl.querySelector(".label");
+        if (label) label.textContent = open ? "Collapse" : "Expand";
+      }
+
+      document.querySelectorAll(".example").forEach(function (exampleEl) {
+        var buttonEl = exampleEl.querySelector("[data-toggle]");
+        var detailsId = buttonEl && buttonEl.getAttribute("aria-controls");
+        var detailsEl = detailsId ? document.getElementById(detailsId) : null;
+
+        if (!buttonEl || !detailsEl) return;
+
+        var initiallyOpen = exampleEl.dataset.open === "true" || buttonEl.getAttribute("aria-expanded") === "true";
+        setOpen(exampleEl, buttonEl, detailsEl, initiallyOpen);
+
+        buttonEl.addEventListener("click", function () {
+          var open = buttonEl.getAttribute("aria-expanded") === "true";
+          setOpen(exampleEl, buttonEl, detailsEl, !open);
+        });
+
+        buttonEl.addEventListener("keydown", function (e) {
+          if (e.key === " " || e.key === "Spacebar") {
+            e.preventDefault();
+            buttonEl.click();
+          }
+        });
+      });
+
+      // Keep the chevron/label in the native <details> example in sync.
+      document.querySelectorAll(".example details").forEach(function (detailsEl) {
+        var summary = detailsEl.querySelector("summary");
+        if (!summary) return;
+
+        function sync() {
+          var chev = summary.querySelector(".chev");
+          if (chev) chev.style.transform = detailsEl.open ? "rotate(45deg)" : "rotate(-45deg)";
+          var textNode = summary.querySelector("span:last-child");
+          if (textNode) textNode.textContent = detailsEl.open ? "Collapse" : "Expand";
+        }
+
+        detailsEl.addEventListener("toggle", sync);
+        sync();
+      });
+    })();
+  </script>
+</body>
+</html>

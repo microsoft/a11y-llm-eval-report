@@ -1,0 +1,465 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand / Collapse examples - Accessibility demo</title>
+  <meta name="description" content="Accessible expand/collapse widgets demonstrating keyboard support, ARIA, and responsive behavior." />
+  <style>
+    /*
+      Color token palette (do not scatter colors elsewhere).
+      These tokens are chosen for high contrast on light backgrounds.
+    */
+    :root{
+      --color-bg: #ffffff;
+      --color-text: #0b0b0b;
+      --color-muted-text: #2f2f2f; /* still meets contrast for body text */
+      --color-primary: #005fcc; /* primary interactive color */
+      --color-border: #d6d9dd;
+      --color-focus: #ffbf47; /* high-visibility focus ring */
+      --color-danger: #b00020;
+      --color-success: #007a3d;
+      --max-width: 900px;
+      --radius: 8px;
+      --gap: 16px;
+      --shadow: 0 1px 2px rgba(11,11,11,0.06);
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+    }
+
+    /* Basic page layout and landmarks */
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background:var(--color-bg);
+      color:var(--color-text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.4;
+      padding:24px;
+      box-sizing:border-box;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+    }
+
+    .container{
+      width:100%;
+      max-width:var(--max-width);
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    header h1{
+      font-size:20px;
+      margin:0;
+    }
+
+    nav{
+      margin-bottom:18px;
+    }
+
+    nav ul{
+      list-style:none;
+      padding:0;
+      display:flex;
+      gap:12px;
+      margin:0;
+    }
+
+    nav a{
+      color:var(--color-primary);
+      text-decoration:none;
+      font-size:14px;
+    }
+    nav a:focus{
+      outline: 3px solid var(--color-focus);
+      outline-offset:2px;
+      border-radius:4px;
+    }
+
+    main{
+      background: #fbfcfd;
+      border:1px solid var(--color-border);
+      padding:18px;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    footer{
+      margin-top:18px;
+      font-size:13px;
+      color:var(--color-muted-text);
+    }
+
+    /* Skip link (first focusable element) */
+    .sr-only {
+      position:absolute;
+      left:0;
+      top:0;
+      transform:translateY(-100%);
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height:1px;
+      width:1px;
+      overflow:hidden;
+      white-space:nowrap;
+    }
+    .sr-only:focus, .sr-only:active {
+      position:static;
+      transform:none;
+      clip:auto;
+      clip-path:none;
+      height:auto;
+      width:auto;
+      overflow:visible;
+      padding:8px 12px;
+      background:var(--color-primary);
+      color:white;
+      border-radius:4px;
+      z-index:1000;
+    }
+
+    /* Example wrapper as required */
+    .example{
+      margin-bottom:18px;
+    }
+
+    /* Expand/collapse button */
+    .expander {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      width:100%;
+      background:linear-gradient(180deg,#ffffff,#f7fbff);
+      border:1px solid var(--color-border);
+      padding:12px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      color:var(--color-text);
+      text-align:left;
+      font-size:16px;
+      box-shadow:var(--shadow);
+    }
+    .expander:hover{
+      background:#f3f8ff;
+    }
+    .expander:active{
+      transform:translateY(1px);
+    }
+
+    /* Visual label and meta */
+    .expander .label{
+      flex:1 1 auto;
+      min-width:0; /* allow truncation/wrapping in flex */
+    }
+    .expander .label .title{
+      display:block;
+      font-weight:600;
+      color:var(--color-text);
+    }
+    .expander .label .desc{
+      display:block;
+      font-size:13px;
+      color:var(--color-muted-text);
+      margin-top:4px;
+    }
+
+    /* Icon (chevron) */
+    .chev {
+      width:20px;
+      height:20px;
+      flex:0 0 20px;
+      display:inline-block;
+      transition:transform 200ms ease;
+      color:var(--color-primary);
+      align-self:flex-start;
+      margin-top:2px;
+    }
+    .chev[aria-hidden="true"] svg{ display:block; width:100%; height:100%; }
+
+    /* rotated when expanded (uses aria-expanded on button) */
+    button[aria-expanded="true"] .chev {
+      transform:rotate(180deg);
+    }
+
+    /* Controlled content (required class 'details') */
+    .details {
+      margin-top:12px;
+      padding:12px;
+      border-radius:6px;
+      background:#ffffff;
+      border:1px solid var(--color-border);
+      color:var(--color-text);
+      font-size:15px;
+      line-height:1.5;
+    }
+
+    /* Make sure focus is visible and meets contrast */
+    button:focus {
+      outline: 3px solid var(--color-focus);
+      outline-offset:3px;
+      border-radius:6px;
+    }
+
+    /* Ensure interactive size */
+    button, .expander {
+      min-height:44px;
+    }
+
+    /* Responsive behavior - reflow to single column at small widths */
+    @media (max-width:480px){
+      body{ padding:12px; }
+      .expander{ padding:10px; font-size:15px; }
+    }
+
+    /* Prevent long words from overflowing */
+    .details, .expander, .label { overflow-wrap:anywhere; }
+
+    /* Focusable elements inside details are visible when present */
+    .details a, .details button {
+      color:var(--color-primary);
+      text-decoration:underline;
+    }
+
+    /* Forced colors support for high-contrast modes */
+    @media (forced-colors: active) {
+      .expander {
+        background: ButtonFace;
+        color: ButtonText;
+        border: 2px solid ButtonBorder;
+        box-shadow: none;
+      }
+      button:focus {
+        outline: 2px solid Highlight;
+      }
+      .chev{ color: ButtonText; }
+      .details{
+        background: Canvas;
+        border: 2px solid ButtonBorder;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+
+    <header>
+      <img src="" alt="" aria-hidden="true" style="width:48px;height:48px;border-radius:8px;background:linear-gradient(180deg,#eaf3ff,#ffffff);box-shadow:var(--shadow);"/>
+      <h1>Accessible Expand / Collapse examples</h1>
+    </header>
+
+    <nav aria-label="Primary">
+      <ul>
+        <li><a href="#example1">Example 1</a></li>
+        <li><a href="#example2">Example 2</a></li>
+        <li><a href="#maincontent">Main content</a></li>
+      </ul>
+    </nav>
+
+    <main id="maincontent" tabindex="-1" aria-labelledby="main-heading">
+      <h2 id="main-heading" style="font-size:18px;margin-top:0;">Demo: Expandable sections using button + ARIA controls</h2>
+
+      <!-- Example 1 -->
+      <div class="example" id="example1">
+        <!-- The button controls a container with class 'details' -->
+        <button class="expander" aria-expanded="false" aria-controls="details-1" id="expander-1">
+          <span class="label">
+            <span class="title">More information about the policy</span>
+            <span class="desc">Click to reveal a brief summary. Press Enter or Space to toggle; Escape to close.</span>
+          </span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" fill="currentColor"/></svg>
+          </span>
+        </button>
+
+        <div id="details-1" class="details" hidden aria-hidden="true">
+          <p>
+            This summary explains the main points of the policy in plain language. If you need more details,
+            use the link below to read the full document. The controlled content is removed from the accessibility tree when collapsed,
+            and becomes programmatically available when expanded.
+          </p>
+          <p>
+            Key points:
+          </p>
+          <ul>
+            <li>Short, readable sentences and clear headings.</li>
+            <li>Keyboard focus remains predictable and visible.</li>
+            <li>Color is not the only cue for state — screen readers get aria-expanded updates.</li>
+          </ul>
+          <p>
+            <a href="#" aria-label="Read the full policy document (opens in new tab)">Read the full policy</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Example 2: Multiple expanders demonstrating unique ids and context in labels -->
+      <div class="example" id="example2">
+        <button class="expander" aria-expanded="false" aria-controls="details-2" id="expander-2">
+          <span class="label">
+            <span class="title">Show troubleshooting steps</span>
+            <span class="desc">Provides step-by-step guidance. Each step remains keyboard reachable when visible.</span>
+          </span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" fill="currentColor"/></svg>
+          </span>
+        </button>
+
+        <div id="details-2" class="details" hidden aria-hidden="true">
+          <ol>
+            <li>
+              Restart the application. If that does not resolve the issue, continue to the next step.
+            </li>
+            <li>
+              Check your network connection. Try a different network if available.
+            </li>
+            <li>
+              Clear cached data: go to Settings &gt; Storage &gt; Clear cache.
+            </li>
+            <li>
+              If none of the above work, contact support:
+              <div style="margin-top:8px;">
+                <button type="button" style="padding:8px 10px;border-radius:6px;border:1px solid var(--color-border);background:#f6f8fb;color:var(--color-text);cursor:pointer;">Open support form</button>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <footer>
+        Note: This demo uses buttons controlling sibling elements with the required class "details". The examples aim to follow WCAG 2.2 AA patterns; further manual testing is recommended.
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    (function(){
+      // Utility to make a unique id if one is missing (shouldn't be necessary here but safe)
+      function ensureId(el, prefix){
+        if(!el.id){
+          el.id = prefix + '-' + Math.random().toString(36).slice(2,9);
+        }
+        return el.id;
+      }
+
+      // Toggle handler for expanders
+      function toggleExpander(button, expand){
+        var controls = button.getAttribute('aria-controls');
+        if(!controls) return;
+        var panel = document.getElementById(controls);
+        if(!panel) return;
+
+        var willExpand = (typeof expand === 'boolean') ? expand : !(button.getAttribute('aria-expanded') === 'true');
+        button.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+
+        if(willExpand){
+          // show
+          panel.hidden = false;
+          panel.removeAttribute('aria-hidden');
+          // Move focus to start of panel if it was opened with a keyboard shortcut? We leave focus on button.
+        } else {
+          // hide
+          panel.hidden = true;
+          panel.setAttribute('aria-hidden','true');
+          // If focus is inside the panel, return focus to the controlling button
+          if(panel.contains(document.activeElement)){
+            button.focus();
+          }
+        }
+      }
+
+      // Find expanders
+      var expanders = document.querySelectorAll('button.expander[aria-controls]');
+      expanders.forEach(function(btn){
+        // Ensure aria-expanded is present
+        if(!btn.hasAttribute('aria-expanded')){
+          btn.setAttribute('aria-expanded','false');
+        }
+
+        // Make sure aria-controls references an id that exists
+        var controls = btn.getAttribute('aria-controls');
+        var panel = controls ? document.getElementById(controls) : null;
+        if(!panel){
+          // try to find .details sibling and ensure it has an id
+          var sibling = btn.parentElement.querySelector('.details');
+          if(sibling){
+            ensureId(sibling, 'details');
+            btn.setAttribute('aria-controls', sibling.id);
+            panel = sibling;
+          }
+        }
+
+        // If panel exists, initialize hidden state if not set
+        if(panel){
+          if(!panel.hasAttribute('hidden') && panel.getAttribute('aria-hidden') !== 'true'){
+            // Panel appears visible by default — keep visible but ensure aria-expanded is true
+            btn.setAttribute('aria-expanded','true');
+            panel.removeAttribute('aria-hidden');
+          } else {
+            // Ensure hidden
+            panel.hidden = true;
+            panel.setAttribute('aria-hidden','true');
+            btn.setAttribute('aria-expanded','false');
+          }
+        }
+
+        // Click toggles
+        btn.addEventListener('click', function(e){
+          toggleExpander(btn);
+        });
+
+        // Keyboard handling: Escape closes when focused inside the panel or when button focused
+        btn.addEventListener('keydown', function(e){
+          if(e.key === 'Escape'){
+            // Close the panel if open
+            if(btn.getAttribute('aria-expanded') === 'true'){
+              e.preventDefault();
+              toggleExpander(btn, false);
+              btn.focus();
+            }
+          }
+        });
+
+        // Add global keydown to close with Escape when focus is inside the panel
+        if(panel){
+          panel.addEventListener('keydown', function(e){
+            if(e.key === 'Escape'){
+              e.preventDefault();
+              toggleExpander(btn, false);
+              btn.focus();
+            }
+          });
+        }
+      });
+
+      // Ensure Tab order is predictable and no hidden content is focusable.
+      // For robustness: remove any tabindex on descendants of hidden panels.
+      var observer = new MutationObserver(function(mutations){
+        mutations.forEach(function(m){
+          if(m.type === 'attributes' && m.attributeName === 'hidden'){
+            var target = m.target;
+            if(target.hidden){
+              // Save tabindex values if any (not implemented here) and remove focusable attributes
+              // Common interactive elements inside a hidden panel are naturally unfocusable due to display:none.
+              // No extra work required.
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll('.details').forEach(function(panel){
+        observer.observe(panel, { attributes: true });
+      });
+
+      // Final accessibility check: ensure the skip link works (focus main when used).
+      // The skip link already points to #maincontent which has tabindex="-1".
+      // No further runtime action required.
+
+    })();
+  </script>
+</body>
+</html>

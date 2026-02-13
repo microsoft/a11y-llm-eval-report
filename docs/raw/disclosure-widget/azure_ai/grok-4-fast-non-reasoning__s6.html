@@ -13,7 +13,7 @@
         .example {
             margin-bottom: 30px;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 5px;
             overflow: hidden;
         }
         .example h3 {
@@ -22,89 +22,154 @@
             background-color: #f5f5f5;
             cursor: pointer;
             user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .example h3:hover {
+            background-color: #e9e9e9;
         }
         .details {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            transition: max-height 0.3s ease-out;
             background-color: #fff;
         }
         .details.expanded {
             max-height: 500px; /* Adjust based on content */
+        }
+        .details-content {
             padding: 20px;
         }
-        .details p {
-            margin: 0 0 10px 0;
+        .toggle-icon {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+        .example h3[aria-expanded="true"] .toggle-icon {
+            transform: rotate(180deg);
+        }
+        .example[aria-disabled="true"] {
+            opacity: 0.6;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
     <h1>Expand/Collapse Widget Demo</h1>
 
-    <div class="example">
-        <h3 onclick="toggleDetails(this)">Example 1: Basic Information</h3>
+    <div class="example" role="button" tabindex="0" aria-expanded="false" aria-label="Toggle first example">
+        <h3>
+            Basic Expand/Collapse Widget
+            <span class="toggle-icon" aria-hidden="true">▼</span>
+        </h3>
         <div class="details">
-            <p>This is the first example of an expand/collapse widget. Click the header to toggle the content visibility. The content smoothly animates when expanding or collapsing.</p>
-            <p>You can add any type of content here, including text, lists, images, or even other interactive elements.</p>
+            <div class="details-content">
+                <p>This is a basic expand/collapse widget. Click the header to toggle the content visibility. The animation provides smooth transitions, and the icon rotates to indicate the state.</p>
+                <ul>
+                    <li>Smooth CSS transitions</li>
+                    <li>Accessible with keyboard navigation</li>
+                    <li>Visual feedback with rotating icon</li>
+                </ul>
+            </div>
         </div>
     </div>
 
-    <div class="example">
-        <h3 onclick="toggleDetails(this)">Example 2: Features List</h3>
-        <div class="details">
-            <ul>
-                <li>Smooth CSS transitions for expand/collapse animations</li>
-                <li>JavaScript toggle functionality</li>
-                <li>Responsive design that works on mobile devices</li>
-                <li>Customizable styling for different use cases</li>
-                <li>Accessible with keyboard navigation support</li>
-            </ul>
-            <p>This widget is perfect for FAQs, accordions, or any content that needs to be selectively revealed to users.</p>
+    <div class="example" role="button" tabindex="0" aria-expanded="true" aria-label="Toggle second example">
+        <h3>
+            Accordion with Multiple Sections
+            <span class="toggle-icon" aria-hidden="true">▼</span>
+        </h3>
+        <div class="details expanded">
+            <div class="details-content">
+                <p>This example starts expanded. In a real accordion, you might want only one section open at a time, but this demo shows independent expand/collapse behavior.</p>
+                <h4>Features:</h4>
+                <ul>
+                    <li>ARIA attributes for accessibility</li>
+                    <li>Keyboard accessible (Enter/Space to toggle)</li>
+                    <li>Hover effects for better UX</li>
+                    <li>Content can be as long as needed</li>
+                </ul>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            </div>
         </div>
     </div>
 
-    <div class="example">
-        <h3 onclick="toggleDetails(this)">Example 3: Detailed Instructions</h3>
+    <div class="example" role="button" tabindex="0" aria-expanded="false" aria-label="Toggle FAQ example" aria-disabled="false">
+        <h3>
+            FAQ Style Widget
+            <span class="toggle-icon" aria-hidden="true">▼</span>
+        </h3>
         <div class="details">
-            <h4>Step-by-step guide:</h4>
-            <ol>
-                <li>Click on the header to expand the content</li>
-                <li>Review the detailed information provided</li>
-                <li>Click again to collapse and hide the content</li>
-                <li>Multiple widgets can be used independently</li>
-            </ol>
-            <p>The transition effect makes the interaction feel smooth and professional. Each example is wrapped in its own container for easy styling and maintenance.</p>
+            <div class="details-content">
+                <p><strong>Q: How does the expand/collapse work?</strong></p>
+                <p>A: It uses CSS transitions on the max-height property combined with JavaScript to toggle the 'expanded' class and update ARIA attributes for accessibility.</p>
+                
+                <p><strong>Q: Is it responsive?</strong></p>
+                <p>A: Yes, the widget works on all screen sizes and maintains accessibility across devices.</p>
+                
+                <p><strong>Q: Can I customize the animation?</strong></p>
+                <p>A: Absolutely! The transition duration and easing can be modified in the CSS, and you can adjust the max-height value based on your content needs.</p>
+            </div>
         </div>
     </div>
 
     <script>
-        function toggleDetails(header) {
-            const details = header.nextElementSibling;
-            details.classList.toggle('expanded');
+        // Get all example widgets
+        const examples = document.querySelectorAll('.example');
+        
+        examples.forEach(example => {
+            const header = example.querySelector('h3');
+            const details = example.querySelector('.details');
+            const isExpanded = example.getAttribute('aria-expanded') === 'true';
             
-            // Optional: Update the header icon or text
-            const currentText = header.innerText;
-            if (details.classList.contains('expanded')) {
-                header.innerHTML = currentText.replace('▼', '▲').replace('▶', '▼');
-            } else {
-                header.innerHTML = currentText.replace('▲', '▶').replace('▼', '▶');
+            // Set initial state
+            if (isExpanded) {
+                details.classList.add('expanded');
             }
-        }
-
-        // Initialize headers with icons
-        document.querySelectorAll('.example h3').forEach(header => {
-            header.innerHTML += ' ▶';
-        });
-
-        // Add keyboard support for accessibility
-        document.querySelectorAll('.example h3').forEach(header => {
-            header.setAttribute('tabindex', '0');
-            header.addEventListener('keydown', function(e) {
+            
+            // Toggle function
+            function toggle() {
+                if (example.getAttribute('aria-disabled') === 'true') return;
+                
+                const isCurrentlyExpanded = example.getAttribute('aria-expanded') === 'true';
+                const newExpandedState = !isCurrentlyExpanded;
+                
+                example.setAttribute('aria-expanded', newExpandedState);
+                details.classList.toggle('expanded', newExpandedState);
+                
+                // Update aria-label for screen readers
+                const question = header.textContent.trim().replace('▼', '').trim();
+                example.setAttribute('aria-label', `Toggle ${question}`);
+            }
+            
+            // Event listeners
+            header.addEventListener('click', toggle);
+            
+            // Keyboard accessibility
+            header.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    toggleDetails(this);
+                    toggle();
                 }
             });
+            
+            // Focus management
+            example.addEventListener('focus', () => {
+                header.focus();
+            });
+        });
+        
+        // Optional: Close all when clicking outside (demo purposes)
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.example')) {
+                examples.forEach(example => {
+                    if (example.getAttribute('aria-expanded') === 'true') {
+                        const details = example.querySelector('.details');
+                        example.setAttribute('aria-expanded', 'false');
+                        details.classList.remove('expanded');
+                    }
+                });
+            }
         });
     </script>
 </body>

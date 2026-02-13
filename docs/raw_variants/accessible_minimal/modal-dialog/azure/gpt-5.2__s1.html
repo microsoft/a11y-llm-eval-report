@@ -1,0 +1,234 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #ffffff;
+      --fg: #111111;
+      --muted: #666666;
+      --overlay: rgba(0, 0, 0, 0.55);
+      --border: rgba(0, 0, 0, 0.2);
+      --focus: #0b5fff;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius: 14px;
+      --pad: 1rem;
+      --maxw: 34rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1115;
+        --fg: #f2f4f8;
+        --muted: #a7b0be;
+        --overlay: rgba(0, 0, 0, 0.7);
+        --border: rgba(255, 255, 255, 0.18);
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 60rem;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .trigger {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: inherit;
+      padding: 0.75rem 1rem;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .trigger:hover {
+      border-color: color-mix(in srgb, var(--border) 40%, var(--fg));
+    }
+
+    .trigger:focus-visible,
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
+    dialog {
+      width: min(var(--maxw), calc(100vw - 2rem));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      box-shadow: var(--shadow);
+    }
+
+    dialog::backdrop {
+      background: var(--overlay);
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      padding: var(--pad);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.125rem;
+      line-height: 1.25;
+    }
+
+    .modal-body {
+      color: var(--fg);
+    }
+
+    .modal-body p {
+      margin: 0 0 0.75rem 0;
+    }
+
+    .modal-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: inherit;
+      padding: 0.6rem 0.9rem;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn.primary {
+      background: color-mix(in srgb, var(--focus) 18%, transparent);
+      border-color: color-mix(in srgb, var(--focus) 55%, var(--border));
+    }
+
+    .btn.close-x {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      padding: 0;
+      flex: 0 0 auto;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal dialog component</h1>
+    <p>This example uses the native <code>&lt;dialog&gt;</code> element. The modal is closed by default.</p>
+
+    <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="example-modal">
+      Open modal dialog
+    </button>
+
+    <p class="hint">Tip: Press <kbd>Esc</kbd> to close the modal when it’s open.</p>
+
+    <dialog id="example-modal" aria-labelledby="modal-title" aria-describedby="modal-desc">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Example modal</h2>
+        <button class="btn close-x" type="button" data-close aria-label="Close dialog">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+
+      <div class="modal-body" id="modal-desc">
+        <p>This is an accessible modal dialog. Focus moves into the dialog when it opens.</p>
+        <p>You can close it with the Close button, the Cancel button, or the Escape key.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn" type="button" data-close>Cancel</button>
+        <button class="btn primary" type="button" id="confirm-btn">Confirm</button>
+      </div>
+    </dialog>
+  </main>
+
+  <script>
+    (function () {
+      const trigger = document.querySelector('.trigger');
+      const dialog = document.getElementById('example-modal');
+      const closeButtons = dialog.querySelectorAll('[data-close]');
+      const confirmBtn = document.getElementById('confirm-btn');
+
+      let lastActiveElement = null;
+
+      function openModal() {
+        lastActiveElement = document.activeElement;
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute('open', '');
+        }
+      }
+
+      function closeModal() {
+        if (dialog.open) dialog.close();
+      }
+
+      trigger.addEventListener('click', openModal);
+
+      closeButtons.forEach((btn) => {
+        btn.addEventListener('click', closeModal);
+      });
+
+      confirmBtn.addEventListener('click', () => {
+        closeModal();
+      });
+
+      dialog.addEventListener('close', () => {
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        } else {
+          trigger.focus();
+        }
+      });
+
+      dialog.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        closeModal();
+      });
+    })();
+  </script>
+</body>
+</html>

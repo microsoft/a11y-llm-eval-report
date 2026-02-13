@@ -1,0 +1,303 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessible Modal Dialog Example</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #111a2e;
+      --text: #f2f5ff;
+      --muted: #c9d2f0;
+      --border: #2a3a66;
+      --focus: #ffd54a;
+      --overlay: rgba(0, 0, 0, 0.65);
+      --btn: #2b5cff;
+      --btnText: #ffffff;
+      --btnHover: #244fe0;
+      --btnSecondary: #2a3a66;
+      --btnSecondaryHover: #344a86;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 20% 0%, #18264a 0%, var(--bg) 55%);
+    }
+
+    main {
+      max-width: 70ch;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    h1 { font-size: 1.75rem; margin: 0 0 0.75rem; }
+    p { color: var(--muted); margin: 0 0 1rem; }
+
+    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+
+    button {
+      appearance: none;
+      border: 1px solid transparent;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      font-weight: 650;
+      cursor: pointer;
+      background: var(--btn);
+      color: var(--btnText);
+    }
+    button:hover { background: var(--btnHover); }
+    button:active { transform: translateY(1px); }
+
+    .secondary {
+      background: transparent;
+      border-color: var(--btnSecondary);
+      color: var(--text);
+    }
+    .secondary:hover { background: var(--btnSecondaryHover); }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    /* Dialog styling */
+    dialog {
+      width: min(42rem, calc(100% - 2rem));
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 0;
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+    }
+
+    dialog::backdrop {
+      background: var(--overlay);
+    }
+
+    .dialog-inner {
+      padding: 1.25rem 1.25rem 1rem;
+    }
+
+    .dialog-header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.25rem 1.25rem 0;
+    }
+
+    .dialog-title {
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.2;
+    }
+
+    .dialog-close {
+      background: transparent;
+      border: 1px solid var(--btnSecondary);
+      color: var(--text);
+      border-radius: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      font-weight: 650;
+    }
+    .dialog-close:hover { background: var(--btnSecondaryHover); }
+
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      padding: 0 1.25rem 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal dialog example</h1>
+    <p>
+      This example uses the native <code>&lt;dialog&gt;</code> element. The dialog is closed by default.
+      Use the “Open dialog” button to show it. Press <kbd>Esc</kbd> to close.
+    </p>
+
+    <div class="actions">
+      <button type="button" class="trigger" id="openDialogBtn">
+        Open dialog
+      </button>
+      <button type="button" class="secondary">
+        Another focusable control
+      </button>
+    </div>
+
+    <p class="hint" id="pageHint">
+      Keyboard: Tab moves focus; Shift+Tab moves backward. When the dialog opens, focus moves inside it and is trapped until closed.
+    </p>
+
+    <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="dialogTitle">Example modal dialog</h2>
+        <button type="button" class="dialog-close" id="closeXBtn">
+          Close
+        </button>
+      </div>
+
+      <div class="dialog-inner">
+        <p id="dialogDesc">
+          This is a modal dialog. It traps focus while open and returns focus to the trigger button when closed.
+        </p>
+
+        <label for="nameInput">Your name</label><br />
+        <input
+          id="nameInput"
+          name="name"
+          type="text"
+          autocomplete="name"
+          style="margin-top:0.25rem; width: min(28rem, 100%); padding: 0.6rem 0.7rem; border-radius: 0.75rem; border: 1px solid var(--border); background: #0c1428; color: var(--text);"
+        />
+        <p class="hint">Try tabbing through the controls. Press Esc to close.</p>
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="secondary" id="cancelBtn">Cancel</button>
+        <button type="button" id="confirmBtn">Confirm</button>
+      </div>
+    </dialog>
+  </main>
+
+  <script>
+    (function () {
+      const dialog = document.getElementById('exampleDialog');
+      const openBtn = document.getElementById('openDialogBtn');
+      const closeXBtn = document.getElementById('closeXBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const confirmBtn = document.getElementById('confirmBtn');
+      const nameInput = document.getElementById('nameInput');
+
+      let lastActiveElement = null;
+
+      function getFocusableElements(container) {
+        const selectors = [
+          'a[href]',
+          'area[href]',
+          'button:not([disabled])',
+          'input:not([disabled]):not([type="hidden"])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          'summary',
+          '[tabindex]:not([tabindex="-1"])'
+        ];
+        return Array.from(container.querySelectorAll(selectors.join(',')))
+          .filter(el => !el.hasAttribute('disabled') && el.tabIndex !== -1 && isVisible(el));
+      }
+
+      function isVisible(el) {
+        const style = window.getComputedStyle(el);
+        return style.visibility !== 'hidden' && style.display !== 'none';
+      }
+
+      function openDialog() {
+        if (dialog.open) return;
+
+        lastActiveElement = document.activeElement;
+
+        // Ensure trigger reflects expanded state
+        openBtn.setAttribute('aria-haspopup', 'dialog');
+        openBtn.setAttribute('aria-expanded', 'true');
+
+        dialog.showModal();
+
+        // Move focus to first meaningful control
+        window.requestAnimationFrame(() => {
+          nameInput.focus();
+        });
+      }
+
+      function closeDialog() {
+        if (!dialog.open) return;
+
+        dialog.close();
+
+        openBtn.setAttribute('aria-expanded', 'false');
+
+        // Restore focus to the element that opened the dialog
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        } else {
+          openBtn.focus();
+        }
+      }
+
+      // Focus trap (extra safety; <dialog> is modal but this ensures consistent behavior)
+      dialog.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab') return;
+
+        const focusables = getFocusableElements(dialog);
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
+
+      // Close on backdrop click (clicking outside the dialog content)
+      dialog.addEventListener('click', (e) => {
+        const rect = dialog.getBoundingClientRect();
+        const clickedInDialog =
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom;
+
+        if (!clickedInDialog) closeDialog();
+      });
+
+      // Ensure focus returns when dialog closes (including Esc)
+      dialog.addEventListener('close', () => {
+        openBtn.setAttribute('aria-expanded', 'false');
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        }
+      });
+
+      openBtn.addEventListener('click', openDialog);
+      closeXBtn.addEventListener('click', closeDialog);
+      cancelBtn.addEventListener('click', closeDialog);
+
+      confirmBtn.addEventListener('click', () => {
+        // Example action
+        closeDialog();
+      });
+
+      // Initialize ARIA state
+      openBtn.setAttribute('aria-haspopup', 'dialog');
+      openBtn.setAttribute('aria-expanded', 'false');
+      openBtn.setAttribute('aria-controls', dialog.id);
+    })();
+  </script>
+</body>
+</html>

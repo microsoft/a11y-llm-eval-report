@@ -1,0 +1,239 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --backdrop: rgba(0, 0, 0, 0.55);
+      --panel: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 20px 60px rgba(0,0,0,0.25);
+      --radius: 14px;
+      --focus: 0 0 0 3px rgba(59, 130, 246, 0.35);
+      --btn: #111827;
+      --btnText: #ffffff;
+      --btnSubtle: #f3f4f6;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 40px;
+      color: var(--text);
+      background: #f9fafb;
+    }
+
+    .trigger {
+      appearance: none;
+      border: 0;
+      background: #2563eb;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .trigger:focus-visible { outline: none; box-shadow: var(--focus); }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none; /* closed by default */
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 1000;
+    }
+    .modal[aria-hidden="false"] { display: flex; }
+
+    .modal__backdrop {
+      position: absolute;
+      inset: 0;
+      background: var(--backdrop);
+    }
+
+    .modal__panel {
+      position: relative;
+      width: min(560px, 100%);
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .modal__header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 18px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal__title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .modal__close {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .modal__close:focus-visible { outline: none; box-shadow: var(--focus); }
+
+    .modal__body {
+      padding: 14px 18px 18px;
+      color: var(--text);
+    }
+
+    .modal__body p {
+      margin: 0 0 10px;
+      color: var(--muted);
+    }
+
+    .modal__footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 12px 18px 18px;
+      border-top: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--btnSubtle);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn.primary {
+      background: var(--btn);
+      color: var(--btnText);
+      border-color: transparent;
+    }
+    .btn:focus-visible { outline: none; box-shadow: var(--focus); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal Dialog Example</h1>
+    <p>This modal is closed by default. Click the trigger button to open it.</p>
+    <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="example-modal">
+      Open modal
+    </button>
+  </main>
+
+  <div id="example-modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title">
+    <div class="modal__backdrop" data-close="backdrop" tabindex="-1"></div>
+
+    <section class="modal__panel" role="document">
+      <header class="modal__header">
+        <h2 id="modal-title" class="modal__title">Example modal dialog</h2>
+        <button class="modal__close" type="button" data-close="button" aria-label="Close dialog">Close</button>
+      </header>
+
+      <div class="modal__body">
+        <p>This is an example modal component.</p>
+        <p>It closes when you click the backdrop, press Escape, or click a close button.</p>
+      </div>
+
+      <footer class="modal__footer">
+        <button class="btn" type="button" data-close="cancel">Cancel</button>
+        <button class="btn primary" type="button" data-close="confirm">Confirm</button>
+      </footer>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const modal = document.getElementById('example-modal');
+      const trigger = document.querySelector('button.trigger');
+      const panel = modal.querySelector('.modal__panel');
+      const closeButtons = modal.querySelectorAll('[data-close]');
+      let lastFocused = null;
+
+      function getFocusable(container) {
+        return Array.from(container.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(el => !el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'));
+      }
+
+      function openModal() {
+        lastFocused = document.activeElement;
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        const focusables = getFocusable(panel);
+        (focusables[0] || panel).focus?.();
+      }
+
+      function closeModal() {
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+      }
+
+      trigger.addEventListener('click', openModal);
+
+      closeButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          // Backdrop click should only close if the backdrop itself was clicked
+          if (e.currentTarget.dataset.close === 'backdrop') closeModal();
+          else closeModal();
+        });
+      });
+
+      modal.addEventListener('click', (e) => {
+        // Prevent clicks inside the panel from closing the modal
+        if (e.target === modal) closeModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (modal.getAttribute('aria-hidden') === 'true') return;
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+
+        // Basic focus trap
+        if (e.key === 'Tab') {
+          const focusables = getFocusable(panel);
+          if (focusables.length === 0) return;
+
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      });
+
+      // Ensure panel can receive focus if needed
+      panel.setAttribute('tabindex', '-1');
+    })();
+  </script>
+</body>
+</html>

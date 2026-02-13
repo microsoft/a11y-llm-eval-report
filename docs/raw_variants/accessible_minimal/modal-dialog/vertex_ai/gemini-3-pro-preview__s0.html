@@ -1,0 +1,215 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Modal Dialog Example</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --text-color: #333;
+            --bg-color: #f4f4f9;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Trigger Button Styling */
+        .trigger {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .trigger:hover {
+            background-color: #004494;
+        }
+
+        .trigger:focus-visible {
+            outline: 3px solid #ffa500;
+            outline-offset: 2px;
+        }
+
+        /* Dialog Styling */
+        dialog {
+            border: none;
+            border-radius: 8px;
+            padding: 0;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+        }
+
+        /* Dialog Content Layout */
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .close-icon-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+        }
+
+        .close-icon-btn:hover {
+            background-color: #eee;
+            color: #000;
+        }
+
+        .close-icon-btn:focus-visible {
+            outline: 2px solid var(--primary-color);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            border-top: 1px solid #ddd;
+        }
+
+        /* Footer Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border: 1px solid transparent;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            border-color: #ccc;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #004494;
+        }
+
+        /* Animation for opening */
+        dialog[open] {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Trigger Button -->
+    <button type="button" class="trigger" aria-haspopup="dialog" aria-controls="example-modal">
+        Open Settings
+    </button>
+
+    <!-- Modal Dialog -->
+    <dialog id="example-modal" aria-labelledby="modal-title" aria-modal="true">
+        <div class="modal-header">
+            <h2 id="modal-title">Account Settings</h2>
+            <!-- Close button (X) -->
+            <button type="button" class="close-icon-btn" aria-label="Close modal">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <p>Would you like to save the changes made to your user profile?</p>
+            <p>This action cannot be undone.</p>
+        </div>
+
+        <div class="modal-footer">
+            <!-- Using form method="dialog" handles closing automatically without extra JS -->
+            <form method="dialog">
+                <button type="submit" class="btn btn-secondary" value="cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary" value="confirm">Save Changes</button>
+            </form>
+        </div>
+    </dialog>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('example-modal');
+            const triggerBtn = document.querySelector('.trigger');
+            const closeIconBtn = document.querySelector('.close-icon-btn');
+
+            // Open the modal
+            triggerBtn.addEventListener('click', () => {
+                // showModal() is required for the backdrop and focus trapping behavior
+                modal.showModal();
+            });
+
+            // Close via the 'X' icon button
+            closeIconBtn.addEventListener('click', () => {
+                modal.close();
+            });
+
+            // Close when clicking on the backdrop
+            modal.addEventListener('click', (event) => {
+                // The dialog element covers the whole screen when open, 
+                // but the content has specific dimensions.
+                // If the click coordinates match the dialog element exactly (the backdrop area), close it.
+                const rect = modal.getBoundingClientRect();
+                const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+                  rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+                
+                if (!isInDialog) {
+                    modal.close();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

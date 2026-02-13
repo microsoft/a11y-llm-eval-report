@@ -1,0 +1,457 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Popular Items, Deals & Blog - ShopEasy</title>
+    <style>
+        /* CSS Variables / Design Tokens */
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #1a1a1a;
+            --color-muted-text: #4a5568;
+            --color-link: #2b6cb0;
+            --color-link-visited: #6b46c1;
+            --color-border: #e2e8f0;
+            --color-focus: #3182ce;
+            --color-danger: #e53e3e;
+            --color-success: #38a169;
+            --color-highlight-bg: #f7fafc;
+            --color-button-bg: #3182ce;
+            --color-button-text: #ffffff;
+            --color-button-hover: #2c5282;
+            --color-button-active: #2a4365;
+            --color-button-focus-ring: rgba(49, 130, 206, 0.5);
+            --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        /* Forced Colors Mode Support */
+        @media (forced-colors: active) {
+            :root {
+                --color-bg: Canvas;
+                --color-text: CanvasText;
+                --color-muted-text: GrayText;
+                --color-link: LinkText;
+                --color-link-visited: VisitedText;
+                --color-border: ButtonBorder;
+                --color-focus: Highlight;
+                --color-button-bg: ButtonFace;
+                --color-button-text: ButtonText;
+                --color-button-hover: SelectedItem;
+                --color-button-active: SelectedItem;
+                --color-button-focus-ring: transparent;
+            }
+            .button:focus {
+                outline: 2px solid transparent;
+                outline-offset: 2px;
+            }
+            .product-card, .blog-card {
+                border: 1px solid ButtonBorder;
+            }
+        }
+
+        /* Base Styles & Reflow */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: var(--font-family);
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            line-height: 1.5;
+        }
+        img, video, canvas, iframe {
+            max-width: 100%;
+            height: auto;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .section {
+            padding: 3rem 0;
+        }
+        .section-title {
+            font-size: 1.875rem;
+            margin-top: 0;
+            margin-bottom: 2rem;
+            color: var(--color-text);
+        }
+
+        /* Reflow: Ensure content fits 320px width */
+        @media (max-width: 320px) {
+            .container {
+                padding: 0 0.75rem;
+            }
+            .section {
+                padding: 2rem 0;
+            }
+            .grid {
+                grid-template-columns: 1fr !important;
+            }
+            .nav-list {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-list li {
+                margin: 0.25rem 0;
+            }
+        }
+
+        /* Utility Classes */
+        .sr-only:not(:focus):not(:active) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+        .text-muted {
+            color: var(--color-muted-text);
+        }
+        .text-danger {
+            color: var(--color-danger);
+        }
+        .text-success {
+            color: var(--color-success);
+        }
+
+        /* Focus Styles */
+        a:focus,
+        button:focus,
+        input:focus,
+        .product-card:focus-within {
+            outline: 2px solid transparent;
+            box-shadow: 0 0 0 3px var(--color-button-focus-ring);
+        }
+        /* Fallback for forced-colors */
+        @media (forced-colors: active) {
+            a:focus,
+            button:focus,
+            input:focus,
+            .product-card:focus-within {
+                outline: 2px solid Highlight;
+                box-shadow: none;
+            }
+        }
+
+        /* Layout & Grid */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (min-width: 768px) {
+            .grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .grid-cols-4 {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Header & Navigation */
+        .site-header {
+            background-color: var(--color-highlight-bg);
+            border-bottom: 1px solid var(--color-border);
+            padding: 1rem 0;
+        }
+        .header-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--color-text);
+            text-decoration: none;
+        }
+        .logo:focus {
+            outline-offset: 4px;
+        }
+        .main-nav {
+            margin-left: auto;
+        }
+        .nav-list {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 1.5rem;
+        }
+        .nav-link {
+            color: var(--color-text);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem;
+        }
+        .nav-link:hover,
+        .nav-link:focus {
+            text-decoration: underline;
+        }
+        .nav-link[aria-current="page"] {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+        }
+
+        /* Buttons */
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: var(--color-button-hover);
+        }
+        .button:active {
+            background-color: var(--color-button-active);
+        }
+        .button:focus {
+            outline-offset: 2px;
+        }
+        .button-secondary {
+            background-color: transparent;
+            color: var(--color-button-bg);
+            border: 2px solid var(--color-button-bg);
+        }
+        .button-secondary:hover {
+            background-color: rgba(49, 130, 206, 0.1);
+        }
+
+        /* Product & Blog Cards */
+        .product-card,
+        .blog-card {
+            border: 1px solid var(--color-border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background-color: var(--color-bg);
+            display: flex;
+            flex-direction: column;
+            min-width: 0; /* Allows flex child to shrink for reflow */
+        }
+        .product-card h3,
+        .blog-card h3 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+            line-height: 1.3;
+        }
+        .product-card p,
+        .blog-card p {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+            overflow-wrap: anywhere; /* Handle long strings */
+        }
+        .product-image {
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            width: 100%;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            background-color: var(--color-highlight-bg);
+        }
+        .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+        }
+        .original-price {
+            text-decoration: line-through;
+            color: var(--color-muted-text);
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+        .sale-price {
+            color: var(--color-danger);
+        }
+
+        /* Footer */
+        .site-footer {
+            background-color: var(--color-highlight-bg);
+            border-top: 1px solid var(--color-border);
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        .footer-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+        .footer-nav .nav-list {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .copyright {
+            color: var(--color-muted-text);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+
+    <header class="site-header" role="banner">
+        <div class="container header-container">
+            <a href="/" class="logo">ShopEasy</a>
+            <nav class="main-nav" aria-label="Main">
+                <ul class="nav-list" role="list">
+                    <li><a href="/" class="nav-link" aria-current="page">Home</a></li>
+                    <li><a href="/products" class="nav-link">All Products</a></li>
+                    <li><a href="/deals" class="nav-link">Deals</a></li>
+                    <li><a href="/blog" class="nav-link">Blog</a></li>
+                    <li><a href="/cart" class="nav-link">Cart</a></li>
+                    <li><a href="/account" class="nav-link">Account</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="maincontent" tabindex="-1">
+        <div class="container">
+            <h1>Welcome to ShopEasy</h1>
+            <p class="text-muted">Discover popular items, amazing deals, and helpful shopping tips.</p>
+
+            <section class="section" aria-labelledby="popular-heading">
+                <h2 id="popular-heading" class="section-title">Popular Items This Week</h2>
+                <div class="grid grid-cols-2 grid-cols-3 grid-cols-4">
+                    <article class="product-card">
+                        <img src="/images/wireless-headphones.jpg" alt="Noise-cancelling wireless headphones in black" class="product-image">
+                        <h3>Premium Wireless Headphones</h3>
+                        <p>Experience immersive sound with active noise cancellation and 30-hour battery life.</p>
+                        <div class="price">$199.99</div>
+                        <a href="/product/headphones" class="button">View Details</a>
+                    </article>
+                    <article class="product-card">
+                        <img src="/images/fitness-tracker.jpg" alt="Black fitness tracker with heart rate monitor on a wrist" class="product-image">
+                        <h3>Advanced Fitness Tracker</h3>
+                        <p>Track heart rate, sleep, and workouts with GPS and water-resistant design.</p>
+                        <div class="price">$89.99</div>
+                        <a href="/product/fitness-tracker" class="button">View Details</a>
+                    </article>
+                    <article class="product-card">
+                        <img src="/images/coffee-maker.jpg" alt="Stainless steel programmable coffee maker" class="product-image">
+                        <h3>Programmable Coffee Maker</h3>
+                        <p>Brew your perfect cup with customizable settings and a thermal carafe.</p>
+                        <div class="price">$129.99</div>
+                        <a href="/product/coffee-maker" class="button">View Details</a>
+                    </article>
+                    <article class="product-card">
+                        <img src="/images/backpack.jpg" alt="Durable grey laptop backpack with multiple compartments" class="product-image">
+                        <h3>Durable Laptop Backpack</h3>
+                        <p>Water-resistant, padded laptop sleeve, and organized compartments for daily commute.</p>
+                        <div class="price">$59.99</div>
+                        <a href="/product/backpack" class="button">View Details</a>
+                    </article>
+                </div>
+            </section>
+
+            <section class="section" aria-labelledby="deals-heading">
+                <h2 id="deals-heading" class="section-title">Today's Best Deals</h2>
+                <div class="grid grid-cols-2 grid-cols-3">
+                    <article class="product-card">
+                        <img src="/images/tablet-sale.jpg" alt="10-inch tablet with stylus on a wooden table" class="product-image">
+                        <h3>10-inch Tablet</h3>
+                        <p>Perfect for reading, browsing, and light work. Includes a free stylus.</p>
+                        <div class="price">
+                            <span class="original-price">$329.99</span>
+                            <span class="sale-price">$249.99</span>
+                        </div>
+                        <p class="text-success"><strong>Save $80.00</strong></p>
+                        <a href="/product/tablet-deal" class="button">Shop Deal</a>
+                    </article>
+                    <article class="product-card">
+                        <img src="/images/sneakers-sale.jpg" alt="Pair of white running sneakers with blue accents" class="product-image">
+                        <h3>Running Sneakers</h3>
+                        <p>Lightweight, breathable shoes with enhanced cushioning for all-day comfort.</p>
+                        <div class="price">
+                            <span class="original-price">$120.00</span>
+                            <span class="sale-price">$79.99</span>
+                        </div>
+                        <p class="text-success"><strong>Save $40.01</strong></p>
+                        <a href="/product/sneakers-deal" class="button">Shop Deal</a>
+                    </article>
+                    <article class="product-card">
+                        <img src="/images/blender-sale.jpg" alt="High-speed kitchen blender in silver" class="product-image">
+                        <h3>High-Speed Blender</h3>
+                        <p>Powerful motor for smoothies, soups, and sauces. Includes travel cups.</p>
+                        <div class="price">
+                            <span class="original-price">$99.99</span>
+                            <span class="sale-price">$64.99</span>
+                        </div>
+                        <p class="text-success"><strong>Save $35.00</strong></p>
+                        <a href="/product/blender-deal" class="button">Shop Deal</a>
+                    </article>
+                </div>
+                <p style="margin-top: 2rem;">
+                    <a href="/deals" class="button button-secondary">View All Deals</a>
+                </p>
+            </section>
+
+            <section class="section" aria-labelledby="blog-heading">
+                <h2 id="blog-heading" class="section-title">From Our Blog</h2>
+                <div class="grid grid-cols-2 grid-cols-3">
+                    <article class="blog-card">
+                        <h3><a href="/blog/eco-friendly-products" style="color: var(--color-text); text-decoration: none;">Top 10 Eco-Friendly Products for Your Home</a></h3>
+                        <p class="text-muted">Discover sustainable swaps that are good for the planet and your wallet.</p>
+                        <a href="/blog/eco-friendly-products" class="button button-secondary">Read Article</a>
+                    </article>
+                    <article class="blog-card">
+                        <h3><a href="/blog/tech-gift-guide" style="color: var(--color-text); text-decoration: none;">2024 Tech Gift Guide for Every Budget</a></h3>
+                        <p class="text-muted">Find the perfect gadget for friends and family, from affordable to premium.</p>
+                        <a href="/blog/tech-gift-guide" class="button button-secondary">Read Article</a>
+                    </article>
+                    <article class="blog-card">
+                        <h3><a href="/blog/kitchen-organization" style="color: var(--color-text); text-decoration: none;">Maximize Your Kitchen Space: Organization Hacks</a></h3>
+                        <p class="text-muted">Simple tips and product recommendations to declutter and organize your kitchen.</p>
+                        <a href="/blog/kitchen-organization" class="button button-secondary">Read Article</a>
+                    </article>
+                </div>
+                <p style="margin-top: 2rem;">
+                    <a href="/blog" class="button button-secondary">Read More on Our Blog</a>
+                </p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+        <div class="container footer-container">
+            <div>
+                <a href="/" class="logo">ShopEasy</a>
+                <p class="copyright">&copy; 2024 ShopEasy. All rights reserved.</p>
+            </div>
+            <nav class="footer-nav" aria-label="Footer">
+                <ul class="nav-list" role="list">
+                    <li><a href="/about" class="nav-link">About Us</a></li>
+                    <li><a href="/contact" class="nav-link">Contact</a></li>
+                    <li><a href="/shipping" class="nav-link">Shipping & Returns</a></li>
+                    <li><a href="/privacy" class="nav-link">Privacy Policy</a></li>
+                    <li><a href="/terms" class="nav-link">Terms of Service</a></li>
+                    <li><a href="/accessibility" class="nav-link">Accessibility Statement</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+</body>
+</html>

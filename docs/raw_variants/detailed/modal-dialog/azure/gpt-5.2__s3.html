@@ -1,0 +1,378 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal dialog example - Components - Demo</title>
+  <style>
+    :root{
+      --color-bg: #ffffff;
+      --color-surface: #ffffff;
+      --color-text: #111827;
+      --color-muted-text: #374151;
+      --color-border: #9ca3af;
+      --color-link: #1d4ed8;
+      --color-link-visited: #6d28d9;
+      --color-focus: #1d4ed8;
+      --color-danger: #b91c1c;
+      --color-overlay: #111827;
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body{
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.5;
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    a{ color: var(--color-link); }
+    a:visited{ color: var(--color-link-visited); }
+    a:hover{ text-decoration-thickness: 2px; }
+    a:focus-visible{ outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+    .container{
+      max-width: 72rem;
+      padding: 1rem;
+      margin: 0 auto;
+    }
+
+    header{
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+
+    nav{
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+
+    nav ul{
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    nav a{
+      display: inline-block;
+      padding: 0.5rem 0.25rem;
+      text-decoration: none;
+    }
+    nav a[aria-current="page"]{
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+    }
+
+    main{
+      padding-block: 1rem 2rem;
+    }
+
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    .btn{
+      appearance: none;
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      padding: 0.6rem 0.9rem;
+      border-radius: 0.5rem;
+      font: inherit;
+      cursor: pointer;
+      max-width: 100%;
+    }
+    .btn:hover{
+      border-color: var(--color-text);
+    }
+    .btn:active{
+      transform: translateY(1px);
+    }
+    .btn:focus-visible{
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    .btn-primary{
+      border-color: var(--color-link);
+      background: var(--color-link);
+      color: #ffffff;
+    }
+    .btn-primary:hover{
+      border-color: #0b3aa4;
+      background: #0b3aa4;
+    }
+
+    .btn-danger{
+      border-color: var(--color-danger);
+      background: var(--color-danger);
+      color: #ffffff;
+    }
+    .btn-danger:hover{
+      border-color: #7f1d1d;
+      background: #7f1d1d;
+    }
+
+    .stack{
+      display: grid;
+      gap: 0.75rem;
+      max-width: 52rem;
+    }
+
+    .note{
+      color: var(--color-muted-text);
+      overflow-wrap: anywhere;
+    }
+
+    /* Modal */
+    .modal{
+      padding: 0;
+      border: 2px solid var(--color-border);
+      border-radius: 0.75rem;
+      width: min(42rem, calc(100vw - 2rem));
+      max-width: 100%;
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+
+    .modal::backdrop{
+      background: var(--color-overlay);
+      opacity: 0.65;
+    }
+
+    .modal-header{
+      padding: 1rem 1rem 0.5rem 1rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .modal-body{
+      padding: 1rem;
+    }
+
+    .modal-footer{
+      padding: 0.75rem 1rem 1rem 1rem;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    .modal-title{
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.3;
+    }
+
+    .modal-close-row{
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .icon-btn{
+      appearance: none;
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.55rem;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    .icon-btn:hover{
+      border-color: var(--color-text);
+    }
+    .icon-btn:focus-visible{
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+    .icon{
+      width: 1.1rem;
+      height: 1.1rem;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    svg{ fill: currentColor; stroke: currentColor; }
+
+    @media (forced-colors: active){
+      .btn, .icon-btn, .modal{
+        border: 2px solid ButtonBorder;
+      }
+      .btn-primary, .btn-danger{
+        background: ButtonFace;
+        color: ButtonText;
+        border-color: ButtonBorder;
+      }
+      .modal::backdrop{
+        background: CanvasText;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+    <div class="container">
+      <p style="margin: 0.75rem 0; font-weight: 700;">Demo UI</p>
+    </div>
+  </header>
+
+  <nav aria-label="Primary">
+    <div class="container">
+      <ul>
+        <li><a href="#" aria-current="page">Modal</a></li>
+        <li><a href="#">Other component</a></li>
+        <li><a href="#">Documentation</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="maincontent" tabindex="-1">
+    <div class="container">
+      <h1>Modal dialog example</h1>
+
+      <div class="stack" aria-describedby="modal-help">
+        <p id="modal-help" class="note">
+          This example uses the native <code>&lt;dialog&gt;</code> element. The dialog is closed by default. Use the “Open dialog” button to open it.
+        </p>
+
+        <div>
+          <button type="button" class="btn btn-primary trigger" id="openDialogBtn">
+            Open dialog
+          </button>
+        </div>
+
+        <p class="note">
+          Tip: When the dialog opens, focus moves to the dialog title. Press <kbd>Escape</kbd> or use a close button to dismiss it.
+        </p>
+      </div>
+
+      <dialog class="modal" id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+        <div class="modal-header">
+          <div class="modal-close-row">
+            <h2 class="modal-title" id="dialogTitle" tabindex="-1">Account settings</h2>
+            <button type="button" class="icon-btn" id="closeIconBtn">
+              <span class="sr-only">Close dialog</span>
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M6 6l12 12M18 6L6 18" stroke-width="2" stroke-linecap="round" fill="none"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <p id="dialogDesc" class="note" style="margin-top: 0;">
+            Review the information below. This is placeholder content to demonstrate a modal dialog layout.
+          </p>
+
+          <div class="stack" style="margin-top: 0.75rem;">
+            <div>
+              <p style="margin: 0; font-weight: 700;">What happens when you open this dialog?</p>
+              <ul style="margin: 0.25rem 0 0 1.25rem;">
+                <li>Keyboard focus is moved into the dialog.</li>
+                <li>Background content is not interactive while the dialog is open.</li>
+                <li>You can close it with Escape or the close buttons.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" id="cancelBtn">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmBtn">Delete account</button>
+        </div>
+      </dialog>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p class="note" style="margin: 0; padding: 1rem 0; border-top: 1px solid var(--color-border);">
+        Example footer content.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const dialog = document.getElementById('exampleDialog');
+      const openBtn = document.getElementById('openDialogBtn');
+      const closeIconBtn = document.getElementById('closeIconBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const confirmBtn = document.getElementById('confirmBtn');
+      const title = document.getElementById('dialogTitle');
+
+      let lastActiveElement = null;
+
+      function openDialog() {
+        lastActiveElement = document.activeElement;
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+          // Move focus to a meaningful element inside the dialog.
+          title.focus();
+        } else {
+          // Fallback: if <dialog> isn't supported, reveal it non-modally.
+          dialog.setAttribute('open', '');
+          title.focus();
+        }
+      }
+
+      function closeDialog(returnFocus = true) {
+        if (dialog.open) dialog.close();
+        else dialog.removeAttribute('open');
+
+        if (returnFocus && lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        }
+      }
+
+      openBtn.addEventListener('click', openDialog);
+
+      closeIconBtn.addEventListener('click', function () {
+        closeDialog(true);
+      });
+
+      cancelBtn.addEventListener('click', function () {
+        closeDialog(true);
+      });
+
+      confirmBtn.addEventListener('click', function () {
+        // Example action; close afterward.
+        closeDialog(true);
+      });
+
+      // Allow clicking the backdrop to close (common pattern).
+      dialog.addEventListener('click', function (event) {
+        const rect = dialog.getBoundingClientRect();
+        const clickedInDialog =
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom;
+
+        if (!clickedInDialog) closeDialog(true);
+      });
+
+      // Ensure focus returns to the trigger when the dialog closes by any means (e.g., Escape).
+      dialog.addEventListener('close', function () {
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

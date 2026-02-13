@@ -1,0 +1,281 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expand/Collapse Widget Examples - Accessibility Demo</title>
+    <style>
+        /* 
+         * Design Tokens & Accessibility Variables 
+         */
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #212121;
+            --color-muted: #595959;
+            --color-border: #767676;
+            --color-primary: #004d40; /* Dark Teal, high contrast */
+            --color-primary-hover: #00251a;
+            --color-focus: #005a9c;
+            --color-surface: #f5f5f5;
+            
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            
+            --border-radius: 4px;
+            --border-width: 2px;
+        }
+
+        /* 
+         * Reset & Base Styles 
+         */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 
+         * Skip Link (Accessibility Requirement)
+         */
+        .skip-link {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--color-bg);
+            color: var(--color-primary);
+            border: var(--border-width) solid var(--color-primary);
+            z-index: 100;
+            text-decoration: none;
+            font-weight: bold;
+            /* Visually hidden until focused */
+            transform: translateY(-100%);
+            transition: transform 0.2s;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0);
+            outline: 3px solid var(--color-focus);
+            outline-offset: 2px;
+        }
+
+        /* 
+         * Layout & Typography 
+         */
+        .container {
+            max-width: 48rem; /* approx 768px */
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--color-text);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-top: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+        }
+
+        p {
+            margin-bottom: var(--spacing-md);
+            max-width: 65ch; /* Optimal reading length */
+        }
+
+        /* 
+         * Widget Styling 
+         */
+        .example {
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-lg);
+            background-color: var(--color-surface);
+        }
+
+        /* Native <details> styling */
+        details {
+            width: 100%;
+        }
+
+        summary {
+            cursor: pointer;
+            padding: var(--spacing-md);
+            font-weight: bold;
+            list-style: none; /* Remove default triangle in some browsers to replace with custom if desired, keeping simple here */
+            position: relative;
+            padding-left: 2.5rem; /* Space for icon */
+        }
+
+        /* Custom marker for summary */
+        summary::before {
+            content: "▶";
+            position: absolute;
+            left: var(--spacing-md);
+            top: 1rem;
+            font-size: 0.8em;
+            transition: transform 0.2s;
+        }
+
+        details[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        /* Custom ARIA Button styling */
+        .accordion-trigger {
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: var(--spacing-md);
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--color-text);
+            cursor: pointer;
+            position: relative;
+            padding-left: 2.5rem;
+            font-family: inherit;
+        }
+
+        .accordion-trigger::before {
+            content: "▶";
+            position: absolute;
+            left: var(--spacing-md);
+            top: 1rem;
+            font-size: 0.8em;
+            transition: transform 0.2s;
+        }
+
+        .accordion-trigger[aria-expanded="true"]::before {
+            transform: rotate(90deg);
+        }
+
+        /* Shared Content Container Styling */
+        .details {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--color-border);
+            background-color: var(--color-bg);
+        }
+
+        /* 
+         * Focus Management 
+         */
+        summary:focus,
+        .accordion-trigger:focus {
+            outline: 3px solid var(--color-focus);
+            outline-offset: -3px; /* Draw inside to avoid cutoff */
+            background-color: rgba(0, 90, 156, 0.05);
+        }
+
+        /* 
+         * High Contrast / Forced Colors Mode Support 
+         */
+        @media (forced-colors: active) {
+            .skip-link:focus,
+            summary:focus,
+            .accordion-trigger:focus {
+                outline: 3px solid CanvasText;
+            }
+            
+            .example {
+                border: 2px solid CanvasText;
+            }
+            
+            .details {
+                border-top: 2px solid CanvasText;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <header>
+        <div class="container">
+            <!-- Header content would go here -->
+        </div>
+    </header>
+
+    <main id="main-content" class="container" tabindex="-1">
+        <h1>Expand/Collapse Widget Examples</h1>
+        
+        <p>
+            This page demonstrates two accessible patterns for expanding and collapsing content.
+            The first uses native HTML elements (preferred), and the second uses ARIA attributes for custom control.
+        </p>
+
+        <h2>Option 1: Native HTML (Preferred)</h2>
+        <p>
+            Using the <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements provides built-in keyboard accessibility and screen reader support without JavaScript.
+        </p>
+
+        <!-- Example 1: Native Implementation -->
+        <div class="example">
+            <details>
+                <summary>Shipping Information</summary>
+                <div class="details">
+                    <p>Standard shipping takes 3-5 business days. Expedited shipping is available for an additional fee.</p>
+                    <p><a href="#" style="color: var(--color-primary);">View full shipping policy</a></p>
+                </div>
+            </details>
+        </div>
+
+        <h2>Option 2: Custom ARIA Pattern</h2>
+        <p>
+            Use this pattern if you cannot use the native element (e.g., for complex animations or exclusive accordion behavior). It requires JavaScript to toggle state.
+        </p>
+
+        <!-- Example 2: ARIA Implementation -->
+        <div class="example">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="sect-payment">
+                Payment Methods
+            </button>
+            <div id="sect-payment" class="details" hidden>
+                <p>We accept Visa, MasterCard, American Express, and PayPal. All transactions are secure and encrypted.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p><small>&copy; 2023 Accessibility Demo. All rights reserved.</small></p>
+        </div>
+    </footer>
+
+    <script>
+        /**
+         * Simple script to handle the custom ARIA expand/collapse widget.
+         * This is not needed for the native <details> element.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const triggers = document.querySelectorAll('button[aria-expanded][aria-controls]');
+
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', (e) => {
+                    const button = e.currentTarget;
+                    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+                    const controlledId = button.getAttribute('aria-controls');
+                    const content = document.getElementById(controlledId);
+
+                    if (content) {
+                        // Toggle state
+                        button.setAttribute('aria-expanded', !isExpanded);
+                        content.hidden = isExpanded; // If it was expanded, now hide it
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

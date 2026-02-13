@@ -1,0 +1,393 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e9eefc;
+      --muted: #b8c2e6;
+      --border: rgba(255,255,255,.14);
+      --accent: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 12px;
+      --focus: 0 0 0 3px rgba(122,162,255,.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(122,162,255,.18), transparent 60%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(122,255,214,.12), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+
+    header {
+      margin: 10px 0 22px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 6px;
+      letter-spacing: .2px;
+    }
+
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 860px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    .example .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.12);
+    }
+
+    .example .header h2 {
+      font-size: 1rem;
+      margin: 0;
+      font-weight: 650;
+      letter-spacing: .2px;
+    }
+
+    .example .header .hint {
+      font-size: .85rem;
+      color: var(--muted);
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    /* Generic toggle button */
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+    }
+
+    .toggle:hover { background: rgba(255,255,255,.04); }
+    .toggle:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 10px; }
+
+    .toggle .label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .toggle .label strong {
+      font-weight: 650;
+      letter-spacing: .2px;
+    }
+
+    .toggle .label span {
+      color: var(--muted);
+      font-size: .9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chev {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.18);
+      transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .chev svg { width: 16px; height: 16px; fill: none; stroke: var(--text); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: .9; }
+
+    /* Controlled content container */
+    .details {
+      padding: 0 14px 14px;
+      color: var(--text);
+    }
+
+    .details p {
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .details ul {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .details code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .92em;
+      color: #d7e2ff;
+      background: rgba(122,162,255,.12);
+      border: 1px solid rgba(122,162,255,.22);
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+
+    /* JS-driven collapse animation */
+    .details[data-collapsible="true"] {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      transition: max-height 220ms ease, opacity 180ms ease, padding 220ms ease;
+    }
+
+    .details[data-open="true"] {
+      opacity: 1;
+      padding-top: 0;
+      padding-bottom: 14px;
+    }
+
+    .example[data-open="true"] .chev { transform: rotate(180deg); background: rgba(122,162,255,.14); }
+
+    /* Native <details> styling */
+    details.native {
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+
+    details.native > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+    }
+
+    details.native > summary::-webkit-details-marker { display: none; }
+
+    details.native > summary:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+      border-radius: 10px;
+      margin: 6px 10px;
+      padding: 6px 8px;
+    }
+
+    details.native[open] > summary .chev { transform: rotate(180deg); background: rgba(122,162,255,.14); }
+
+    details.native .details {
+      padding-top: 0;
+      padding-bottom: 14px;
+    }
+
+    .footer-note {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Expand/Collapse Widget</h1>
+      <p class="lead">
+        Two implementations: a JavaScript-controlled panel and a native <code>&lt;details&gt;</code> element.
+        Each widget is wrapped in a <code>div.example</code>, and the controlled content container uses the <code>details</code> class.
+      </p>
+    </header>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <!-- Example 1: JS-controlled -->
+      <div class="example" data-open="false">
+        <div class="header">
+          <h2>Example 1: Button + controlled panel</h2>
+          <p class="hint">Animated height</p>
+        </div>
+
+        <button
+          class="toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="panel-1"
+          data-toggle="panel-1"
+        >
+          <span class="label">
+            <strong>Shipping & returns</strong>
+            <span>Click to expand/collapse the content below</span>
+          </span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </span>
+        </button>
+
+        <div
+          id="panel-1"
+          class="details"
+          data-collapsible="true"
+          data-open="false"
+          role="region"
+          aria-label="Shipping and returns details"
+        >
+          <p>
+            Orders ship within 1–2 business days. Returns are accepted within 30 days of delivery.
+          </p>
+          <ul>
+            <li>Free shipping on orders over $50</li>
+            <li>Return label provided for eligible items</li>
+            <li>Refunds processed within 3–5 business days</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Example 2: Native details/summary -->
+      <div class="example">
+        <div class="header">
+          <h2>Example 2: Native &lt;details&gt;</h2>
+          <p class="hint">No JS required</p>
+        </div>
+
+        <details class="native">
+          <summary>
+            <span class="label">
+              <strong>Account security</strong>
+              <span>Uses the browser’s built-in disclosure widget</span>
+            </span>
+            <span class="chev" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 9l6 6 6-6"></path>
+              </svg>
+            </span>
+          </summary>
+
+          <div class="details">
+            <p>
+              Enable two-factor authentication (2FA) and use a password manager to generate unique passwords.
+            </p>
+            <p>
+              Tip: Look for <code>aria-expanded</code> on custom widgets; native <code>&lt;details&gt;</code> handles state automatically.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Keyboard: Tab to the toggle, then press Enter/Space to expand/collapse.
+    </p>
+  </main>
+
+  <script>
+    (function () {
+      const toggles = document.querySelectorAll('[data-toggle]');
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function setPanelState(exampleEl, btn, panel, open) {
+        btn.setAttribute('aria-expanded', String(open));
+        panel.dataset.open = String(open);
+        if (exampleEl) exampleEl.dataset.open = String(open);
+
+        if (prefersReduced) {
+          panel.style.transition = 'none';
+          panel.style.maxHeight = open ? 'none' : '0px';
+          panel.style.opacity = open ? '1' : '0';
+          panel.style.paddingBottom = open ? '14px' : '0px';
+          return;
+        }
+
+        if (open) {
+          // Measure content height and animate to it
+          panel.style.maxHeight = '0px';
+          panel.offsetHeight; // reflow
+          const target = panel.scrollHeight;
+          panel.style.maxHeight = target + 'px';
+
+          const onEnd = (e) => {
+            if (e.propertyName !== 'max-height') return;
+            panel.style.maxHeight = 'none'; // allow responsive content
+            panel.removeEventListener('transitionend', onEnd);
+          };
+          panel.addEventListener('transitionend', onEnd);
+        } else {
+          // Animate from current height to 0
+          const current = panel.scrollHeight;
+          panel.style.maxHeight = current + 'px';
+          panel.offsetHeight; // reflow
+          panel.style.maxHeight = '0px';
+        }
+      }
+
+      toggles.forEach((btn) => {
+        const id = btn.getAttribute('data-toggle');
+        const panel = document.getElementById(id);
+        if (!panel) return;
+
+        const exampleEl = btn.closest('.example');
+        const isOpen = btn.getAttribute('aria-expanded') === 'true';
+
+        // Initialize collapsed state
+        setPanelState(exampleEl, btn, panel, isOpen);
+
+        btn.addEventListener('click', () => {
+          const openNow = btn.getAttribute('aria-expanded') !== 'true';
+          setPanelState(exampleEl, btn, panel, openNow);
+        });
+
+        // Keep max-height correct if content changes while open
+        const ro = 'ResizeObserver' in window ? new ResizeObserver(() => {
+          if (panel.dataset.open === 'true' && panel.style.maxHeight !== 'none') {
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+          }
+        }) : null;
+
+        if (ro) ro.observe(panel);
+      });
+    })();
+  </script>
+</body>
+</html>

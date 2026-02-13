@@ -1,0 +1,496 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal dialog example - Components - Demo</title>
+  <style>
+    :root{
+      --color-bg: #ffffff;
+      --color-surface: #ffffff;
+      --color-text: #111827;
+      --color-muted-text: #374151;
+      --color-border: #cbd5e1;
+      --color-link: #1d4ed8;
+      --color-link-visited: #5b21b6;
+      --color-focus: #1d4ed8;
+      --color-danger: #b91c1c;
+      --color-overlay: #111827;
+      --radius: 12px;
+      --shadow: 0 12px 30px rgba(0,0,0,0.25);
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --maxw: 70rem;
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body{
+      margin: 0;
+      font-family: var(--font);
+      color: var(--color-text);
+      background: var(--color-bg);
+      line-height: 1.5;
+    }
+
+    a{ color: var(--color-link); }
+    a:visited{ color: var(--color-link-visited); }
+    a:hover{ text-decoration-thickness: 2px; }
+    a:focus-visible{ outline: 3px solid var(--color-focus); outline-offset: 2px; border-radius: 6px; }
+
+    .container{
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-4);
+    }
+
+    header{
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+
+    nav{
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+
+    nav ul{
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+    }
+
+    nav a{
+      display: inline-block;
+      padding: var(--space-2) var(--space-2);
+      border-radius: 8px;
+      text-decoration: none;
+    }
+    nav a:hover{ text-decoration: underline; }
+    nav a:focus-visible{ outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+    main{ padding-bottom: var(--space-8); }
+
+    h1{ font-size: 1.75rem; margin: 0 0 var(--space-4); }
+    h2{ font-size: 1.25rem; margin: var(--space-6) 0 var(--space-2); }
+    p{ margin: 0 0 var(--space-4); color: var(--color-muted-text); max-width: 70ch; }
+
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    .btn{
+      appearance: none;
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      padding: 0.6rem 0.9rem;
+      border-radius: 10px;
+      font: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      max-width: 100%;
+    }
+    .btn:hover{ border-color: #94a3b8; }
+    .btn:active{ transform: translateY(1px); }
+    .btn:focus-visible{
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    .btn-primary{
+      background: var(--color-link);
+      border-color: var(--color-link);
+      color: #ffffff;
+    }
+    .btn-primary:hover{
+      background: #1e40af;
+      border-color: #1e40af;
+    }
+
+    .btn-danger{
+      background: var(--color-danger);
+      border-color: var(--color-danger);
+      color: #ffffff;
+    }
+    .btn-danger:hover{
+      background: #991b1b;
+      border-color: #991b1b;
+    }
+
+    .stack{
+      display: grid;
+      gap: var(--space-4);
+      max-width: 70ch;
+    }
+
+    /* Modal */
+    dialog{
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 0;
+      width: min(42rem, calc(100% - 2rem));
+      box-shadow: var(--shadow);
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+
+    dialog::backdrop{
+      background: rgba(17, 24, 39, 0.65);
+    }
+
+    .modal-header{
+      padding: var(--space-4) var(--space-4) var(--space-2);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+
+    .modal-title{
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.3;
+    }
+
+    .modal-body{
+      padding: var(--space-4);
+    }
+
+    .modal-footer{
+      padding: var(--space-3) var(--space-4) var(--space-4);
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      justify-content: flex-end;
+    }
+
+    .icon-btn{
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--color-text);
+      border-radius: 10px;
+      padding: 0.35rem;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    .icon-btn:hover{ border-color: var(--color-border); }
+    .icon-btn:focus-visible{
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+    .icon{
+      width: 1.25rem;
+      height: 1.25rem;
+      display: block;
+      fill: currentColor;
+      stroke: currentColor;
+    }
+
+    .help{
+      font-size: 0.95rem;
+      color: var(--color-muted-text);
+      margin: 0;
+    }
+
+    .field{
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+
+    label{ font-weight: 600; color: var(--color-text); }
+
+    input[type="email"]{
+      width: 100%;
+      max-width: 100%;
+      padding: 0.6rem 0.75rem;
+      border-radius: 10px;
+      border: 2px solid var(--color-border);
+      font: inherit;
+      color: var(--color-text);
+      background: var(--color-surface);
+    }
+    input[type="email"]:focus-visible{
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    .error{
+      color: var(--color-danger);
+      margin: 0;
+    }
+
+    .note{
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: var(--space-4);
+      background: var(--color-surface);
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 30rem){
+      .modal-footer{ justify-content: stretch; }
+      .modal-footer .btn{ width: 100%; justify-content: center; }
+    }
+
+    @media (forced-colors: active){
+      dialog{
+        border: 2px solid ButtonBorder;
+        box-shadow: none;
+      }
+      dialog::backdrop{
+        background: Canvas;
+        opacity: 0.9;
+      }
+      .btn{
+        border-color: ButtonBorder;
+        background: ButtonFace;
+        color: ButtonText;
+      }
+      .btn-primary, .btn-danger{
+        border-color: ButtonBorder;
+        background: ButtonFace;
+        color: ButtonText;
+      }
+      .icon-btn{
+        border-color: ButtonBorder;
+        background: ButtonFace;
+        color: ButtonText;
+      }
+      input[type="email"]{
+        border-color: ButtonBorder;
+        background: Canvas;
+        color: CanvasText;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="#maincontent" class="sr-only">Skip to main content</a>
+      <div style="display:flex; flex-wrap:wrap; align-items:baseline; gap: 0.75rem;">
+        <strong>Demo site</strong>
+        <span style="color: var(--color-muted-text);">Accessible modal dialog example</span>
+      </div>
+    </div>
+  </header>
+
+  <nav aria-label="Primary">
+    <div class="container">
+      <ul>
+        <li><a href="#example">Example</a></li>
+        <li><a href="#notes">Notes</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="maincontent" tabindex="-1">
+    <div class="container">
+      <h1 id="example">Modal dialog component</h1>
+      <div class="stack">
+        <p>
+          This example uses the native <code>&lt;dialog&gt;</code> element. The dialog is closed by default.
+          Activate the button to open it. Press <kbd>Escape</kbd> or use the Close button to dismiss it.
+        </p>
+
+        <div>
+          <button type="button" class="btn btn-primary trigger" id="openDialogBtn">
+            Open dialog
+          </button>
+        </div>
+
+        <section class="note" aria-labelledby="notes">
+          <h2 id="notes">Notes</h2>
+          <p class="help">
+            The dialog traps focus while open (native behavior with <code>showModal()</code>), restores focus to the trigger on close,
+            and prevents background scrolling while open.
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="dialogTitle">Share updates by email</h2>
+          <p class="help" id="dialogDesc">Enter an email address to receive occasional updates. Required fields are marked.</p>
+        </div>
+        <button type="button" class="icon-btn" id="closeIconBtn">
+          <span class="sr-only">Close dialog</span>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18 6L6 18" stroke-width="2" stroke-linecap="round"></path>
+            <path d="M6 6l12 12" stroke-width="2" stroke-linecap="round"></path>
+          </svg>
+        </button>
+      </div>
+
+      <form method="dialog" id="dialogForm" novalidate>
+        <div class="modal-body">
+          <div class="field">
+            <label for="emailInput">Email address <span aria-hidden="true">*</span></label>
+            <input
+              id="emailInput"
+              name="email"
+              type="email"
+              inputmode="email"
+              autocomplete="email"
+              required
+              aria-required="true"
+              aria-describedby="emailHelp"
+            />
+            <p class="help" id="emailHelp">Example: name@example.com</p>
+            <p class="error" id="emailError" hidden></p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+
+  <footer>
+    <div class="container" style="border-top: 1px solid var(--color-border); color: var(--color-muted-text);">
+      <small>Demo footer</small>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const openBtn = document.getElementById('openDialogBtn');
+      const dialog = document.getElementById('exampleDialog');
+      const closeIconBtn = document.getElementById('closeIconBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const form = document.getElementById('dialogForm');
+
+      const emailInput = document.getElementById('emailInput');
+      const emailError = document.getElementById('emailError');
+      const emailHelp = document.getElementById('emailHelp');
+
+      let lastActiveElement = null;
+      let previousBodyOverflow = '';
+
+      function setEmailError(message) {
+        if (message) {
+          emailError.textContent = message;
+          emailError.hidden = false;
+          emailInput.setAttribute('aria-invalid', 'true');
+          emailInput.setAttribute('aria-describedby', emailHelp.id + ' ' + emailError.id);
+        } else {
+          emailError.textContent = '';
+          emailError.hidden = true;
+          emailInput.removeAttribute('aria-invalid');
+          emailInput.setAttribute('aria-describedby', emailHelp.id);
+        }
+      }
+
+      function validateEmail() {
+        const value = emailInput.value.trim();
+        if (!value) {
+          setEmailError('Enter an email address.');
+          return false;
+        }
+        if (!emailInput.checkValidity()) {
+          setEmailError('Enter an email address in the format name@example.com.');
+          return false;
+        }
+        setEmailError('');
+        return true;
+      }
+
+      function openDialog() {
+        lastActiveElement = document.activeElement;
+        previousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        } else {
+          // Fallback: if <dialog> is unsupported, show it non-modally.
+          dialog.setAttribute('open', '');
+        }
+
+        setEmailError('');
+        emailInput.value = '';
+        // Ensure focus moves into the dialog.
+        emailInput.focus();
+      }
+
+      function closeDialog() {
+        if (dialog.open) dialog.close();
+      }
+
+      openBtn.addEventListener('click', openDialog);
+
+      closeIconBtn.addEventListener('click', function () {
+        closeDialog();
+      });
+
+      cancelBtn.addEventListener('click', function () {
+        closeDialog();
+      });
+
+      dialog.addEventListener('close', function () {
+        document.body.style.overflow = previousBodyOverflow || '';
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        } else {
+          openBtn.focus();
+        }
+      });
+
+      // Close when clicking the backdrop (common expectation). Keep it predictable:
+      // only close when the click is on the dialog backdrop area, not inside content.
+      dialog.addEventListener('click', function (event) {
+        const rect = dialog.getBoundingClientRect();
+        const clickedInDialog =
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom;
+
+        // For <dialog>, clicks on the backdrop are delivered to the dialog element.
+        // If the click is outside the dialog's rect, treat it as a backdrop click.
+        if (!clickedInDialog) closeDialog();
+      });
+
+      emailInput.addEventListener('input', function () {
+        // Clear error as the person edits; re-validate on submit.
+        if (!emailError.hidden) setEmailError('');
+      });
+
+      form.addEventListener('submit', function (event) {
+        // Prevent the implicit close from method="dialog" when invalid.
+        if (!validateEmail()) {
+          event.preventDefault();
+          emailInput.focus();
+          return;
+        }
+        // Close with a return value (optional).
+        dialog.close('saved');
+      });
+    })();
+  </script>
+</body>
+</html>

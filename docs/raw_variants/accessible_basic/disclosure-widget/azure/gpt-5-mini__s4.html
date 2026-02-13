@@ -1,0 +1,409 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accessible Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      --focus-outline: 3px solid Highlight;
+      --transition-duration: 260ms;
+      --max-collapsed-height: 0px;
+      --max-expanded-height: 1200px; /* large enough for demo */
+      --bg: #ffffff;
+      --panel-bg: #f7f9fc;
+      --accent: #0b5fff;
+      --text: #0b1726;
+      --muted: #5b6874;
+      --radius: 8px;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:var(--text);
+      background:linear-gradient(180deg,#fff 0%, #f4f7fb 100%);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    main {
+      max-width:900px;
+      margin:40px auto;
+      padding:24px;
+    }
+
+    header h1 {
+      margin:0 0 8px 0;
+      font-size:1.5rem;
+      line-height:1.2;
+    }
+    header p {
+      margin:0 0 20px 0;
+      color:var(--muted);
+      font-size:0.95rem;
+    }
+
+    .example {
+      background:var(--panel-bg);
+      border:1px solid rgba(11,87,255,0.08);
+      padding:16px;
+      margin:18px 0;
+      border-radius:var(--radius);
+      box-shadow: 0 1px 2px rgba(11,17,38,0.03);
+    }
+
+    .widget {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .toggle {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      background:linear-gradient(180deg,#fff,#f1f6ff);
+      border:1px solid rgba(11,87,255,0.12);
+      color:var(--accent);
+      font-weight:600;
+      border-radius:8px;
+      cursor:pointer;
+      transition:box-shadow 120ms ease, transform 120ms ease;
+      user-select:none;
+    }
+
+    .toggle:active { transform:translateY(1px); }
+    .toggle:focus { outline: none; box-shadow: 0 0 0 4px rgba(11,87,255,0.09); border-color:var(--accent); }
+
+    /* Visual chevron */
+    .chev {
+      width:18px;
+      height:18px;
+      display:inline-block;
+      transition: transform var(--transition-duration) ease;
+      transform-origin:50% 50%;
+      color:var(--accent);
+    }
+    .chev svg { display:block; width:100%; height:100%; }
+
+    /* Details panel */
+    .details {
+      overflow:hidden;
+      max-height:var(--max-collapsed-height);
+      transition: max-height var(--transition-duration) ease, opacity var(--transition-duration) ease;
+      opacity:0;
+      padding:0 6px;
+      border-left:3px solid transparent;
+    }
+
+    .details.open {
+      opacity:1;
+      max-height:var(--max-expanded-height);
+      border-left-color: rgba(11,87,255,0.12);
+      padding:10px;
+    }
+
+    .details .panel {
+      background: #ffffff;
+      padding:12px;
+      border-radius:6px;
+      border:1px solid rgba(11,17,38,0.04);
+      box-shadow: 0 1px 2px rgba(11,17,38,0.03);
+    }
+
+    /* Chevron rotation when expanded */
+    .toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+    /* Focus styles for links and form controls inside panel */
+    .details a:focus, .details button:focus, .details input:focus, .details textarea:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(11,87,255,0.08);
+      border-color: var(--accent);
+      border-radius:4px;
+    }
+
+    /* Visually hidden for screen-reader instructions */
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0 0 0 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .details { transition:none; }
+      .chev { transition:none; }
+      .toggle { transition:none; }
+    }
+
+    /* Small screens */
+    @media (max-width:420px) {
+      .toggle { width:100%; justify-content:space-between; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Accessible Expand/Collapse Widget Examples</h1>
+      <p>Demonstration of expand/collapse widgets with accessible markup and keyboard support. Each widget is wrapped in a container with class "example". The controlled content container has the class "details".</p>
+    </header>
+
+    <!-- Example 1: Simple content -->
+    <div class="example" id="example-1">
+      <div class="widget" role="group" aria-labelledby="ex1-label">
+        <h2 id="ex1-label" style="font-size:1rem; margin:0;">Summary with paragraph</h2>
+
+        <button class="toggle"
+                id="ex1-toggle"
+                aria-expanded="false"
+                aria-controls="ex1-details"
+                aria-describedby="ex1-instructions">
+          <span>Show more</span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </button>
+
+        <div id="ex1-instructions" class="sr-only">
+          Use Enter or Space to toggle. When expanded, press Escape to collapse.
+        </div>
+
+        <div id="ex1-details" class="details" role="region" aria-labelledby="ex1-label" aria-hidden="true">
+          <div class="panel">
+            <p>
+              This is some additional content revealed by the expand/collapse widget. It contains explanatory text and demonstrates how the content becomes visible and hidden.
+            </p>
+            <p style="margin:0;color:var(--muted);font-size:0.9rem;">
+              The panel uses aria-hidden and manages focusable elements when collapsed to prevent keyboard users from tabbing into hidden content.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 2: Content with interactive elements -->
+    <div class="example" id="example-2">
+      <div class="widget" role="group" aria-labelledby="ex2-label">
+        <h2 id="ex2-label" style="font-size:1rem; margin:0;">Interactive panel</h2>
+
+        <button class="toggle"
+                id="ex2-toggle"
+                aria-expanded="false"
+                aria-controls="ex2-details"
+                aria-describedby="ex2-instructions">
+          <span>Account options</span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </button>
+
+        <div id="ex2-instructions" class="sr-only">
+          Use Enter or Space to toggle. When expanded, press Escape to collapse. Interactive fields inside will be removed from the tab order when collapsed.
+        </div>
+
+        <div id="ex2-details" class="details" role="region" aria-labelledby="ex2-label" aria-hidden="true">
+          <div class="panel">
+            <form>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <label for="email" style="font-weight:600;">Email</label>
+                <input id="email" type="email" placeholder="you@example.com" style="padding:8px;border:1px solid rgba(11,17,38,0.08);border-radius:6px;" />
+
+                <label for="notify" style="font-weight:600;">Notifications</label>
+                <div>
+                  <label style="display:inline-flex;align-items:center;gap:8px;">
+                    <input id="notify" type="checkbox" />
+                    <span>Enable email notifications</span>
+                  </label>
+                </div>
+
+                <div style="display:flex;gap:8px;margin-top:6px;">
+                  <button type="submit" style="padding:8px 12px;border-radius:6px;border:1px solid rgba(11,17,38,0.08);background:var(--accent);color:#fff;font-weight:600;cursor:pointer;">Save</button>
+                  <a href="#" style="align-self:center;color:var(--accent);text-decoration:underline;">Learn more</a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer style="margin-top:18px;color:var(--muted);font-size:0.9rem;">
+      Tip: Toggle using the keyboard (Tab to the button, press Space or Enter). When the panel is open, press Escape to close it.
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // Utility: find focusable elements inside a container
+      var focusableSelector = [
+        'a[href]:not([tabindex^="-"]):not([inert])',
+        'button:not([disabled]):not([tabindex^="-"]):not([inert])',
+        'input:not([disabled]):not([type="hidden"]):not([tabindex^="-"]):not([inert])',
+        'select:not([disabled]):not([tabindex^="-"]):not([inert])',
+        'textarea:not([disabled]):not([tabindex^="-"]):not([inert])',
+        '[tabindex]:not([tabindex^="-"]):not([inert])'
+      ].join(', ');
+
+      // Initialize all examples
+      var examples = document.querySelectorAll('.example');
+
+      examples.forEach(function (ex, index) {
+        // Find toggle button and details panel inside this example
+        var toggle = ex.querySelector('.toggle');
+        var details = ex.querySelector('.details');
+
+        if (!toggle || !details) return;
+
+        // Ensure controls and IDs are set
+        if (!toggle.id) toggle.id = 'toggle-' + (index + 1);
+        if (!details.id) details.id = 'details-' + (index + 1);
+
+        // Ensure aria-controls matches
+        toggle.setAttribute('aria-controls', details.id);
+
+        // Initial state: collapsed
+        toggle.setAttribute('aria-expanded', 'false');
+        details.setAttribute('aria-hidden', 'true');
+        details.classList.remove('open');
+
+        // Manage focusable children to prevent tab into hidden panel
+        function disableFocusable(container) {
+          var nodes = container.querySelectorAll(focusableSelector);
+          nodes.forEach(function (node) {
+            // store previous tabindex if any
+            if (node.hasAttribute('tabindex')) {
+              node.dataset._prevTabindex = node.getAttribute('tabindex');
+            }
+            node.setAttribute('tabindex', '-1');
+            // disable buttons and inputs to avoid accidental activation
+            if (node.matches('button, input, select, textarea')) {
+              // store previous disabled state
+              if (node.hasAttribute('disabled')) {
+                node.dataset._prevDisabled = 'true';
+              } else {
+                node.dataset._prevDisabled = 'false';
+              }
+              node.setAttribute('disabled', 'true');
+            }
+          });
+        }
+
+        function restoreFocusable(container) {
+          var nodes = container.querySelectorAll(focusableSelector);
+          nodes.forEach(function (node) {
+            // restore tabindex
+            if (node.dataset._prevTabindex !== undefined) {
+              node.setAttribute('tabindex', node.dataset._prevTabindex);
+              delete node.dataset._prevTabindex;
+            } else {
+              node.removeAttribute('tabindex');
+            }
+            // restore disabled state
+            if (node.matches('button, input, select, textarea')) {
+              if (node.dataset._prevDisabled === 'true') {
+                node.setAttribute('disabled', 'true');
+              } else {
+                node.removeAttribute('disabled');
+              }
+              delete node.dataset._prevDisabled;
+            }
+          });
+        }
+
+        // Toggle function
+        function setExpanded(expanded, focusToggle) {
+          if (expanded) {
+            toggle.setAttribute('aria-expanded', 'true');
+            details.setAttribute('aria-hidden', 'false');
+            details.classList.add('open');
+            // Restore focusable elements
+            restoreFocusable(details);
+            if (focusToggle) toggle.focus();
+          } else {
+            toggle.setAttribute('aria-expanded', 'false');
+            details.setAttribute('aria-hidden', 'true');
+            details.classList.remove('open');
+            // Ensure interactive elements are not reachable by keyboard
+            disableFocusable(details);
+            if (focusToggle) toggle.focus();
+          }
+        }
+
+        // Initially disable focusable inside collapsed panels
+        disableFocusable(details);
+
+        // Click toggles
+        toggle.addEventListener('click', function (e) {
+          var expanded = toggle.getAttribute('aria-expanded') === 'true';
+          setExpanded(!expanded, false);
+        });
+
+        // Support Enter/Space by button element automatically.
+        // Add Escape key support to collapse when open.
+        // Listen on document for Escape, but only act if this details is open.
+        document.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Escape' || ev.key === 'Esc') {
+            var isOpen = toggle.getAttribute('aria-expanded') === 'true';
+            if (isOpen) {
+              setExpanded(false, true);
+            }
+          }
+        });
+
+        // Also allow pressing Escape while focus is inside the details region
+        details.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Escape' || ev.key === 'Esc') {
+            setExpanded(false, true);
+            // Prevent other handlers
+            ev.preventDefault();
+            ev.stopPropagation();
+          }
+        });
+
+        // Handle focus management: if focus moves into the hidden panel via script or mouse,
+        // move it back to the toggle to avoid keyboard traps.
+        details.addEventListener('focusin', function () {
+          var isHidden = details.getAttribute('aria-hidden') === 'true';
+          if (isHidden) {
+            // move focus back to toggle
+            toggle.focus();
+          }
+        });
+
+        // Allow summary-like behavior when user focuses toggle and presses Enter/Space
+        // Button element already handles activation with Space and Enter.
+
+        // Optional: allow the user to expand/collapse with ArrowDown/ArrowUp for convenience
+        toggle.addEventListener('keydown', function (ev) {
+          // ArrowDown to expand, ArrowUp to collapse
+          if (ev.key === 'ArrowDown') {
+            setExpanded(true, true);
+            ev.preventDefault();
+          } else if (ev.key === 'ArrowUp') {
+            setExpanded(false, true);
+            ev.preventDefault();
+          }
+        });
+      });
+
+      // Accessibility improvement: if user prefers reduced motion, disable transitions for max-height
+      // Already handled in CSS via prefers-reduced-motion media query.
+    })();
+  </script>
+</body>
+</html>

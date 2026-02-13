@@ -2,277 +2,257 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Expand / Collapse Widget Examples</title>
+  <title>Expand/Collapse Widget Examples</title>
   <style>
     :root{
-      --bg:#f7f9fc;
+      --accent:#0366d6;
+      --bg:#f8fafc;
       --card:#ffffff;
-      --brand:#0066cc;
       --muted:#6b7280;
-      --radius:8px;
-      --transition:0.28s cubic-bezier(.2,.9,.3,1);
+      --transition: 300ms cubic-bezier(.2,.8,.2,1);
     }
 
     body{
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin: 24px;
-      background: linear-gradient(180deg,var(--bg),#fff 60%);
-      color:#111827;
-      line-height:1.45;
+      margin: 32px;
+      background: linear-gradient(180deg,var(--bg),#fff);
+      color:#0f172a;
+      line-height:1.4;
     }
 
-    h1{
-      font-size:1.25rem;
-      margin:0 0 18px 0;
-    }
-
-    .grid{
-      display:grid;
-      gap:18px;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    }
+    h1{margin:0 0 16px 0;font-size:20px}
+    p.lead{margin:0 0 24px 0;color:var(--muted)}
 
     .example{
       background:var(--card);
-      border:1px solid rgba(16,24,40,0.04);
-      padding:14px;
-      border-radius:var(--radius);
-      box-shadow: 0 6px 18px rgba(13, 20, 33, 0.04);
+      border:1px solid rgba(15,23,42,0.06);
+      border-radius:10px;
+      padding:16px;
+      max-width:700px;
+      box-shadow:0 1px 2px rgba(2,6,23,0.04);
+      margin: 16px 0;
     }
 
-    .widget-header{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin-bottom:8px;
-    }
-
-    .toggle-button{
-      appearance:none;
-      border:1px solid rgba(16,24,40,0.06);
-      background:linear-gradient(180deg,#fff,#fbfdff);
-      color:var(--brand);
-      padding:8px 10px;
-      font-weight:600;
-      border-radius:8px;
-      cursor:pointer;
+    .toggle{
       display:inline-flex;
       align-items:center;
-      gap:8px;
-      transition:box-shadow var(--transition),transform var(--transition);
-      box-shadow: 0 1px 0 rgba(16,24,40,0.02);
+      gap:10px;
+      background:transparent;
+      border:0;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      color:var(--accent);
+      font-weight:600;
+      font-size:15px;
     }
-    .toggle-button:focus{
-      outline: none;
-      box-shadow: 0 0 0 4px rgba(0,102,204,0.12);
+    .toggle:focus{
+      outline:3px solid rgba(3,102,214,0.12);
+      outline-offset:3px;
     }
-    .toggle-button .chev{
+
+    .chev{
+      width:18px;height:18px;
       display:inline-block;
+      transform:rotate(0deg);
       transition: transform var(--transition);
-      transform-origin: center;
+      flex-shrink:0;
     }
-    .toggle-button[aria-expanded="true"] .chev{
-      transform: rotate(90deg);
+    .toggle[aria-expanded="true"] .chev{
+      transform:rotate(90deg);
     }
 
-    /* Controlled content container - class "details" required */
+    /* The controlled content container requested to have class "details" */
     .details{
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height var(--transition), opacity var(--transition);
-      opacity: 0;
-      margin-top: 6px;
-      border-radius:6px;
-      background: linear-gradient(180deg,#fbfdff,#fff);
-      padding: 0 12px;
-      border: 1px solid rgba(16,24,40,0.03);
-    }
-    .details.open{
-      opacity: 1;
-      /* large enough for typical content; we also set inline maxHeight on toggle for smoother measurement */
-      max-height: 800px;
-      padding: 12px;
-    }
-
-    .details p{
-      margin: 0 0 10px 0;
-      color: #111827;
-    }
-    .hint{
-      color:var(--muted);
-      font-size:0.875rem;
-      margin-left:auto;
-    }
-
-    /* small subtle style for nested example */
-    .nested .details{
-      background: #f9fafb;
-      border-left: 3px solid rgba(0,102,204,0.06);
-    }
-
-    /* No-JS: show details content when JavaScript is disabled */
-    noscript .details{
-      max-height: none;
+      overflow:hidden;
+      transition: height var(--transition), opacity var(--transition);
+      height:auto; /* will be managed by script */
       opacity:1;
-      padding:12px;
+      margin-top:12px;
+      border-radius:8px;
     }
 
-    /* Utility */
-    .small{
-      font-size:0.9rem;
-      color:var(--muted);
+    /* When collapsed, JS will set height to 0 and aria-hidden=true; we also apply this style for noscript fallback */
+    .details.collapsed{
+      height:0;
+      opacity:0;
+      padding-top:0;
+      padding-bottom:0;
+    }
+
+    .detailsInner{
+      padding:12px;
+      background:linear-gradient(180deg, rgba(3,102,214,0.03), rgba(3,102,214,0.01));
+      border:1px dashed rgba(3,102,214,0.06);
+      border-radius:8px;
+      color:#022b52;
+    }
+
+    /* small demonstration controls for layout */
+    .meta{font-size:13px;color:var(--muted);margin-top:8px}
+    .code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace; font-size:13px; background:#f3f4f6; padding:6px 8px; border-radius:6px; display:inline-block}
+
+    /* Respect user preference for reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .chev, .details { transition: none; }
+    }
+
+    /* Small responsive tweak */
+    @media (max-width:420px){
+      body{margin:16px}
+      .example{padding:12px}
+      .toggle{font-size:14px; padding:8px}
     }
   </style>
 </head>
 <body>
-  <h1>Expand / Collapse widget examples</h1>
+  <h1>Expand / Collapse Widget</h1>
+  <p class="lead">Two examples of an accessible expand/collapse widget. Each widget is wrapped in a div.example. The controlled content container uses the class "details".</p>
 
-  <div class="grid">
+  <!-- Example 1: closed by default -->
+  <div class="example" id="ex1">
+    <button
+      class="toggle"
+      id="toggle-1"
+      aria-expanded="false"
+      aria-controls="details-1"
+      type="button"
+    >
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M8 5v14l11-7z" fill="currentColor"></path>
+      </svg>
+      Show more information
+    </button>
 
-    <!-- Example 1: Basic -->
-    <div class="example">
-      <div class="widget-header">
-        <button class="toggle-button" id="btn-1" aria-expanded="false" aria-controls="details-1">
-          <span class="chev" aria-hidden="true">▶</span>
-          Toggle details
-        </button>
-        <div class="hint small">Basic</div>
-      </div>
-
-      <div id="details-1" class="details" role="region" aria-labelledby="btn-1" aria-hidden="true">
-        <p><strong>Summary:</strong> This is a straightforward expandable area controlled by the button above. It uses ARIA attributes (aria-expanded on the button and aria-hidden on the region) and a visible chevron that rotates when expanded.</p>
-        <p>Use keyboard (Tab to focus, Space/Enter to toggle) or click to open and close the content.</p>
-      </div>
-    </div>
-
-    <!-- Example 2: Nested content -->
-    <div class="example nested">
-      <div class="widget-header">
-        <button class="toggle-button" id="btn-2" aria-expanded="false" aria-controls="details-2">
-          <span class="chev" aria-hidden="true">▶</span>
-          More info
-        </button>
-        <div class="hint small">Nested</div>
-      </div>
-
-      <div id="details-2" class="details" role="region" aria-labelledby="btn-2" aria-hidden="true">
-        <p>Here is some additional information. The content can include lists, forms, or even another toggle inside.</p>
-
-        <div style="margin-top:8px; padding:10px; background:#fff; border-radius:6px; border:1px solid rgba(16,24,40,0.03);">
-          <div style="display:flex; gap:10px; align-items:center;">
-            <button class="toggle-button" id="btn-2a" aria-expanded="false" aria-controls="details-2a" style="padding:6px 8px; font-size:0.9rem;">
-              <span class="chev" aria-hidden="true">▶</span>
-              View sub-section
-            </button>
-            <div class="small" style="color:var(--muted)">Nested toggle</div>
-          </div>
-
-          <div id="details-2a" class="details" role="region" aria-labelledby="btn-2a" aria-hidden="true" style="margin-top:8px;">
-            <p class="small" style="margin:0">This is a nested details area. Accessible patterns still apply: the inner button controls the inner region independently.</p>
-          </div>
-        </div>
+    <div id="details-1" class="details collapsed" role="region" aria-hidden="true" aria-labelledby="toggle-1">
+      <div class="detailsInner">
+        <p><strong>What this widget does:</strong> This section is hidden by default and is revealed when you activate the button. The button uses aria-expanded to indicate state and aria-controls to reference the content region. The content region uses role="region" and aria-labelledby to associate it with the triggering control.</p>
+        <p class="meta">Keyboard: The button is focusable and activates with Enter/Space.</p>
       </div>
     </div>
+  </div>
 
-    <!-- Example 3: Long content with animation -->
-    <div class="example">
-      <div class="widget-header">
-        <button class="toggle-button" id="btn-3" aria-expanded="false" aria-controls="details-3">
-          <span class="chev" aria-hidden="true">▶</span>
-          Read more
-        </button>
-        <div class="hint small">Animated</div>
-      </div>
+  <!-- Example 2: open by default with more content -->
+  <div class="example" id="ex2">
+    <button
+      class="toggle"
+      id="toggle-2"
+      aria-expanded="true"
+      aria-controls="details-2"
+      type="button"
+    >
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M8 5v14l11-7z" fill="currentColor"></path>
+      </svg>
+      Project notes (expanded)
+    </button>
 
-      <div id="details-3" class="details" role="region" aria-labelledby="btn-3" aria-hidden="true">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
-        <p>Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris.</p>
-        <p>Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla.</p>
+    <div id="details-2" class="details" role="region" aria-hidden="false" aria-labelledby="toggle-2">
+      <div class="detailsInner">
+        <h3 style="margin:0 0 8px 0; font-size:15px;">Highlights</h3>
+        <ul style="margin:0 0 8px 20px; padding:0">
+          <li>Accessible toggle with aria-expanded and aria-controls</li>
+          <li>Smooth height animation (skipped if user prefers reduced motion)</li>
+          <li>Collapsible content wrapped in an element with class "details"</li>
+        </ul>
+        <p style="margin:0">You can include any content inside the details container: text, images, forms, or interactive controls.</p>
       </div>
     </div>
-
   </div>
 
   <script>
     (function(){
-      // Utility to set max-height dynamically for smooth animation if content height is known
-      function setMaxHeight(el, open){
-        if(open){
-          // Temporarily remove max-height to measure content height
-          el.style.maxHeight = 'none';
-          var h = el.scrollHeight;
-          el.style.maxHeight = '0px';
-          // Force reflow to apply
-          void el.offsetHeight;
-          el.style.maxHeight = h + 'px';
-        } else {
-          el.style.maxHeight = el.scrollHeight + 'px';
-          // Force reflow then collapse
-          void el.offsetHeight;
-          el.style.maxHeight = '0px';
-        }
+      // Utility to set the height of the element for smooth animation
+      function setHeightForOpen(el){
+        // Remove explicit height to measure natural height
+        el.style.height = 'auto';
+        const h = el.scrollHeight;
+        el.style.height = h + 'px';
       }
 
-      function toggle(button, content){
-        var expanded = button.getAttribute('aria-expanded') === 'true';
-        var willOpen = !expanded;
+      function openDetails(btn, details){
+        btn.setAttribute('aria-expanded','true');
+        details.classList.remove('collapsed');
+        details.setAttribute('aria-hidden','false');
 
-        button.setAttribute('aria-expanded', String(willOpen));
-        content.setAttribute('aria-hidden', String(!willOpen));
+        // animate collapse -> to natural height
+        setHeightForOpen(details);
 
-        if(willOpen){
-          content.classList.add('open');
-          // For animation: set measured max-height
-          setMaxHeight(content, true);
-          // Remove hard-coded max-height after transition to allow natural growth
-          content.addEventListener('transitionend', function cleanup(){
-            if(content.classList.contains('open')){
-              content.style.maxHeight = 'none';
-            }
-            content.removeEventListener('transitionend', cleanup);
-          });
-        } else {
-          // ensure max-height is set to current height then animate to 0
-          setMaxHeight(content, false);
-          content.classList.remove('open');
-          // After collapse transition, clear inline maxHeight
-          content.addEventListener('transitionend', function cleanup(){
-            if(!content.classList.contains('open')){
-              content.style.maxHeight = '';
-            }
-            content.removeEventListener('transitionend', cleanup);
-          });
-        }
+        // After transition, clear explicit height so content can grow/shrink naturally
+        const cleanup = function(){
+          details.style.height = 'auto';
+          details.removeEventListener('transitionend', cleanup);
+        };
+        details.addEventListener('transitionend', cleanup);
       }
 
-      // Attach to all toggle-button elements
-      var buttons = Array.from(document.querySelectorAll('.toggle-button'));
-      buttons.forEach(function(btn){
-        var controls = btn.getAttribute('aria-controls');
-        if(!controls) return;
-        var content = document.getElementById(controls);
-        if(!content) return;
+      function closeDetails(btn, details){
+        // To animate from current height -> 0, set explicit height to current scrollHeight
+        const current = details.scrollHeight;
+        details.style.height = current + 'px';
 
-        // Ensure initial attributes are present
-        if(!btn.hasAttribute('aria-expanded')) btn.setAttribute('aria-expanded','false');
-        if(!content.hasAttribute('aria-hidden')) content.setAttribute('aria-hidden','true');
+        // Force a reflow so the height is applied before transitioning to 0
+        // eslint-disable-next-line no-unused-expressions
+        details.offsetHeight;
+
+        details.classList.add('collapsed');
+        details.setAttribute('aria-hidden','true');
+        btn.setAttribute('aria-expanded','false');
+
+        // After transition, keep height at 0 (class collapsed sets height 0)
+      }
+
+      // Initialize widgets: find all buttons with aria-controls inside .example wrappers
+      const toggles = document.querySelectorAll('.example .toggle[aria-controls]');
+      toggles.forEach(function(btn){
+        const controlsId = btn.getAttribute('aria-controls');
+        const details = document.getElementById(controlsId);
+        if(!details) return;
+
+        // Normalize initial state: if aria-expanded is "true", ensure details visible; otherwise collapsed
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        if(expanded){
+          details.classList.remove('collapsed');
+          details.setAttribute('aria-hidden','false');
+          // set height to auto so it's fully visible
+          details.style.height = 'auto';
+        } else {
+          details.classList.add('collapsed');
+          details.setAttribute('aria-hidden','true');
+          details.style.height = '0px';
+        }
 
         // Click toggles
-        btn.addEventListener('click', function(e){
-          toggle(btn, content);
+        btn.addEventListener('click', function(){
+          const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+          if(isExpanded){
+            closeDetails(btn, details);
+          } else {
+            openDetails(btn, details);
+          }
         });
 
-        // Enhance keyboard: Enter/Space are handled by button by default.
-        // Provide Home/End behavior for multiple toggles inside a region (optional)
+        // Optional: support Escape to close when focus is inside content
+        details.addEventListener('keydown', function(e){
+          if(e.key === 'Escape'){
+            btn.focus();
+            closeDetails(btn, details);
+          }
+        });
       });
 
-      // If JS is enabled, ensure <noscript> fallback not needed. (No action required.)
+      // If user has reduced motion preference, disable height transitions by ensuring auto heights are used
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if(mq.matches){
+        document.querySelectorAll('.details').forEach(function(d){
+          if(d.classList.contains('collapsed')){
+            d.style.display = 'none';
+          } else {
+            d.style.display = 'block';
+          }
+        });
+      }
     })();
   </script>
-  <noscript>
-    <style>
-      .details{ max-height:none !important; opacity:1 !important; padding:12px !important; }
-    </style>
-  </noscript>
 </body>
 </html>

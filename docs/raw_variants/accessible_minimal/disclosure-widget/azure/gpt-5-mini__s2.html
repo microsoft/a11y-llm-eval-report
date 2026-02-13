@@ -1,0 +1,261 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accessible Expand/Collapse Widget Examples</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --fg:#0b0f15;
+      --accent:#006fa6;
+      --muted:#6b7280;
+      --focus: 3px solid Highlight;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:var(--bg);
+      color:var(--fg);
+      line-height:1.4;
+      padding:1.25rem;
+    }
+
+    a.skip {
+      position: absolute;
+      left: -999px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+    a.skip:focus {
+      left: 1rem;
+      top: 1rem;
+      width: auto;
+      height: auto;
+      padding: .5rem .75rem;
+      background: #000;
+      color: #fff;
+      z-index: 9999;
+      border-radius: .25rem;
+      text-decoration: none;
+    }
+
+    header h1{
+      margin:0 0 .5rem 0;
+      font-size:1.25rem;
+    }
+    p.lead{
+      margin:0 0 1rem 0;
+      color:var(--muted);
+    }
+
+    .example{
+      border:1px solid #e6eef6;
+      background:#fbfdff;
+      padding:1rem;
+      border-radius:8px;
+      margin:0 0 1rem 0;
+    }
+
+    .widget-row{
+      display:flex;
+      gap:.75rem;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .toggle{
+      appearance:none;
+      border:1px solid #cde6f8;
+      background:linear-gradient(#fff,#f3fbff);
+      color:var(--accent);
+      padding:.5rem .75rem;
+      border-radius:6px;
+      font-weight:600;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+    }
+
+    .toggle:focus{
+      outline:none;
+      box-shadow:var(--focus);
+    }
+
+    .toggle .icon{
+      width:1rem;
+      height:1rem;
+      display:inline-block;
+      transform-origin:center;
+      transition:transform .18s ease;
+    }
+    .toggle[aria-expanded="true"] .icon{
+      transform:rotate(90deg);
+    }
+
+    .details{
+      margin-top:.75rem;
+      padding:.75rem;
+      border-radius:6px;
+      background:#fff;
+      border:1px dashed #e6eef6;
+    }
+    .details h3{
+      margin:.25rem 0 .5rem 0;
+      font-size:1rem;
+    }
+    .details p{
+      margin:.25rem 0;
+    }
+
+    /* hidden attribute: keep it out of layout and assistive tree */
+    .details[hidden]{
+      display:none;
+    }
+
+    /* focus outline for keyboard users inside details */
+    .details :focus{
+      outline:2px solid Highlight;
+      outline-offset:2px;
+    }
+
+    /* small utility for visually-hidden text for screen reader only */
+    .visually-hidden{
+      position:absolute!important;
+      height:1px;width:1px;
+      overflow:hidden;
+      clip:rect(1px,1px,1px,1px);
+      white-space:nowrap;
+      clip-path:inset(50%);
+      border:0;padding:0;margin:-1px;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip">Skip to content</a>
+
+  <header>
+    <h1>Expand/Collapse Widget Examples</h1>
+    <p class="lead">Two accessible expand/collapse widgets. Each widget is wrapped in a div.example and the controlled content uses a container with class="details".</p>
+  </header>
+
+  <main id="main" lang="en">
+    <div class="example" aria-labelledby="ex1-toggle-label">
+      <div class="widget-row">
+        <button id="ex1-toggle"
+                class="toggle"
+                aria-expanded="false"
+                aria-controls="ex1-details">
+          <span class="icon" aria-hidden="true">▸</span>
+          <span id="ex1-toggle-label">Show product details</span>
+        </button>
+        <p class="visually-hidden" id="ex1-instructions">Press Enter or Space to expand or collapse the details.</p>
+      </div>
+
+      <div id="ex1-details"
+           class="details"
+           role="region"
+           aria-labelledby="ex1-toggle"
+           hidden>
+        <h3>Product details</h3>
+        <p>Our insulated water bottle keeps drinks cold for 24 hours and hot for 12 hours. It is made from BPA-free stainless steel and comes with a leak-proof lid.</p>
+        <p><strong>Capacity:</strong> 750 ml</p>
+        <p><a href="#buy">Buy now</a> • <a href="#more">More specifications</a></p>
+      </div>
+    </div>
+
+    <div class="example" aria-labelledby="ex2-toggle-label">
+      <div class="widget-row">
+        <button id="ex2-toggle"
+                class="toggle"
+                aria-expanded="false"
+                aria-controls="ex2-details">
+          <span class="icon" aria-hidden="true">▸</span>
+          <span id="ex2-toggle-label">Show accessibility tips</span>
+        </button>
+      </div>
+
+      <div id="ex2-details"
+           class="details"
+           role="region"
+           aria-labelledby="ex2-toggle"
+           hidden>
+        <h3>Accessibility tips</h3>
+        <ul>
+          <li>Use semantic elements (headings, lists) to structure content.</li>
+          <li>Provide visible focus styles and sufficient color contrast.</li>
+          <li>Ensure interactive controls have accessible names and states (aria-expanded, aria-controls).</li>
+        </ul>
+        <p><a href="#learn-more">Learn more about accessibility</a></p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      // Attach behavior to any button with aria-controls inside .example
+      const examples = document.querySelectorAll('.example');
+      examples.forEach(example => {
+        const btn = example.querySelector('button[aria-controls]');
+        if (!btn) return;
+
+        const detailsId = btn.getAttribute('aria-controls');
+        const details = document.getElementById(detailsId);
+        if (!details) return;
+
+        // Ensure initial ARIA state is consistent with hidden attribute
+        const isHidden = details.hasAttribute('hidden');
+        btn.setAttribute('aria-expanded', String(!isHidden));
+
+        function updateState(expanded){
+          btn.setAttribute('aria-expanded', String(expanded));
+          if (expanded){
+            details.removeAttribute('hidden');
+            details.removeAttribute('aria-hidden');
+          } else {
+            details.setAttribute('hidden','');
+            details.setAttribute('aria-hidden','true');
+          }
+        }
+
+        // Toggle on click
+        btn.addEventListener('click', () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          updateState(!expanded);
+
+          // If expanding, move focus into the details to help keyboard users (optional)
+          if (!expanded) {
+            // Try to focus the first focusable element inside details
+            const focusable = details.querySelector('a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+            if (focusable) {
+              focusable.focus();
+            } else {
+              // If nothing focusable, set focus to the region for screen reader context
+              details.setAttribute('tabindex','-1');
+              details.focus();
+              // remove tabindex after blur to keep DOM tidy
+              details.addEventListener('blur', function onBlur(){
+                details.removeAttribute('tabindex');
+                details.removeEventListener('blur', onBlur);
+              });
+            }
+          }
+        });
+
+        // Allow toggling with Space/Enter is automatic for native button; ensure keyboard users get hint
+        // Close details when Escape pressed while focus is inside details
+        details.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' || e.key === 'Esc') {
+            e.stopPropagation();
+            updateState(false);
+            btn.focus();
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

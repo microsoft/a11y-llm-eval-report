@@ -1,0 +1,178 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expand/Collapse Widget Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 2rem;
+        }
+        .example {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e0e0e0;
+        }
+        .example h2 {
+            margin-top: 0;
+            color: #34495e;
+            font-size: 1.5rem;
+        }
+        button {
+            font-family: inherit;
+            font-size: 1rem;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        button:hover, button:focus-visible {
+            background-color: #2980b9;
+            outline: 3px solid #3498db;
+            outline-offset: 2px;
+        }
+        button:active {
+            background-color: #1c6ea4;
+        }
+        button[aria-expanded="true"] .icon {
+            transform: rotate(90deg);
+        }
+        .icon {
+            transition: transform 0.3s ease;
+            font-size: 0.8em;
+        }
+        .details {
+            margin-top: 1rem;
+            padding: 1.5rem;
+            border-radius: 4px;
+            background-color: #f8fafc;
+            border-left: 4px solid #3498db;
+            overflow: hidden;
+            transition: max-height 0.4s ease, opacity 0.3s ease;
+            max-height: 0;
+            opacity: 0;
+        }
+        .details[aria-hidden="false"] {
+            max-height: 500px;
+            opacity: 1;
+        }
+        .details p:last-child {
+            margin-bottom: 0;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Expand/Collapse Widget Demo</h1>
+
+    <div class="example">
+        <h2>Project Overview</h2>
+        <button id="trigger1" aria-expanded="false" aria-controls="content1">
+            <span class="icon">▶</span>
+            <span class="button-text">Show project details</span>
+        </button>
+        <div class="details" id="content1" aria-hidden="true" role="region" aria-labelledby="trigger1">
+            <p>This project explores the development of accessible web components. The expand/collapse widget is a common UI pattern used to show and hide content without navigating to a new page.</p>
+            <p>Key features include keyboard navigation support, screen reader announcements, and smooth animations. The content is semantically marked up and follows WCAG 2.2 AA guidelines.</p>
+        </div>
+    </div>
+
+    <div class="example">
+        <h2>Technical Specifications</h2>
+        <button id="trigger2" aria-expanded="false" aria-controls="content2">
+            <span class="icon">▶</span>
+            <span class="button-text">View specifications</span>
+        </button>
+        <div class="details" id="content2" aria-hidden="true" role="region" aria-labelledby="trigger2">
+            <p><strong>Framework:</strong> Vanilla HTML, CSS, and JavaScript.</p>
+            <p><strong>Accessibility:</strong> ARIA attributes (aria-expanded, aria-controls, aria-hidden, role="region"), full keyboard focus management, and screen reader support.</p>
+            <p><strong>Animation:</strong> CSS transitions for smooth expand/collapse effects using max-height and opacity.</p>
+            <p><strong>Browser Support:</strong> Compatible with all modern browsers and assistive technologies.</p>
+        </div>
+    </div>
+
+    <div class="example">
+        <h2>Usage Instructions</h2>
+        <button id="trigger3" aria-expanded="false" aria-controls="content3">
+            <span class="icon">▶</span>
+            <span class="button-text">Read instructions</span>
+        </button>
+        <div class="details" id="content3" aria-hidden="true" role="region" aria-labelledby="trigger3">
+            <p>1. Click the button or press <kbd>Enter</kbd>/<kbd>Space</kbd> to toggle the content visibility.</p>
+            <p>2. The widget can be navigated using the <kbd>Tab</kbd> key.</p>
+            <p>3. Screen readers will announce the expanded/collapsed state and the content label.</p>
+            <p>4. The content area is marked as a landmark region (role="region") for easy navigation.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('button[aria-controls]');
+
+            buttons.forEach(button => {
+                const contentId = button.getAttribute('aria-controls');
+                const content = document.getElementById(contentId);
+
+                if (!content) return;
+
+                // Toggle function
+                const toggle = () => {
+                    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+                    const newState = !isExpanded;
+
+                    button.setAttribute('aria-expanded', newState);
+                    content.setAttribute('aria-hidden', !newState);
+
+                    // Update button text for screen readers (optional visual update handled by CSS)
+                    const buttonText = button.querySelector('.button-text');
+                    if (buttonText) {
+                        buttonText.textContent = newState ? 'Hide details' : buttonText.textContent.replace('Hide', 'Show');
+                    }
+                };
+
+                // Click event
+                button.addEventListener('click', toggle);
+
+                // Keyboard event (Space and Enter)
+                button.addEventListener('keydown', (e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        toggle();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

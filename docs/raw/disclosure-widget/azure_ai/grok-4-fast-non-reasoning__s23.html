@@ -13,7 +13,7 @@
         .example {
             margin-bottom: 30px;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 5px;
             overflow: hidden;
         }
         .example h3 {
@@ -22,92 +22,145 @@
             background-color: #f5f5f5;
             cursor: pointer;
             user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .example h3:hover {
+            background-color: #e9e9e9;
         }
         .details {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-out;
+            background-color: #fff;
         }
         .details.expanded {
             max-height: 500px; /* Adjust based on content */
         }
         .details-content {
             padding: 20px;
-            background-color: #fff;
+        }
+        .toggle-icon {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+        .example h3[aria-expanded="true"] .toggle-icon {
+            transform: rotate(180deg);
+        }
+        .example[aria-disabled="true"] h3 {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
-    <h1>Expand/Collapse Widget Examples</h1>
+    <h1>Expand/Collapse Widget Demo</h1>
 
-    <div class="example">
-        <h3 onclick="toggleDetails('example1')">Example 1: Basic Information</h3>
-        <div id="example1" class="details">
+    <!-- Example 1: Basic Expand/Collapse -->
+    <div class="example" role="button" tabindex="0" aria-expanded="false" aria-controls="content1">
+        <h3 onclick="toggleDetails('content1', this.parentElement)">
+            Basic Expand/Collapse Widget
+            <span class="toggle-icon" aria-hidden="true">▼</span>
+        </h3>
+        <div id="content1" class="details">
             <div class="details-content">
-                <p>This is the first example of an expand/collapse widget. Click the header above to toggle the visibility of this content. The animation provides a smooth user experience.</p>
+                <p>This is a basic expand/collapse widget. Click the header to toggle the content visibility. The animation provides smooth transitions, and the icon rotates to indicate the state.</p>
                 <ul>
-                    <li>Item 1: Smooth transitions</li>
-                    <li>Item 2: Easy to implement</li>
-                    <li>Item 3: Accessible design</li>
+                    <li>Uses CSS transitions for smooth animation</li>
+                    <li>Accessible with keyboard navigation</li>
+                    <li>ARIA attributes for screen readers</li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <div class="example">
-        <h3 onclick="toggleDetails('example2')">Example 2: Product Features</h3>
-        <div id="example2" class="details">
+    <!-- Example 2: Multiple Items -->
+    <div class="example" role="button" tabindex="0" aria-expanded="true" aria-controls="content2">
+        <h3 onclick="toggleDetails('content2', this.parentElement)">
+            Multiple Items List
+            <span class="toggle-icon" aria-hidden="true">▼</span>
+        </h3>
+        <div id="content2" class="details expanded">
             <div class="details-content">
-                <h4>Key Features</h4>
-                <p>Discover the amazing features of our product:</p>
-                <table border="1" style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <th>Feature</th>
-                        <th>Description</th>
-                    </tr>
-                    <tr>
-                        <td>Fast Performance</td>
-                        <td>Lightning quick response times</td>
-                    </tr>
-                    <tr>
-                        <td>User Friendly</td>
-                        <td>Intuitive interface for all users</td>
-                    </tr>
-                    <tr>
-                        <td>Secure</td>
-                        <td>Top-level security protocols</td>
-                    </tr>
-                </table>
+                <h4>Features:</h4>
+                <ul>
+                    <li>Item 1: Responsive design</li>
+                    <li>Item 2: Cross-browser compatibility</li>
+                    <li>Item 3: Semantic HTML structure</li>
+                    <li>Item 4: Clean CSS animations</li>
+                    <li>Item 5: Keyboard accessible</li>
+                </ul>
+                <p>This example starts expanded and shows how the widget can contain structured content like lists and paragraphs.</p>
             </div>
         </div>
     </div>
 
-    <div class="example">
-        <h3 onclick="toggleDetails('example3')">Example 3: FAQ Section</h3>
-        <div id="example3" class="details">
+    <!-- Example 3: Disabled State -->
+    <div class="example" aria-disabled="true">
+        <h3>
+            Disabled Widget (Cannot Expand)
+            <span class="toggle-icon" aria-hidden="true">▼</span>
+        </h3>
+        <div id="content3" class="details">
             <div class="details-content">
-                <h4>Frequently Asked Questions</h4>
-                <div style="margin-bottom: 15px;">
-                    <strong>Q: How does the widget work?</strong>
-                    <p>A: The widget uses JavaScript to toggle the max-height CSS property, creating a smooth expand/collapse effect.</p>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>Q: Is it responsive?</strong>
-                    <p>A: Yes, the widget works on all screen sizes and devices.</p>
-                </div>
-                <div>
-                    <strong>Q: Can it be customized?</strong>
-                    <p>A: Absolutely! You can modify the styling, animation duration, and behavior to match your design requirements.</p>
-                </div>
+                <p>This widget is disabled and cannot be expanded. The styling indicates it's not interactive, and no JavaScript events are attached.</p>
+                <p>Useful for showing unavailable content or loading states.</p>
             </div>
         </div>
     </div>
 
     <script>
-        function toggleDetails(elementId) {
-            const details = document.getElementById(elementId);
-            details.classList.toggle('expanded');
+        function toggleDetails(contentId, exampleElement) {
+            if (exampleElement.getAttribute('aria-disabled') === 'true') {
+                return; // Don't toggle if disabled
+            }
+
+            const content = document.getElementById(contentId);
+            const isExpanded = exampleElement.getAttribute('aria-expanded') === 'true';
+            const icon = exampleElement.querySelector('.toggle-icon');
+
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                exampleElement.setAttribute('aria-expanded', 'false');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('expanded');
+                exampleElement.setAttribute('aria-expanded', 'true');
+                icon.style.transform = 'rotate(180deg)';
+            }
         }
+
+        // Keyboard accessibility
+        document.querySelectorAll('.example[role="button"]').forEach(example => {
+            if (example.getAttribute('aria-disabled') !== 'true') {
+                example.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const contentId = this.getAttribute('aria-controls');
+                        const header = this.querySelector('h3');
+                        toggleDetails(contentId, this);
+                    }
+                });
+            }
+        });
+
+        // Close when clicking outside (optional enhancement)
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.example')) {
+                document.querySelectorAll('.example[aria-expanded="true"]').forEach(example => {
+                    if (example.getAttribute('aria-disabled') !== 'true') {
+                        const contentId = example.getAttribute('aria-controls');
+                        const content = document.getElementById(contentId);
+                        const icon = example.querySelector('.toggle-icon');
+                        
+                        content.classList.remove('expanded');
+                        example.setAttribute('aria-expanded', 'false');
+                        icon.style.transform = 'rotate(0deg)';
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

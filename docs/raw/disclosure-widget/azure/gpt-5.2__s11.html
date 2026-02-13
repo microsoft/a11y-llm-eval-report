@@ -1,0 +1,274 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e8ecff;
+      --muted: #aab3d6;
+      --border: rgba(255,255,255,0.14);
+      --accent: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+      --focus: 0 0 0 3px rgba(122,162,255,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(122,162,255,0.18), transparent 60%),
+                  radial-gradient(900px 700px at 80% 30%, rgba(122,255,214,0.10), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 18px 60px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0 0 10px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0 0 22px;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 860px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    .example header {
+      padding: 14px 16px 0;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.2px;
+    }
+
+    .widget {
+      padding: 14px 16px 16px;
+    }
+
+    /* Button-based widget */
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+    }
+    .toggle:hover { background: rgba(255,255,255,0.07); }
+    .toggle:focus-visible { outline: none; box-shadow: var(--focus); }
+
+    .chev {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      transition: transform 180ms ease;
+      opacity: 0.9;
+    }
+    .toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+    .details {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+
+    /* Animated collapse using grid trick */
+    .details[data-collapsible] {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 220ms ease;
+    }
+    .details[data-collapsible][data-open="true"] {
+      grid-template-rows: 1fr;
+    }
+    .details .details-inner {
+      min-height: 0;
+      padding: 0 12px;
+    }
+    .details[data-collapsible] .details-inner {
+      overflow: hidden;
+      padding-top: 0;
+      padding-bottom: 0;
+      transition: padding 220ms ease;
+    }
+    .details[data-collapsible][data-open="true"] .details-inner {
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+
+    .details p {
+      margin: 0 0 10px;
+      color: var(--text);
+    }
+    .details p:last-child { margin-bottom: 0; }
+    .details ul { margin: 0; padding-left: 18px; color: var(--muted); }
+    .details code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+      color: #d7dcff;
+      background: rgba(255,255,255,0.06);
+      padding: 0.1em 0.35em;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    /* Native <details> styling */
+    details.native {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      padding: 0;
+      overflow: hidden;
+    }
+    details.native > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+    }
+    details.native > summary::-webkit-details-marker { display: none; }
+    details.native > summary:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 12px; }
+    details.native .summary-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    details.native .native-body.details {
+      border: none;
+      border-top: 1px solid var(--border);
+      border-radius: 0;
+      margin: 0;
+      background: rgba(0,0,0,0.16);
+    }
+    details.native .native-body.details .details-inner { padding: 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget</h1>
+    <p class="lead">
+      Two examples: a custom button-controlled panel and a native <code>&lt;details&gt;</code> element.
+      Each widget is wrapped in a <code>div.example</code>, and the controlled content container uses the <code>details</code> class.
+    </p>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example">
+        <header>Example 1 — Button + ARIA (animated)</header>
+        <div class="widget">
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-1" id="toggle-1">
+            <span>What’s included in this panel?</span>
+            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29Z"/>
+            </svg>
+          </button>
+
+          <div class="details" id="panel-1" role="region" aria-labelledby="toggle-1" data-collapsible data-open="false">
+            <div class="details-inner">
+              <p>This is the controlled content area. It expands and collapses when you activate the button.</p>
+              <ul>
+                <li>Keyboard accessible via <code>Enter</code>/<code>Space</code></li>
+                <li>Uses <code>aria-expanded</code> and <code>aria-controls</code></li>
+                <li>Animated height using a CSS grid technique</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <header>Example 2 — Native &lt;details&gt; (no JS required)</header>
+        <div class="widget">
+          <details class="native">
+            <summary>
+              <span>Show more information</span>
+              <span class="summary-right">
+                <span>Toggle</span>
+                <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29Z"/>
+                </svg>
+              </span>
+            </summary>
+
+            <div class="native-body details">
+              <div class="details-inner">
+                <p>This uses the browser’s built-in expand/collapse behavior.</p>
+                <p>You can still style the content container with the <code>details</code> class as requested.</p>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const toggle = document.getElementById('toggle-1');
+      const panel = document.getElementById('panel-1');
+
+      function setOpen(isOpen) {
+        toggle.setAttribute('aria-expanded', String(isOpen));
+        panel.setAttribute('data-open', String(isOpen));
+        if (!isOpen) {
+          // Keep it out of tab order when collapsed
+          panel.setAttribute('inert', '');
+        } else {
+          panel.removeAttribute('inert');
+        }
+      }
+
+      // Initialize
+      setOpen(false);
+
+      toggle.addEventListener('click', () => {
+        const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+        setOpen(!isOpen);
+      });
+    })();
+  </script>
+</body>
+</html>

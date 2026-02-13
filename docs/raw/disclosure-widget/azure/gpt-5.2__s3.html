@@ -1,0 +1,385 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e8ecff;
+      --muted: #aab3d6;
+      --border: rgba(255,255,255,0.14);
+      --focus: #7aa2ff;
+      --accent: #7c5cff;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(124,92,255,0.25), transparent 60%),
+                  radial-gradient(900px 600px at 80% 30%, rgba(122,162,255,0.18), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 16px 56px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 18px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0 0 22px;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 760px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .example header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .example header .title {
+      font-weight: 650;
+      letter-spacing: 0.2px;
+    }
+
+    .example header .hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    /* Widget base */
+    .widget {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: clip;
+      background: rgba(18, 26, 51, 0.55);
+    }
+
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 12px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      font-size: 1rem;
+    }
+
+    .toggle:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid rgba(122,162,255,0.55);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
+    .toggle .label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .toggle .label .primary {
+      font-weight: 650;
+    }
+
+    .toggle .label .secondary {
+      color: var(--muted);
+      font-size: 0.9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chev {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .chev svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: var(--text);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.95;
+    }
+
+    /* Controlled content container must have class "details" */
+    .details {
+      border-top: 1px solid rgba(255,255,255,0.10);
+      padding: 0 12px;
+      color: var(--text);
+    }
+
+    /* Collapsed state */
+    .details[hidden] {
+      display: none;
+    }
+
+    /* Expanded state visuals */
+    .widget[data-expanded="true"] .chev {
+      transform: rotate(180deg);
+      background: rgba(124,92,255,0.18);
+      border-color: rgba(124,92,255,0.35);
+    }
+
+    .details .content {
+      padding: 12px 0 14px;
+      color: rgba(232,236,255,0.92);
+    }
+
+    .details ul {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: rgba(232,236,255,0.88);
+    }
+
+    .details code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.95em;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      padding: 0.1em 0.35em;
+      border-radius: 6px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .pill {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+
+    .pill:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .pill:focus-visible {
+      outline: 3px solid rgba(122,162,255,0.55);
+      outline-offset: 2px;
+    }
+
+    .note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget Demo</h1>
+    <p class="lead">
+      Two examples of an expand/collapse widget. Each widget is wrapped in a <code>div.example</code>, and the controlled content container uses the <code>details</code> class.
+    </p>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example">
+        <header>
+          <div class="title">Example 1: Basic toggle</div>
+          <div class="hint">Click or press Enter/Space</div>
+        </header>
+
+        <div class="widget" data-expanded="false">
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="details-1" id="toggle-1">
+            <span class="label">
+              <span class="primary">What does this widget do?</span>
+              <span class="secondary">Shows and hides a content panel</span>
+            </span>
+            <span class="chev" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 9l6 6 6-6"></path>
+              </svg>
+            </span>
+          </button>
+
+          <div class="details" id="details-1" role="region" aria-labelledby="toggle-1" hidden>
+            <div class="content">
+              This panel is controlled by the button above via <code>aria-controls</code> and <code>aria-expanded</code>.
+              <ul>
+                <li>Collapsed by default</li>
+                <li>Accessible region labeling</li>
+                <li>Uses the required <code>details</code> class</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <header>
+          <div class="title">Example 2: With extra actions</div>
+          <div class="hint">Includes “Expand all / Collapse all”</div>
+        </header>
+
+        <div class="controls" aria-label="Batch controls">
+          <button class="pill" type="button" data-action="expand-all">Expand all</button>
+          <button class="pill" type="button" data-action="collapse-all">Collapse all</button>
+        </div>
+
+        <div class="widget" data-expanded="false" style="margin-top: 10px;">
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="details-2" id="toggle-2">
+            <span class="label">
+              <span class="primary">Release notes</span>
+              <span class="secondary">Keyboard-friendly disclosure</span>
+            </span>
+            <span class="chev" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 9l6 6 6-6"></path>
+              </svg>
+            </span>
+          </button>
+
+          <div class="details" id="details-2" role="region" aria-labelledby="toggle-2" hidden>
+            <div class="content">
+              <strong>v1.2.0</strong>
+              <ul>
+                <li>Improved focus styles</li>
+                <li>Added batch controls</li>
+                <li>Reduced motion-friendly transitions</li>
+              </ul>
+              <div class="note">Tip: You can wire multiple widgets to the batch controls.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="widget" data-expanded="false" style="margin-top: 12px;">
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="details-3" id="toggle-3">
+            <span class="label">
+              <span class="primary">FAQ</span>
+              <span class="secondary">Another independent panel</span>
+            </span>
+            <span class="chev" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 9l6 6 6-6"></path>
+              </svg>
+            </span>
+          </button>
+
+          <div class="details" id="details-3" role="region" aria-labelledby="toggle-3" hidden>
+            <div class="content">
+              <p style="margin: 0 0 10px;">
+                This is a second widget in the same example wrapper.
+              </p>
+              <ul>
+                <li>Each panel has its own <code>details</code> container</li>
+                <li>Each toggle updates <code>aria-expanded</code></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      function setExpanded(widgetEl, expanded) {
+        const btn = widgetEl.querySelector('.toggle');
+        const details = widgetEl.querySelector('.details');
+        if (!btn || !details) return;
+
+        widgetEl.dataset.expanded = expanded ? 'true' : 'false';
+        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        details.hidden = !expanded;
+      }
+
+      function toggleWidget(widgetEl) {
+        const expanded = widgetEl.dataset.expanded === 'true';
+        setExpanded(widgetEl, !expanded);
+      }
+
+      document.addEventListener('click', function (e) {
+        const toggleBtn = e.target.closest('.toggle');
+        if (toggleBtn) {
+          const widget = toggleBtn.closest('.widget');
+          if (widget) toggleWidget(widget);
+          return;
+        }
+
+        const actionBtn = e.target.closest('[data-action]');
+        if (actionBtn) {
+          const example = actionBtn.closest('.example');
+          if (!example) return;
+
+          const widgets = example.querySelectorAll('.widget');
+          if (actionBtn.dataset.action === 'expand-all') {
+            widgets.forEach(w => setExpanded(w, true));
+          } else if (actionBtn.dataset.action === 'collapse-all') {
+            widgets.forEach(w => setExpanded(w, false));
+          }
+        }
+      });
+
+      // Initialize explicit state based on [hidden]
+      document.querySelectorAll('.widget').forEach(widget => {
+        const details = widget.querySelector('.details');
+        const expanded = details ? !details.hidden : false;
+        setExpanded(widget, expanded);
+      });
+    })();
+  </script>
+</body>
+</html>

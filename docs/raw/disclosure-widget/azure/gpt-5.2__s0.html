@@ -1,0 +1,433 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e9ecf5;
+      --muted: #aab3d6;
+      --border: rgba(255,255,255,0.14);
+      --accent: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(122,162,255,0.25), transparent 60%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(122,255,214,0.12), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+
+    header {
+      margin: 10px 0 22px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 6px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .example h2 {
+      font-size: 1.05rem;
+      margin: 0 0 10px;
+      color: rgba(233,236,245,0.95);
+      font-weight: 650;
+    }
+
+    /* Shared widget styles */
+    .widget {
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px;
+      background: rgba(18,26,51,0.65);
+      overflow: hidden;
+    }
+
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 12px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid rgba(122,162,255,0.55);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
+    .toggle .label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .toggle .title {
+      font-weight: 650;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toggle .subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chev {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .toggle[aria-expanded="true"] .chev {
+      transform: rotate(180deg);
+      background: rgba(122,162,255,0.12);
+      border-color: rgba(122,162,255,0.35);
+    }
+
+    .details {
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding: 0 12px;
+      color: rgba(233,236,245,0.92);
+    }
+
+    .details > .content {
+      padding: 12px 0 14px;
+    }
+
+    .details p {
+      margin: 0 0 10px;
+      color: rgba(233,236,245,0.9);
+    }
+
+    .details p:last-child { margin-bottom: 0; }
+
+    .pillrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: rgba(233,236,245,0.92);
+    }
+
+    /* Animated collapse (JS-driven) */
+    .details[data-collapsible="true"] {
+      overflow: hidden;
+      height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-top-width: 0;
+      transition: height 220ms ease;
+    }
+
+    .details[data-open="true"] {
+      border-top-width: 1px;
+    }
+
+    /* Native <details> styling */
+    details.native {
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px;
+      background: rgba(18,26,51,0.65);
+      overflow: hidden;
+    }
+
+    details.native > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+    }
+
+    details.native > summary::-webkit-details-marker { display: none; }
+
+    details.native > summary:focus-visible {
+      outline: 3px solid rgba(122,162,255,0.55);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
+    details.native .chev {
+      transition: transform 180ms ease, background 180ms ease;
+    }
+
+    details.native[open] .chev {
+      transform: rotate(180deg);
+      background: rgba(122,162,255,0.12);
+      border-color: rgba(122,162,255,0.35);
+    }
+
+    details.native .details {
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding: 0 12px;
+    }
+
+    footer.note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    code.kbd {
+      font-family: var(--mono);
+      font-size: 0.9em;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+      color: rgba(233,236,245,0.95);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Expand/Collapse Widget</h1>
+      <p class="lead">
+        Two examples: a custom button-controlled panel (with animated height) and a native <code class="kbd">&lt;details&gt;</code> element.
+        Each widget is wrapped in a <code class="kbd">div.example</code>, and the controlled content container uses the <code class="kbd">details</code> class.
+      </p>
+    </header>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example">
+        <h2>Example 1: Button + controlled panel</h2>
+
+        <div class="widget" data-widget="collapsible">
+          <button
+            class="toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="panel-1"
+            id="toggle-1"
+          >
+            <span class="label">
+              <span class="title">Shipping & delivery</span>
+              <span class="subtitle">Estimated times, tracking, and fees</span>
+            </span>
+            <span class="chev" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+
+          <div
+            class="details"
+            id="panel-1"
+            role="region"
+            aria-labelledby="toggle-1"
+            data-collapsible="true"
+            data-open="false"
+          >
+            <div class="content">
+              <p>
+                Orders ship within 1–2 business days. Standard delivery typically takes 3–5 business days after dispatch.
+                You’ll receive a tracking link as soon as your package leaves the warehouse.
+              </p>
+              <div class="pillrow" aria-label="Highlights">
+                <span class="pill">Dispatch: 1–2 days</span>
+                <span class="pill">Delivery: 3–5 days</span>
+                <span class="pill">Tracking: included</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="note">
+          Tip: Use <code class="kbd">Enter</code> or <code class="kbd">Space</code> on the button to toggle.
+        </footer>
+      </div>
+
+      <div class="example">
+        <h2>Example 2: Native &lt;details&gt; + summary</h2>
+
+        <details class="native" id="native-1">
+          <summary>
+            <span class="label">
+              <span class="title">Returns policy</span>
+              <span class="subtitle">How to start a return and timelines</span>
+            </span>
+            <span class="chev" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </summary>
+
+          <div class="details">
+            <div class="content">
+              <p>
+                Returns are accepted within 30 days of delivery. Items must be unused and in original packaging.
+                Refunds are processed within 5–7 business days after inspection.
+              </p>
+              <div class="pillrow" aria-label="Highlights">
+                <span class="pill">Window: 30 days</span>
+                <span class="pill">Refund: 5–7 days</span>
+                <span class="pill">Condition: unused</span>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <footer class="note">
+          Native <code class="kbd">&lt;details&gt;</code> provides built-in accessibility and keyboard support.
+        </footer>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function setPanelHeight(panel, open) {
+        if (prefersReduced) {
+          panel.style.transition = 'none';
+          panel.style.height = open ? 'auto' : '0px';
+          return;
+        }
+
+        // If opening: from 0 -> scrollHeight
+        // If closing: from current height -> 0
+        const start = panel.getBoundingClientRect().height;
+        panel.style.height = start + 'px';
+
+        // Force reflow
+        panel.offsetHeight;
+
+        if (open) {
+          const target = panel.scrollHeight;
+          panel.style.height = target + 'px';
+          const onEnd = (e) => {
+            if (e.propertyName !== 'height') return;
+            panel.style.height = 'auto';
+            panel.removeEventListener('transitionend', onEnd);
+          };
+          panel.addEventListener('transitionend', onEnd);
+        } else {
+          panel.style.height = '0px';
+        }
+      }
+
+      document.querySelectorAll('[data-widget="collapsible"]').forEach((widget) => {
+        const btn = widget.querySelector('.toggle');
+        const panel = widget.querySelector('.details[data-collapsible="true"]');
+        if (!btn || !panel) return;
+
+        // Initialize collapsed
+        panel.style.height = '0px';
+
+        btn.addEventListener('click', () => {
+          const isOpen = btn.getAttribute('aria-expanded') === 'true';
+          const next = !isOpen;
+
+          btn.setAttribute('aria-expanded', String(next));
+          panel.dataset.open = String(next);
+
+          if (next) {
+            // Ensure border appears when opening
+            panel.classList.add('opening');
+            panel.style.borderTopWidth = '1px';
+          }
+
+          setPanelHeight(panel, next);
+
+          if (!next) {
+            // Remove border after collapse completes (or immediately if reduced motion)
+            if (prefersReduced) {
+              panel.style.borderTopWidth = '0px';
+            } else {
+              const onEnd = (e) => {
+                if (e.propertyName !== 'height') return;
+                if (btn.getAttribute('aria-expanded') === 'false') {
+                  panel.style.borderTopWidth = '0px';
+                }
+                panel.removeEventListener('transitionend', onEnd);
+              };
+              panel.addEventListener('transitionend', onEnd);
+            }
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Modal Dialog Example - Component Library</title>
+    <style>
+        :root {
+            /* Design Tokens */
+            --color-bg: #ffffff;
+            --color-text: #212121;
+            --color-muted: #595959;
+            --color-primary: #005a9c;
+            --color-primary-hover: #004475;
+            --color-primary-text: #ffffff;
+            --color-border: #767676;
+            --color-focus: #005a9c;
+            --color-backdrop: rgba(0, 0, 0, 0.65);
+            
+            /* Spacing */
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+        }
+
+        /* Base Reset & Typography */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            margin: 0;
+        }
+
+        h1, h2 {
+            margin-top: 0;
+        }
+
+        p {
+            margin-bottom: var(--space-md);
+        }
+
+        /* Skip Link */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .skip-link {
+            background: var(--color-primary);
+            color: var(--color-primary-text);
+            padding: var(--space-sm) var(--space-md);
+            z-index: 100;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .skip-link:not(:focus) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 48rem; /* approx 768px */
+            margin: 0 auto;
+            padding: var(--space-lg);
+        }
+
+        /* Buttons */
+        button {
+            cursor: pointer;
+            font-size: 1rem;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 4px;
+            border: 2px solid transparent;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+
+        button:focus-visible {
+            outline: 3px solid transparent;
+            box-shadow: 0 0 0 3px var(--color-focus);
+            border-color: var(--color-bg); /* Ensure contrast against the blue ring */
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: var(--color-primary-text);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 2px solid var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-backdrop);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        .modal-backdrop.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .modal-dialog {
+            background-color: var(--color-bg);
+            border-radius: 8px;
+            padding: var(--space-lg);
+            width: 100%;
+            max-width: 32rem; /* approx 512px */
+            margin: var(--space-md);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-dialog:focus {
+            outline: none; /* Focus is managed programmatically, visual indication provided by context */
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-md);
+        }
+
+        .modal-close-btn {
+            background: transparent;
+            border: 2px solid transparent;
+            color: var(--color-text);
+            padding: 0.25rem;
+            line-height: 1;
+            margin-top: -0.5rem;
+            margin-right: -0.5rem;
+            border-radius: 4px;
+        }
+        
+        .modal-close-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .modal-footer {
+            margin-top: var(--space-lg);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+        }
+
+        /* Forced Colors Mode Support */
+        @media (forced-colors: active) {
+            button:focus-visible {
+                outline: 3px solid ButtonText;
+                box-shadow: none;
+            }
+            
+            .modal-dialog {
+                border: 2px solid CanvasText;
+            }
+
+            .modal-backdrop {
+                /* Ensure backdrop doesn't obscure content if transparency fails */
+                background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)); 
+            }
+        }
+
+        /* Reflow / Responsive */
+        @media (max-width: 320px) {
+            .modal-footer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .modal-footer > button {
+                width: 100%;
+                margin-bottom: var(--space-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#main-content" class="skip-link">Skip to main content</a>
+    </header>
+
+    <main id="main-content" class="container">
+        <h1>Dashboard Settings</h1>
+        
+        <p>Manage your account preferences and settings below.</p>
+
+        <section>
+            <h2>Account Deletion</h2>
+            <p>Once you delete your account, there is no going back. Please be certain.</p>
+            
+            <!-- Trigger Button -->
+            <button type="button" class="trigger btn-primary" id="delete-account-trigger">
+                Delete Account
+            </button>
+        </section>
+        
+        <!-- Spacer for scrolling demonstration -->
+        <div style="height: 50vh;"></div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p class="sr-only">Footer content</p>
+            <small>&copy; 2023 Example Corp</small>
+        </div>
+    </footer>
+
+    <!-- Modal Structure -->
+    <!-- 
+      1. 'hidden' class hides it by default.
+      2. Role="dialog" identifies it as a dialog.
+      3. aria-modal="true" tells AT that windows underneath are inert.
+      4. aria-labelledby points to the visible title.
+      5. aria-describedby points to the description.
+    -->
+    <div id="modal-backdrop" class="modal-backdrop hidden">
+        <div 
+            role="dialog" 
+            aria-modal="true" 
+            aria-labelledby="modal-title" 
+            aria-describedby="modal-desc"
+            id="modal-dialog" 
+            class="modal-dialog" 
+            tabindex="-1">
+            
+            <div class="modal-header">
+                <h2 id="modal-title">Confirm Account Deletion</h2>
+                <button type="button" class="modal-close-btn" aria-label="Close modal">
+                    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="modal-desc">
+                <p>Are you sure you want to permanently delete your account? This action cannot be undone.</p>
+            </div>
+
+            <form id="modal-form">
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary cancel-btn">Cancel</button>
+                    <button type="submit" class="btn-primary">Yes, Delete Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const triggerBtn = document.querySelector('.trigger');
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const modalDialog = document.getElementById('modal-dialog');
+            const closeBtn = document.querySelector('.modal-close-btn');
+            const cancelBtn = document.querySelector('.cancel-btn');
+            const modalForm = document.getElementById('modal-form');
+            
+            // Store the element that had focus before opening the modal
+            let lastFocusedElement;
+
+            // Helper: Get all focusable elements inside modal
+            function getFocusableElements(element) {
+                return element.querySelectorAll(
+                    'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                );
+            }
+
+            function openModal() {
+                lastFocusedElement = document.activeElement;
+                modalBackdrop.classList.remove('hidden');
+                
+                // Prevent scrolling on the body
+                document.body.style.overflow = 'hidden';
+
+                // Focus management: 
+                // Focus the dialog container itself (which has tabindex="-1")
+                // This ensures screen readers announce the dialog role and label immediately.
+                modalDialog.focus();
+
+                // Add event listener for trapping focus
+                document.addEventListener('keydown', trapFocus);
+                // Add event listener for Escape key
+                document.addEventListener('keydown', handleEscape);
+            }
+
+            function closeModal() {
+                modalBackdrop.classList.add('hidden');
+                
+                // Restore scrolling
+                document.body.style.overflow = '';
+
+                // Clean up listeners
+                document.removeEventListener('keydown', trapFocus);
+                document.removeEventListener('keydown', handleEscape);
+
+                // Return focus to the trigger button
+                if (lastFocusedElement) {
+                    lastFocusedElement.focus();
+                }
+            }
+
+            function handleEscape(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            }
+
+            function trapFocus(e) {
+                if (e.key !== 'Tab') return;
+
+                const focusableElements = getFocusableElements(modalDialog);
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                // Shift + Tab
+                if (e.shiftKey) {
+                    if (document.activeElement === firstElement || document.activeElement === modalDialog) {
+                        e.preventDefault();
+                        lastElement.focus();
+                    }
+                } 
+                // Tab
+                else {
+                    if (document.activeElement === lastElement) {
+                        e.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            }
+
+            // Event Listeners
+            triggerBtn.addEventListener('click', openModal);
+            closeBtn.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+
+            // Close when clicking the backdrop (outside the dialog)
+            modalBackdrop.addEventListener('click', (e) => {
+                if (e.target === modalBackdrop) {
+                    closeModal();
+                }
+            });
+
+            // Handle form submission (prevent actual submit for demo)
+            modalForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('Account deleted (demo action)');
+                closeModal();
+            });
+        });
+    </script>
+</body>
+</html>

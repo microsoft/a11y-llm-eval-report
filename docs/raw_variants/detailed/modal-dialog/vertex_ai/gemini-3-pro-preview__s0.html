@@ -1,0 +1,307 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Modal Dialog Example</title>
+    <style>
+        /* CSS Variables for Theme and Contrast */
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #1a1a1a;
+            --color-muted-text: #595959;
+            --color-primary: #005a9c;
+            --color-primary-hover: #004475;
+            --color-primary-text: #ffffff;
+            --color-border: #767676;
+            --color-overlay: rgba(0, 0, 0, 0.65);
+            --color-focus: #005a9c;
+            --color-focus-outline: #ffffff;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+        }
+
+        /* Base Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            margin: 0;
+        }
+
+        /* Skip Link */
+        .sr-only:not(:focus):not(:active) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        .skip-link {
+            background: var(--color-primary);
+            color: var(--color-primary-text);
+            padding: var(--space-md);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Layout */
+        header, main, footer {
+            padding: var(--space-lg);
+            max-width: 60rem;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        /* Buttons */
+        button {
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button.trigger {
+            background-color: var(--color-primary);
+            color: var(--color-primary-text);
+        }
+
+        button.trigger:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        button.close-modal {
+            background-color: transparent;
+            border: 2px solid var(--color-border);
+            color: var(--color-text);
+            margin-top: var(--space-md);
+        }
+
+        button.close-modal:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Focus Styles */
+        button:focus-visible, a:focus-visible {
+            outline: 3px solid var(--color-focus);
+            outline-offset: 2px;
+        }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-overlay);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s;
+        }
+
+        .modal-backdrop.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--color-bg);
+            padding: var(--space-lg);
+            border-radius: 8px;
+            max-width: 32rem;
+            width: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+
+        /* Forced Colors Mode Support */
+        @media (forced-colors: active) {
+            button {
+                border: 2px solid ButtonText;
+            }
+            
+            button:focus-visible {
+                outline: 2px solid Highlight;
+                outline-offset: 2px;
+            }
+
+            .modal-content {
+                border: 2px solid CanvasText;
+            }
+            
+            .modal-backdrop {
+                background-color: Canvas; /* Fallback if overlay isn't supported */
+                background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)); /* Pattern to simulate dimming */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#maincontent" class="skip-link">Skip to main content</a>
+        <nav aria-label="Main">
+            <!-- Navigation placeholder -->
+        </nav>
+    </header>
+
+    <main id="maincontent" tabindex="-1">
+        <h1>Account Settings</h1>
+        <p>Manage your account details and preferences below.</p>
+        
+        <section>
+            <h2>Danger Zone</h2>
+            <p>Once you delete your account, there is no going back. Please be certain.</p>
+            <!-- The trigger button requested -->
+            <button type="button" class="trigger" id="delete-account-trigger" aria-haspopup="dialog" aria-controls="confirmation-modal">
+                Delete Account
+            </button>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Example Company</p>
+    </footer>
+
+    <!-- Modal Structure -->
+    <!-- 
+      role="dialog": Identifies this as a dialog window.
+      aria-modal="true": Tells AT that windows underneath are inert.
+      aria-labelledby: Points to the visible title of the modal.
+      aria-describedby: Points to the description content.
+      hidden: Hidden by default.
+    -->
+    <div id="confirmation-modal" 
+         class="modal-backdrop" 
+         role="dialog" 
+         aria-modal="true" 
+         aria-labelledby="modal-title" 
+         aria-describedby="modal-desc"
+         hidden>
+        
+        <div class="modal-content">
+            <h2 id="modal-title" class="modal-title">Confirm Deletion</h2>
+            
+            <div id="modal-desc">
+                <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+            </div>
+
+            <form method="dialog">
+                <!-- 
+                  In a real app, the 'Yes' button would submit a form or trigger an API call.
+                  For this demo, both buttons just close the modal via JS.
+                -->
+                <button type="button" class="trigger" onclick="closeModal()">Yes, delete my account</button>
+                <button type="button" class="close-modal" onclick="closeModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const triggerBtn = document.querySelector('.trigger');
+        const modal = document.getElementById('confirmation-modal');
+        const closeBtns = modal.querySelectorAll('button');
+        const firstFocusableElement = modal.querySelector('button');
+        const lastFocusableElement = closeBtns[closeBtns.length - 1];
+        
+        // Store the element that had focus before opening the modal
+        let previousActiveElement;
+
+        function openModal() {
+            previousActiveElement = document.activeElement;
+            
+            modal.hidden = false;
+            // Small timeout to allow display change to register before adding class for transition
+            setTimeout(() => {
+                modal.classList.add('is-open');
+            }, 10);
+
+            // Focus management: move focus to the first interactive element inside
+            firstFocusableElement.focus();
+
+            // Add event listener for Escape key
+            document.addEventListener('keydown', handleKeyDown);
+            
+            // Prevent scrolling on body
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.remove('is-open');
+            
+            // Wait for transition to finish before hiding
+            setTimeout(() => {
+                modal.hidden = true;
+                document.body.style.overflow = '';
+            }, 200);
+
+            // Return focus to the trigger button
+            if (previousActiveElement) {
+                previousActiveElement.focus();
+            }
+
+            document.removeEventListener('keydown', handleKeyDown);
+        }
+
+        function handleKeyDown(e) {
+            // Close on Escape
+            if (e.key === 'Escape') {
+                closeModal();
+                return;
+            }
+
+            // Trap focus inside modal
+            if (e.key === 'Tab') {
+                if (e.shiftKey) {
+                    // Shift + Tab
+                    if (document.activeElement === firstFocusableElement) {
+                        e.preventDefault();
+                        lastFocusableElement.focus();
+                    }
+                } else {
+                    // Tab
+                    if (document.activeElement === lastFocusableElement) {
+                        e.preventDefault();
+                        firstFocusableElement.focus();
+                    }
+                }
+            }
+        }
+
+        // Event Listeners
+        triggerBtn.addEventListener('click', openModal);
+
+        // Close when clicking the backdrop (optional but common pattern)
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
