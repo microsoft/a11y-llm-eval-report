@@ -22,28 +22,23 @@
         }
 
         .trigger:hover, .trigger:focus {
-            background-color: #0044b3;
+            background-color: #0044b8;
             outline: 2px solid #000;
             outline-offset: 2px;
         }
 
-        /* Dialog Styling */
+        /* Dialog Backdrop */
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
         dialog {
             border: none;
             border-radius: 8px;
-            padding: 0;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        dialog::backdrop {
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(2px);
-        }
-
-        .modal-content {
             padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
         .modal-header {
@@ -60,91 +55,73 @@
 
         .close-button {
             background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             padding: 0.5rem;
-            line-height: 1;
+            cursor: pointer;
+            font-size: 1rem;
         }
 
-        .close-button:focus {
-            outline: 2px solid #005aee;
+        .close-button:hover {
+            background-color: #eee;
         }
 
         .modal-footer {
             margin-top: 2rem;
             text-align: right;
         }
-
-        .action-button {
-            padding: 0.5rem 1rem;
-            background-color: #e0e0e0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
 
     <h1>Accessible Modal Component</h1>
-    <p>Click the button below to open the dialog. This component follows WCAG 2.2 guidelines for keyboard navigation and screen reader support.</p>
+    <p>The following button triggers a native HTML dialog element, managed with accessibility best practices.</p>
 
-    <button type="button" class="trigger" id="openDialog">Open Modal</button>
+    <button type="button" class="trigger" id="openModal">Open Dialog</button>
 
-    <dialog id="mainDialog" aria-labelledby="modalTitle" aria-describedby="modalDesc">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Newsletter Signup</h2>
-                <button type="button" class="close-button" id="closeDialogTop" aria-label="Close dialog">&times;</button>
-            </div>
-            
-            <div id="modalDesc">
-                <p>Stay updated with our latest news and accessibility tips. You can unsubscribe at any time.</p>
-            </div>
+    <dialog id="exampleModal" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+        <div class="modal-header">
+            <h2 id="modalTitle">Example Modal</h2>
+            <button type="button" class="close-button" id="closeModalTop" aria-label="Close dialog">&times;</button>
+        </div>
+        
+        <div id="modalDesc">
+            <p>This is a modal dialog. It traps focus inside the window while open and can be closed by pressing the Escape key, clicking the close button, or clicking outside the content area.</p>
+        </div>
 
-            <form method="dialog">
-                <div style="margin-top: 1rem;">
-                    <label for="email" style="display: block; margin-bottom: 0.5rem;">Email Address</label>
-                    <input type="email" id="email" name="email" required style="width: 100%; padding: 0.5rem; box-sizing: border-box;">
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="action-button" id="closeDialogBottom">Cancel</button>
-                    <button type="submit" class="trigger">Subscribe</button>
-                </div>
-            </form>
+        <div class="modal-footer">
+            <button type="button" class="trigger" id="closeModalBottom">Close</button>
         </div>
     </dialog>
 
     <script>
-        const dialog = document.getElementById('mainDialog');
-        const openBtn = document.getElementById('openDialog');
-        const closeBtnTop = document.getElementById('closeDialogTop');
-        const closeBtnBottom = document.getElementById('closeDialogBottom');
+        const modal = document.getElementById('exampleModal');
+        const openBtn = document.getElementById('openModal');
+        const closeBtnTop = document.getElementById('closeModalTop');
+        const closeBtnBottom = document.getElementById('closeModalBottom');
 
         // Open modal
         openBtn.addEventListener('click', () => {
-            dialog.showModal();
+            modal.showModal();
         });
 
-        // Close modal via top 'X'
-        closeBtnTop.addEventListener('click', () => {
-            dialog.close();
-        });
+        // Close modal functions
+        const closeModal = () => {
+            modal.close();
+        };
 
-        // Close modal via Cancel button
-        closeBtnBottom.addEventListener('click', () => {
-            dialog.close();
-        });
+        closeBtnTop.addEventListener('click', closeModal);
+        closeBtnBottom.addEventListener('click', closeModal);
 
-        // Close on backdrop click (optional UX enhancement)
-        dialog.addEventListener('click', (event) => {
-            if (event.target === dialog) {
-                dialog.close();
+        // Close when clicking on the backdrop
+        modal.addEventListener('click', (event) => {
+            const rect = modal.getBoundingClientRect();
+            const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+                                rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+            if (!isInDialog) {
+                modal.close();
             }
         });
     </script>
-
 </body>
 </html>

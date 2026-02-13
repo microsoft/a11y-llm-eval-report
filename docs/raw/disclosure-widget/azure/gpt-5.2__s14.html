@@ -1,280 +1,235 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Expand/Collapse Widget Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
   <style>
     :root {
-      --bg: #0b1020;
-      --panel: #111a33;
-      --text: #e8ecff;
-      --muted: #b8c0ff;
-      --border: rgba(255,255,255,0.14);
-      --focus: #7aa2ff;
-      --accent: #8be9fd;
+      color-scheme: light dark;
+      --bg: Canvas;
+      --fg: CanvasText;
+      --muted: color-mix(in oklab, var(--fg) 65%, transparent);
+      --border: color-mix(in oklab, var(--fg) 18%, transparent);
+      --accent: color-mix(in oklab, #2b6cff 80%, var(--fg));
+      --radius: 12px;
+      --pad: 14px;
+      --gap: 10px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.35;
     }
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(1200px 800px at 20% 0%, #18224a 0%, var(--bg) 55%, #070a14 100%);
-      color: var(--text);
-      line-height: 1.45;
-    }
-
-    main {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 32px 16px 56px;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--fg);
     }
 
     h1 {
-      font-size: 1.6rem;
-      margin: 0 0 18px;
+      font-size: 18px;
+      margin: 0 0 14px;
       letter-spacing: 0.2px;
     }
 
-    p.lead {
-      margin: 0 0 22px;
-      color: var(--muted);
-      max-width: 70ch;
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      align-items: start;
     }
 
     .example {
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      margin: 14px 0;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      border-radius: var(--radius);
+      padding: var(--pad);
+      background: color-mix(in oklab, var(--bg) 88%, var(--fg) 2%);
+      box-shadow: 0 1px 0 color-mix(in oklab, var(--fg) 10%, transparent);
     }
 
     .example h2 {
-      font-size: 1.05rem;
       margin: 0 0 10px;
-      color: var(--text);
-      font-weight: 650;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
-    /* Widget 1: <details>/<summary> */
-    details.widget {
+    /* Widget A: Native <details> with class="details" */
+    details.details {
       border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: clip;
-      background: rgba(0,0,0,0.18);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: color-mix(in oklab, var(--bg) 92%, var(--fg) 1%);
     }
 
-    details.widget > summary {
-      list-style: none;
+    details.details summary {
       cursor: pointer;
-      padding: 12px 14px;
+      font-weight: 650;
+      outline: none;
+      list-style: none;
       display: flex;
       align-items: center;
       gap: 10px;
-      user-select: none;
-      outline: none;
     }
 
-    details.widget > summary::-webkit-details-marker {
+    details.details summary::-webkit-details-marker {
       display: none;
     }
 
-    .chev {
-      width: 10px;
-      height: 10px;
-      border-right: 2px solid var(--muted);
-      border-bottom: 2px solid var(--muted);
-      transform: rotate(-45deg);
-      transition: transform 160ms ease;
-      margin-left: 2px;
-      flex: 0 0 auto;
-    }
-
-    details[open].widget .chev {
-      transform: rotate(45deg);
-    }
-
-    details.widget > summary:focus-visible {
-      box-shadow: 0 0 0 3px rgba(122,162,255,0.35);
-      border-radius: 10px;
-    }
-
-    .details {
-      padding: 12px 14px 14px;
-      border-top: 1px solid var(--border);
-      color: var(--text);
-    }
-
-    .details p {
-      margin: 0 0 10px;
-      color: var(--muted);
-    }
-
-    .details code {
+    details.details summary::before {
+      content: "▸";
+      font-size: 14px;
+      line-height: 1;
       color: var(--accent);
-      background: rgba(139,233,253,0.08);
-      padding: 0 6px;
-      border-radius: 6px;
-      border: 1px solid rgba(139,233,253,0.18);
+      transform-origin: center;
+      transition: transform 160ms ease;
     }
 
-    /* Widget 2: Button-controlled region */
+    details.details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    details.details .content {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+      color: color-mix(in oklab, var(--fg) 92%, transparent);
+    }
+
+    /* Widget B: Button-controlled region with class="details" */
     .toggleRow {
       display: flex;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
+      justify-content: space-between;
+      gap: var(--gap);
     }
 
     button.toggle {
       appearance: none;
       border: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
-      color: var(--text);
+      background: color-mix(in oklab, var(--bg) 90%, var(--fg) 2%);
+      color: var(--fg);
       padding: 10px 12px;
       border-radius: 10px;
       cursor: pointer;
-      font-weight: 600;
-      letter-spacing: 0.2px;
+      font-weight: 650;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      justify-content: space-between;
     }
 
-    button.toggle:hover {
-      border-color: rgba(255,255,255,0.22);
-      background: rgba(0,0,0,0.24);
+    button.toggle:focus-visible,
+    details.details summary:focus-visible {
+      outline: 2px solid color-mix(in oklab, var(--accent) 70%, transparent);
+      outline-offset: 2px;
     }
 
-    button.toggle:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(122,162,255,0.35);
+    .chev {
+      display: inline-block;
+      width: 1.2em;
+      text-align: center;
+      color: var(--accent);
+      transition: transform 160ms ease;
     }
 
-    .hint {
-      color: var(--muted);
-      font-size: 0.95rem;
+    button.toggle[aria-expanded="true"] .chev {
+      transform: rotate(90deg);
     }
 
     .details[hidden] {
       display: none !important;
     }
 
-    /* Smooth-ish collapse for the JS widget */
-    .details.anim {
-      overflow: hidden;
-      transition: height 180ms ease;
-      height: auto;
+    .details.region {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: color-mix(in oklab, var(--bg) 92%, var(--fg) 1%);
     }
 
-    footer {
-      margin-top: 26px;
+    .details.region p {
+      margin: 0 0 10px;
+    }
+
+    .details.region ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .hint {
+      margin-top: 10px;
       color: var(--muted);
-      font-size: 0.95rem;
-    }
-
-    a {
-      color: var(--accent);
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Expand/Collapse Widget Demo</h1>
-    <p class="lead">
-      Two examples below: a native <code>&lt;details&gt;</code> widget and a button-controlled region.
-      Each widget is wrapped in a <code>div.example</code>, and the controlled content container uses the <code>details</code> class.
-    </p>
+  <h1>Expand/Collapse Widget Demonstration</h1>
 
+  <div class="grid">
     <div class="example">
       <h2>Example 1: Native details/summary</h2>
-
-      <details class="widget">
-        <summary aria-controls="native-details">
-          <span class="chev" aria-hidden="true"></span>
-          <span>What does this widget do?</span>
-        </summary>
-
-        <div id="native-details" class="details">
-          <p>
-            This uses the browser’s built-in <code>&lt;details&gt;</code> element for expand/collapse behavior.
-            It supports keyboard interaction by default.
-          </p>
-          <p>
-            You can place any content here: text, lists, forms, etc.
-          </p>
+      <details class="details">
+        <summary>Shipping information</summary>
+        <div class="content">
+          <p><strong>Standard:</strong> 3–5 business days.</p>
+          <p><strong>Express:</strong> 1–2 business days.</p>
+          <p>Tracking is provided for all orders.</p>
         </div>
       </details>
+      <div class="hint">Tip: Use Enter/Space on the summary to toggle.</div>
     </div>
 
     <div class="example">
       <h2>Example 2: Button-controlled region</h2>
 
       <div class="toggleRow">
-        <button class="toggle" type="button" aria-expanded="false" aria-controls="js-details" id="js-toggle">
-          Show details
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="faqPanel">
+          <span>FAQ</span>
+          <span class="chev" aria-hidden="true">▸</span>
         </button>
-        <span class="hint">Toggles a <code>div.details</code> using <code>hidden</code> + ARIA.</span>
       </div>
 
-      <div id="js-details" class="details anim" hidden>
-        <p>
-          This region is controlled by a button. The button updates <code>aria-expanded</code> and the region uses
-          <code>hidden</code> when collapsed.
-        </p>
-        <p>
-          Tip: Press <kbd>Tab</kbd> to focus the button, then press <kbd>Enter</kbd> or <kbd>Space</kbd> to toggle.
-        </p>
+      <div id="faqPanel" class="details region" role="region" aria-label="FAQ" hidden>
+        <p><strong>Common questions:</strong></p>
+        <ul>
+          <li>Can I change my order? Yes, within 2 hours of placing it.</li>
+          <li>Do you ship internationally? Yes, where available.</li>
+          <li>How do refunds work? Refunds return to the original payment method.</li>
+        </ul>
       </div>
+
+      <div class="hint">This example uses <code>aria-expanded</code> + <code>hidden</code> for accessibility.</div>
     </div>
-
-    <footer>
-      Note: The <code>details</code> class is used for the controlled content container in both examples.
-    </footer>
-  </main>
+  </div>
 
   <script>
     (function () {
-      const btn = document.getElementById('js-toggle');
-      const panel = document.getElementById('js-details');
-
-      function setExpanded(expanded) {
-        btn.setAttribute('aria-expanded', String(expanded));
-        btn.textContent = expanded ? 'Hide details' : 'Show details';
-      }
-
-      function animateOpen() {
-        panel.hidden = false;
-        panel.style.height = '0px';
-        panel.offsetHeight; // reflow
-        const target = panel.scrollHeight;
-        panel.style.height = target + 'px';
-        const onEnd = () => {
-          panel.style.height = 'auto';
-          panel.removeEventListener('transitionend', onEnd);
-        };
-        panel.addEventListener('transitionend', onEnd);
-      }
-
-      function animateClose() {
-        panel.style.height = panel.scrollHeight + 'px';
-        panel.offsetHeight; // reflow
-        panel.style.height = '0px';
-        const onEnd = () => {
-          panel.hidden = true;
-          panel.style.height = 'auto';
-          panel.removeEventListener('transitionend', onEnd);
-        };
-        panel.addEventListener('transitionend', onEnd);
-      }
+      const btn = document.querySelector('button.toggle');
+      const panel = document.getElementById(btn.getAttribute('aria-controls'));
 
       btn.addEventListener('click', () => {
         const expanded = btn.getAttribute('aria-expanded') === 'true';
-        const next = !expanded;
-        setExpanded(next);
-        if (next) animateOpen();
-        else animateClose();
+        btn.setAttribute('aria-expanded', String(!expanded));
+        panel.hidden = expanded;
       });
 
-      setExpanded(false);
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' && btn.getAttribute('aria-expanded') === 'false') {
+          btn.click();
+          panel.focus?.();
+        }
+        if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') {
+          btn.click();
+          btn.focus();
+        }
+      });
+
+      panel.tabIndex = -1;
     })();
   </script>
 </body>

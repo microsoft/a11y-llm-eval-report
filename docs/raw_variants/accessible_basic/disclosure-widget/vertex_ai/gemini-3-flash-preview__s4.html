@@ -6,7 +6,7 @@
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
-            line-height: 1.6;
+            line-height: 1.5;
             max-width: 800px;
             margin: 2rem auto;
             padding: 0 1rem;
@@ -16,66 +16,65 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             margin-bottom: 1.5rem;
+            overflow: hidden;
         }
         .trigger-button {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             width: 100%;
             padding: 1rem;
             background: #f4f4f4;
             border: none;
+            border-bottom: 1px solid #ccc;
             text-align: left;
-            font-size: 1.1rem;
-            font-weight: bold;
+            font-size: 1.125rem;
+            font-weight: 600;
             cursor: pointer;
         }
         .trigger-button:hover, .trigger-button:focus {
-            background: #e2e2e2;
+            background-color: #e2e2e2;
             outline: 2px solid #005a9c;
             outline-offset: -2px;
-        }
-        .icon {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-right: 2px solid currentColor;
-            border-bottom: 2px solid currentColor;
-            transform: rotate(45deg);
-            transition: transform 0.2s ease;
-            margin-right: 0.5rem;
-        }
-        .trigger-button[aria-expanded="true"] .icon {
-            transform: rotate(-135deg);
         }
         .details {
             padding: 1rem;
             display: none;
         }
-        .trigger-button[aria-expanded="true"] + .details {
+        .details.is-visible {
             display: block;
         }
-        /* Native Details Styling */
+        .icon {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+        .trigger-button[aria-expanded="true"] .icon {
+            transform: rotate(180deg);
+        }
+        /* Native Details styling for comparison */
         details.example {
             padding: 0;
         }
-        details summary {
+        details.example summary {
             padding: 1rem;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             background: #f4f4f4;
             list-style: none;
         }
-        details summary::-webkit-details-marker {
+        details.example summary::-webkit-details-marker {
             display: none;
         }
-        details summary:hover, details summary:focus {
-            background: #e2e2e2;
-            outline: 2px solid #005a9c;
-            outline-offset: -2px;
+        details.example summary::after {
+            content: '▼';
+            float: right;
         }
-        details .details-content {
-            padding: 1rem;
+        details.example[open] summary::after {
+            content: '▲';
+        }
+        details.example .details {
+            display: block;
+            border-top: 1px solid #ccc;
         }
     </style>
 </head>
@@ -83,39 +82,53 @@
 
     <h1>Accessible Expand/Collapse Widgets</h1>
 
-    <h2>1. ARIA Pattern (Custom Widget)</h2>
-    <div class="example">
-        <button type="button" 
-                id="btn-1" 
-                class="trigger-button" 
-                aria-expanded="false" 
-                aria-controls="content-1">
-            <span>What is Web Accessibility?</span>
-            <span class="icon" aria-hidden="true"></span>
-        </button>
-        <div id="content-1" 
-             class="details" 
-             role="region" 
-             aria-labelledby="btn-1">
-            <p>Web accessibility means that websites, tools, and technologies are designed and developed so that people with disabilities can use them.</p>
-        </div>
-    </div>
-
-    <h2>2. Native HTML Pattern</h2>
+    <h2>1. Semantic HTML5 Details/Summary</h2>
+    <p>The most accessible way to handle disclosure patterns using native browser behavior.</p>
+    
     <details class="example">
-        <summary>
-            How does the &lt;details&gt; element work?
-        </summary>
+        <summary>What is the benefit of using native &lt;details&gt;?</summary>
         <div class="details">
-            <p>The <code>&lt;details&gt;</code> tag creates an interactive widget that the user can open and close. Any sort of content can be put inside the <code>&lt;details&gt;</code> tag.</p>
+            <p>The native element handles keyboard interaction (Space/Enter), focus management, and screen reader states (expanded/collapsed) automatically without needing custom JavaScript.</p>
         </div>
     </details>
 
+    <h2>2. ARIA Disclosure Pattern</h2>
+    <p>A custom implementation using <code>aria-expanded</code> and <code>aria-controls</code> for legacy support or custom styling requirements.</p>
+
+    <div class="example">
+        <button type="button" 
+                id="custom-trigger" 
+                class="trigger-button" 
+                aria-expanded="false" 
+                aria-controls="custom-content">
+            <span>How does the ARIA pattern work?</span>
+            <span class="icon" aria-hidden="true">▼</span>
+        </button>
+        <div id="custom-content" 
+             class="details" 
+             role="region" 
+             aria-labelledby="custom-trigger">
+            <p>This widget uses a button to toggle the visibility of a content div. The <code>aria-expanded</code> attribute notifies assistive technology users of the current state, while <code>aria-controls</code> establishes a programmatic relationship between the trigger and the content.</p>
+        </div>
+    </div>
+
     <script>
-        document.querySelectorAll('.trigger-button').forEach(button => {
-            button.addEventListener('click', () => {
-                const expanded = button.getAttribute('aria-expanded') === 'true';
-                button.setAttribute('aria-expanded', !expanded);
+        document.addEventListener('DOMContentLoaded', () => {
+            const trigger = document.getElementById('custom-trigger');
+            const content = document.getElementById('custom-content');
+
+            trigger.addEventListener('click', () => {
+                const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+                
+                // Toggle state
+                trigger.setAttribute('aria-expanded', !isExpanded);
+                
+                // Toggle visibility class
+                if (isExpanded) {
+                    content.classList.remove('is-visible');
+                } else {
+                    content.classList.add('is-visible');
+                }
             });
         });
     </script>

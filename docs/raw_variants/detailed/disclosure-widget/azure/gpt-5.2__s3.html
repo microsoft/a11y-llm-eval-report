@@ -2,28 +2,49 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Expand/collapse widget examples - Accessibility demo</title>
+  <title>Expand/collapse widget example - Accessibility demo</title>
   <style>
     :root{
+      color-scheme: light dark;
       --color-bg: #ffffff;
-      --color-surface: #f6f7f9;
-      --color-text: #111827;
-      --color-muted-text: #374151;
-      --color-border: #cbd5e1;
-      --color-link: #1d4ed8;
-      --color-link-visited: #6d28d9;
-      --color-focus: #1d4ed8;
-      --color-danger: #b91c1c;
+      --color-text: #111111;
+      --color-muted-text: #2b2b2b;
+      --color-border: #6b6b6b;
+      --color-surface: #f6f6f6;
+      --color-link: #0b57d0;
+      --color-link-visited: #5a2ca0;
+      --color-focus: #1a73e8;
+      --color-danger: #b00020;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root{
+        --color-bg: #0f1115;
+        --color-text: #f5f7ff;
+        --color-muted-text: #d7dbeb;
+        --color-border: #9aa3b2;
+        --color-surface: #171a21;
+        --color-link: #8ab4f8;
+        --color-link-visited: #d3a6ff;
+        --color-focus: #8ab4f8;
+        --color-danger: #ffb4ab;
+      }
     }
 
     * { box-sizing: border-box; }
-    html { color-scheme: light; }
+    html, body { height: 100%; }
     body{
       margin: 0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      line-height: 1.5;
       background: var(--color-bg);
       color: var(--color-text);
+      line-height: 1.5;
+    }
+
+    .container{
+      max-width: 62rem;
+      margin: 0 auto;
+      padding: 1rem;
     }
 
     .sr-only:not(:focus):not(:active) {
@@ -40,322 +61,242 @@
     a:visited { color: var(--color-link-visited); }
     a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible {
       outline: 3px solid var(--color-focus);
-      outline-offset: 2px;
+      outline-offset: 3px;
     }
 
-    header, nav, main, footer { padding: 1rem; }
     header{
       border-bottom: 1px solid var(--color-border);
       background: var(--color-surface);
     }
-    nav{
-      border-bottom: 1px solid var(--color-border);
-      background: var(--color-bg);
-    }
+
     nav ul{
       list-style: none;
       padding: 0;
-      margin: 0;
+      margin: .5rem 0 0;
       display: flex;
       flex-wrap: wrap;
       gap: .75rem 1rem;
     }
+
     nav a{
       text-decoration-thickness: 2px;
       text-underline-offset: 3px;
     }
 
-    main{
-      max-width: 70rem;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-
-    p, li { color: var(--color-muted-text); }
-    .lede { max-width: 65ch; }
-
-    .grid{
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
+    main { padding-block: 1rem 2rem; }
 
     .example{
-      border: 1px solid var(--color-border);
-      border-radius: .75rem;
+      border: 2px solid var(--color-border);
+      border-radius: 12px;
       padding: 1rem;
+      margin: 1rem 0;
       background: var(--color-bg);
-      min-width: 0;
     }
 
     .example h2{
-      margin: 0 0 .5rem 0;
-      font-size: 1.125rem;
-      color: var(--color-text);
+      margin-top: 0;
+      font-size: 1.25rem;
     }
 
     .details{
-      margin-top: .75rem;
+      border: 2px solid var(--color-border);
+      border-radius: 10px;
       padding: .75rem;
-      border: 1px solid var(--color-border);
-      border-radius: .5rem;
       background: var(--color-surface);
       overflow-wrap: anywhere;
     }
 
-    /* Native details/summary styling improvements */
-    details > summary{
-      cursor: pointer;
-      font-weight: 650;
-      color: var(--color-text);
-    }
-    details > summary::marker { color: var(--color-text); }
-    details[open] > summary { margin-bottom: .5rem; }
+    .details[hidden] { display: none; }
 
-    /* Custom button example */
-    .toggle-row{
+    .subtle{
+      color: var(--color-muted-text);
+      margin: .25rem 0 0;
+    }
+
+    .hint{
+      margin: .5rem 0 0;
+      padding: .75rem;
+      border-left: 4px solid var(--color-border);
+      background: var(--color-surface);
+    }
+
+    .controls{
       display: flex;
       flex-wrap: wrap;
-      gap: .75rem;
-      align-items: center;
+      gap: .5rem;
+      margin-top: .75rem;
     }
-    .btn{
-      appearance: none;
+
+    button{
       border: 2px solid var(--color-border);
       background: var(--color-bg);
       color: var(--color-text);
       padding: .5rem .75rem;
-      border-radius: .5rem;
+      border-radius: .6rem;
       font: inherit;
-      line-height: 1.2;
-      min-height: 44px;
-    }
-    .btn:hover{ border-color: #94a3b8; }
-    .btn:active{ transform: translateY(1px); }
-    .btn[aria-expanded="true"]{
-      border-color: var(--color-focus);
+      cursor: pointer;
     }
 
-    .hint{
-      margin: .25rem 0 0 0;
-      font-size: .95rem;
-      color: var(--color-muted-text);
-      max-width: 70ch;
-    }
-
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: .95em;
-      border: 1px solid var(--color-border);
-      border-bottom-width: 2px;
-      padding: .05rem .35rem;
-      border-radius: .35rem;
-      background: var(--color-bg);
-      color: var(--color-text);
-      white-space: nowrap;
-    }
+    button:hover{ background: var(--color-surface); }
+    button:active{ transform: translateY(1px); }
 
     footer{
       border-top: 1px solid var(--color-border);
       background: var(--color-surface);
+      padding-block: 1rem;
     }
 
-    @media (min-width: 52rem){
-      .grid{ grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (forced-colors: active){
-      a { color: LinkText; }
-      a:visited { color: VisitedText; }
-      header, nav, footer { border-color: CanvasText; }
-      .example, .details { border-color: CanvasText; background: Canvas; }
-      .btn { border-color: ButtonBorder; background: ButtonFace; color: ButtonText; }
-      .btn[aria-expanded="true"]{ border-color: Highlight; }
-      .kbd{ border-color: CanvasText; background: Canvas; color: CanvasText; }
+    @media (forced-colors: active) {
+      a { forced-color-adjust: auto; }
+      .example, .details, button {
+        border: 2px solid ButtonBorder;
+        background: Canvas;
+        color: CanvasText;
+      }
+      header, footer { border-color: ButtonBorder; background: Canvas; }
+      .hint { border-left-color: ButtonBorder; background: Canvas; }
     }
   </style>
 </head>
 <body>
   <header>
-    <a href="#maincontent" class="sr-only">Skip to main content</a>
-    <div>
-      <strong>Accessibility demo</strong>
-      <div class="hint">Examples of expand/collapse widgets using native HTML and a button-controlled region.</div>
+    <div class="container">
+      <a href="#maincontent" class="sr-only">Skip to main content</a>
+      <div>
+        <strong>Accessibility demo</strong>
+        <p class="subtle">Examples of expand/collapse patterns using native and custom controls.</p>
+      </div>
+      <nav aria-label="Page sections">
+        <ul>
+          <li><a href="#native-details">Native disclosure</a></li>
+          <li><a href="#button-disclosure">Button disclosure</a></li>
+        </ul>
+      </nav>
     </div>
   </header>
 
-  <nav aria-label="Primary">
-    <ul>
-      <li><a href="#native-details">Native details/summary</a></li>
-      <li><a href="#button-region">Button + region</a></li>
-    </ul>
-  </nav>
-
   <main id="maincontent" tabindex="-1">
-    <h1>Expand/collapse widget examples</h1>
-    <p class="lede">
-      These examples show two common patterns. Both are keyboard operable and provide clear labels and visible focus.
-    </p>
+    <div class="container">
+      <h1>Expand/collapse widget examples</h1>
+      <p class="subtle">
+        Each example includes a visible label for the control and a content region that expands or collapses.
+      </p>
 
-    <div class="grid">
-      <section class="example" id="native-details" aria-labelledby="native-details-title">
-        <h2 id="native-details-title">Example 1: Native <code>&lt;details&gt;</code> / <code>&lt;summary&gt;</code></h2>
-
-        <details>
-          <summary>What information is inside this section?</summary>
-          <div class="details">
-            <p>
-              This content is revealed when the summary is expanded. The native <code>&lt;details&gt;</code> element
-              provides built-in semantics and keyboard support.
-            </p>
-            <ul>
-              <li>Use <span class="kbd">Tab</span> to reach the summary.</li>
-              <li>Press <span class="kbd">Enter</span> or <span class="kbd">Space</span> to toggle.</li>
-              <li>Content is not focusable when collapsed.</li>
-            </ul>
-          </div>
-        </details>
-
-        <p class="hint">Tip: Prefer this pattern when you do not need custom animation or complex state handling.</p>
-      </section>
-
-      <section class="example" id="button-region" aria-labelledby="button-region-title">
-        <h2 id="button-region-title">Example 2: Button controlling a region</h2>
-
-        <div class="toggle-row">
-          <button type="button" class="btn" id="toggle-help" aria-expanded="false" aria-controls="help-panel">
-            Show help and keyboard tips
-          </button>
-        </div>
-        <p class="hint" id="toggle-help-hint">
-          The button’s label and expanded state communicate whether the panel is open.
-          Press <span class="kbd">Escape</span> to collapse when focus is inside the panel.
+      <section id="native-details" class="example" aria-labelledby="native-details-title">
+        <h2 id="native-details-title">Example 1: Native <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code></h2>
+        <p class="subtle">
+          This pattern uses built-in semantics and keyboard behavior (Enter/Space on the summary).
         </p>
 
-        <div class="details" id="help-panel" hidden>
-          <h3 style="margin-top:0">Help and keyboard tips</h3>
+        <details class="details">
+          <summary>More about this policy</summary>
+          <div class="hint">
+            <p><strong>What you can expect</strong></p>
+            <ul>
+              <li>Clear next steps and timelines.</li>
+              <li>A way to contact support if you need help.</li>
+              <li>Information that stays readable at narrow screen widths.</li>
+            </ul>
+            <p>
+              If you prefer, you can <a href="#button-disclosure">jump to the button-based example</a>.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <section id="button-disclosure" class="example" aria-labelledby="button-disclosure-title">
+        <h2 id="button-disclosure-title">Example 2: Button-controlled disclosure</h2>
+        <p class="subtle">
+          This pattern uses a button with <code>aria-expanded</code> and <code>aria-controls</code> to associate it with the content region.
+        </p>
+
+        <div class="controls" role="group" aria-label="Disclosure controls">
+          <button type="button" id="toggle-faq" aria-expanded="false" aria-controls="faq-panel">
+            Show answers
+          </button>
+          <button type="button" id="focus-panel" aria-controls="faq-panel">
+            Move focus to the content
+          </button>
+        </div>
+
+        <div id="faq-panel" class="details" hidden aria-labelledby="toggle-faq">
+          <h3>Answers</h3>
           <p>
-            This panel is a simple region that is shown/hidden by a button. When collapsed, it is removed from the
-            accessibility tree and cannot receive focus.
+            This content region is hidden when collapsed and is not focusable while hidden.
           </p>
           <ul>
-            <li>Use <span class="kbd">Tab</span> to move through controls.</li>
-            <li>Activate the toggle with <span class="kbd">Enter</span> or <span class="kbd">Space</span>.</li>
-            <li>Press <span class="kbd">Escape</span> to collapse and return focus to the toggle button.</li>
+            <li><strong>Keyboard:</strong> Tab to the button, then press Enter or Space.</li>
+            <li><strong>Focus:</strong> You can choose to move focus into the region using the second button.</li>
+            <li><strong>Reflow:</strong> The layout stacks cleanly at small widths without horizontal scrolling.</li>
           </ul>
-
-          <form id="demo-form" novalidate>
-            <fieldset style="border:1px solid var(--color-border); border-radius:.5rem; padding:.75rem; margin:0;">
-              <legend style="padding:0 .25rem; color:var(--color-text); font-weight:650;">Optional feedback</legend>
-
-              <div style="display:grid; gap:.5rem; max-width: 40rem;">
-                <div>
-                  <label for="email">Email (optional)</label><br />
-                  <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
-                         style="width:100%; max-width: 28rem; min-height:44px; padding:.5rem; border:2px solid var(--color-border); border-radius:.5rem; color:var(--color-text); background:var(--color-bg);" />
-                  <div class="hint" id="email-help">If you share an email, we will only use it to reply to this message.</div>
-                </div>
-
-                <div>
-                  <label for="message">Message <span aria-hidden="true">*</span></label><br />
-                  <textarea id="message" name="message" rows="4" required aria-required="true"
-                            style="width:100%; max-width: 40rem; min-height:44px; padding:.5rem; border:2px solid var(--color-border); border-radius:.5rem; color:var(--color-text); background:var(--color-bg);"></textarea>
-                  <div class="hint" id="message-help">Required. Please write a short note (at least 10 characters).</div>
-                  <p id="message-error" style="margin:.25rem 0 0 0; color: var(--color-danger);" hidden></p>
-                </div>
-
-                <div style="display:flex; flex-wrap:wrap; gap:.75rem; align-items:center;">
-                  <button type="submit" class="btn">Send message</button>
-                  <span id="form-status" class="hint" role="status" aria-live="polite"></span>
-                </div>
-              </div>
-            </fieldset>
-          </form>
+          <p class="subtle">
+            Tip: Press the toggle again to collapse the region.
+          </p>
         </div>
+
+        <p id="status" class="sr-only" aria-live="polite"></p>
       </section>
     </div>
   </main>
 
   <footer>
-    <small>Manual testing (keyboard, screen reader, zoom/reflow, and forced colors) is still recommended.</small>
+    <div class="container">
+      <p class="subtle">
+        Manual testing with your keyboard and assistive technology is still recommended.
+      </p>
+    </div>
   </footer>
 
   <script>
     (function () {
-      const toggle = document.getElementById('toggle-help');
-      const panel = document.getElementById('help-panel');
+      const toggle = document.getElementById('toggle-faq');
+      const panel = document.getElementById('faq-panel');
+      const focusPanelBtn = document.getElementById('focus-panel');
+      const status = document.getElementById('status');
 
       function setExpanded(expanded) {
         toggle.setAttribute('aria-expanded', String(expanded));
-        toggle.textContent = expanded ? 'Hide help and keyboard tips' : 'Show help and keyboard tips';
-        panel.hidden = !expanded;
+        toggle.textContent = expanded ? 'Hide answers' : 'Show answers';
+        if (expanded) {
+          panel.hidden = false;
+          status.textContent = 'Answers expanded.';
+        } else {
+          panel.hidden = true;
+          status.textContent = 'Answers collapsed.';
+        }
       }
 
-      toggle.addEventListener('click', () => {
+      toggle.addEventListener('click', function () {
         const expanded = toggle.getAttribute('aria-expanded') === 'true';
         setExpanded(!expanded);
-        if (!expanded) {
-          const firstFocusable = panel.querySelector('input, textarea, button, a, select, [tabindex]:not([tabindex="-1"])');
-          if (firstFocusable) firstFocusable.focus();
-        }
       });
 
-      panel.addEventListener('keydown', (e) => {
+      toggle.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
-          setExpanded(false);
-          toggle.focus();
+          if (toggle.getAttribute('aria-expanded') === 'true') {
+            e.preventDefault();
+            setExpanded(false);
+            toggle.focus();
+          }
         }
       });
 
-      // Simple validation demo (focus first invalid, aria-invalid, describedby)
-      const form = document.getElementById('demo-form');
-      const message = document.getElementById('message');
-      const messageError = document.getElementById('message-error');
-      const status = document.getElementById('form-status');
+      focusPanelBtn.addEventListener('click', function () {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        if (!expanded) setExpanded(true);
 
-      function clearMessageError() {
-        message.removeAttribute('aria-invalid');
-        const describedBy = new Set((message.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
-        describedBy.delete('message-error');
-        message.setAttribute('aria-describedby', Array.from(describedBy).join(' ') || 'message-help');
-        messageError.hidden = true;
-        messageError.textContent = '';
-      }
-
-      function showMessageError(text) {
-        message.setAttribute('aria-invalid', 'true');
-        const describedBy = new Set((message.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
-        describedBy.add('message-help');
-        describedBy.add('message-error');
-        message.setAttribute('aria-describedby', Array.from(describedBy).join(' '));
-        messageError.hidden = false;
-        messageError.textContent = text;
-      }
-
-      // Ensure baseline describedby
-      if (!message.getAttribute('aria-describedby')) {
-        message.setAttribute('aria-describedby', 'message-help');
-      }
-
-      message.addEventListener('input', () => {
-        status.textContent = '';
-        if (message.value.trim().length >= 10) clearMessageError();
-      });
-
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        status.textContent = '';
-
-        const value = message.value.trim();
-        if (value.length < 10) {
-          showMessageError('Please enter at least 10 characters.');
-          message.focus();
-          return;
+        const focusTarget = panel.querySelector('h3, p, a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+        if (focusTarget && typeof focusTarget.focus === 'function') {
+          focusTarget.focus();
+        } else {
+          panel.setAttribute('tabindex', '-1');
+          panel.focus();
+          panel.addEventListener('blur', () => panel.removeAttribute('tabindex'), { once: true });
         }
-
-        clearMessageError();
-        status.textContent = 'Message ready to send (demo only).';
       });
+
+      // Initialize to collapsed
+      setExpanded(false);
     })();
   </script>
 </body>

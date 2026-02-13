@@ -4,61 +4,164 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Accessible Modal Example</title>
 <style>
-  :root { color-scheme: light dark; }
-  body { font-family: system-ui, sans-serif; margin: 0; padding: 2rem; line-height: 1.5; }
-  .trigger { padding: 0.6rem 1rem; font-size: 1rem; }
-  dialog { max-width: 32rem; width: 90%; border: none; border-radius: 0.5rem; padding: 0; }
-  dialog::backdrop { background: rgba(0,0,0,0.5); }
-  .modal-content { padding: 1.5rem; }
-  .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; padding: 0 1.5rem 1.5rem; }
-  button { cursor: pointer; }
+  :root {
+    color-scheme: light dark;
+  }
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    line-height: 1.5;
+  }
+  header, main, footer {
+    max-width: 70ch;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+  .trigger {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+  }
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .backdrop[data-open="true"] {
+    display: flex;
+  }
+  .modal {
+    background: Canvas;
+    color: CanvasText;
+    border: 2px solid ButtonText;
+    border-radius: 0.5rem;
+    max-width: 32rem;
+    width: 100%;
+    padding: 1rem;
+    box-shadow: 0 1rem 2rem rgba(0,0,0,0.4);
+  }
+  .modal header {
+    padding: 0;
+    margin: 0 0 0.5rem 0;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+  button {
+    padding: 0.5rem 0.9rem;
+    font-size: 1rem;
+  }
+  .sr-only {
+    position: absolute !important;
+    height: 1px; width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+  }
 </style>
 </head>
 <body>
-<main>
+<header>
   <h1>Modal Dialog Example</h1>
-  <p>This is an accessible modal dialog example. Use the button to open it.</p>
-  <button class="trigger" id="openModal" type="button">Open dialog</button>
+</header>
+
+<main id="page-content">
+  <p>This page contains a button that opens a modal dialog. The dialog traps focus, is closed by default, and can be closed with Escape.</p>
+  <button class="trigger" type="button" id="openModal">Open modal dialog</button>
 </main>
 
-<dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
-  <div class="modal-content">
-    <h2 id="dialogTitle">Example modal dialog</h2>
-    <p id="dialogDesc">This dialog is keyboard accessible. Press Escape or use the close button to dismiss it.</p>
+<div class="backdrop" id="modalBackdrop" data-open="false">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc" tabindex="-1" hidden>
+    <header>
+      <h2 id="modalTitle">Example Modal</h2>
+    </header>
+    <p id="modalDesc">This is an accessible modal dialog. Use the Close button or press Escape to dismiss it.</p>
+    <div class="modal-actions">
+      <button type="button" id="confirmAction">Confirm</button>
+      <button type="button" id="closeModal">Close</button>
+    </div>
   </div>
-  <div class="modal-actions">
-    <button type="button" id="closeModal">Close</button>
-  </div>
-</dialog>
+</div>
+
+<footer>
+  <small>Footer content</small>
+</footer>
 
 <script>
-  const openBtn = document.getElementById('openModal');
-  const dialog = document.getElementById('exampleDialog');
-  const closeBtn = document.getElementById('closeModal');
-  let lastFocused = null;
+  (function () {
+    const openBtn = document.getElementById('openModal');
+    const closeBtn = document.getElementById('closeModal');
+    const confirmBtn = document.getElementById('confirmAction');
+    const backdrop = document.getElementById('modalBackdrop');
+    const dialog = backdrop.querySelector('.modal');
+    const pageContent = document.getElementById('page-content');
+    let lastFocused = null;
 
-  function openDialog() {
-    lastFocused = document.activeElement;
-    dialog.showModal();
-    closeBtn.focus();
-  }
+    const focusableSelector = [
+      'a[href]', 'button:not([disabled])', 'input:not([disabled])',
+      'select:not([disabled])', 'textarea:not([disabled])', '[tabindex]:not([tabindex="-1"])'
+    ].join(',');
 
-  function closeDialog() {
-    dialog.close();
-    if (lastFocused) lastFocused.focus();
-  }
-
-  openBtn.addEventListener('click', openDialog);
-  closeBtn.addEventListener('click', closeDialog);
-  dialog.addEventListener('cancel', (e) => {
-    e.preventDefault();
-    closeDialog();
-  });
-  dialog.addEventListener('close', () => {
-    if (document.activeElement === dialog) {
-      openBtn.focus();
+    function getFocusableElements() {
+      return Array.from(dialog.querySelectorAll(focusableSelector));
     }
-  });
+
+    function openModal() {
+      lastFocused = document.activeElement;
+      backdrop.dataset.open = "true";
+      dialog.hidden = false;
+      pageContent.setAttribute('aria-hidden', 'true');
+      const focusables = getFocusableElements();
+      (focusables[0] || dialog).focus();
+      document.addEventListener('keydown', handleKeydown);
+    }
+
+    function closeModal() {
+      backdrop.dataset.open = "false";
+      dialog.hidden = true;
+      pageContent.removeAttribute('aria-hidden');
+      document.removeEventListener('keydown', handleKeydown);
+      if (lastFocused) lastFocused.focus();
+    }
+
+    function handleKeydown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeModal();
+        return;
+      }
+      if (event.key === 'Tab') {
+        const focusables = getFocusableElements();
+        if (focusables.length === 0) {
+          event.preventDefault();
+          dialog.focus();
+          return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    confirmBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeModal();
+    });
+  })();
 </script>
 </body>
 </html>

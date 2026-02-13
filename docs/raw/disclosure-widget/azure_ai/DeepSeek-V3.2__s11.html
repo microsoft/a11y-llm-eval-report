@@ -7,85 +7,111 @@
         body {
             font-family: sans-serif;
             padding: 20px;
-            background-color: #f5f5f5;
+            max-width: 800px;
+            margin: 0 auto;
         }
         .example {
             border: 1px solid #ccc;
             border-radius: 5px;
             padding: 15px;
             margin-bottom: 20px;
-            background-color: white;
-            max-width: 600px;
+            background-color: #f9f9f9;
         }
         .toggle-button {
-            background-color: #007bff;
+            background-color: #4a6fa5;
             color: white;
             border: none;
             padding: 10px 15px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 1em;
             margin-bottom: 10px;
         }
         .toggle-button:hover {
-            background-color: #0056b3;
+            background-color: #385d8a;
+        }
+        .toggle-button:focus {
+            outline: 2px solid #4a6fa5;
+            outline-offset: 2px;
+        }
+        .toggle-button[aria-expanded="true"] .button-text::after {
+            content: " (Collapse)";
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+        .toggle-button[aria-expanded="false"] .button-text::after {
+            content: " (Expand)";
+            font-size: 0.8em;
+            opacity: 0.8;
         }
         .details {
+            border-left: 4px solid #4a6fa5;
             padding: 15px;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-            display: none;
+            background-color: white;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            max-height: 0;
         }
-        .details.expanded {
-            display: block;
+        .details[aria-hidden="false"] {
+            max-height: 500px;
+        }
+        .details p {
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
-    <h1>Expand/Collapse Widget Examples</h1>
+    <h1>Expand/Collapse Widget Demo</h1>
 
     <div class="example">
-        <h2>Example 1: Basic Widget</h2>
-        <button class="toggle-button" aria-expanded="false" aria-controls="details1">Show More Details</button>
-        <div id="details1" class="details">
-            <p>This is the hidden content for the first widget. It can contain text, images, or any other HTML elements.</p>
+        <button class="toggle-button" aria-expanded="false" aria-controls="details1">
+            <span class="button-text">Section 1: About This Demo</span>
+        </button>
+        <div id="details1" class="details" aria-hidden="true">
+            <p>This is the first example of a collapsible section. Clicking the button above toggles the visibility of this content. The animation uses CSS transitions for a smooth effect.</p>
+            <p>This content is wrapped in a div with the class <code>details</code> as requested.</p>
+        </div>
+    </div>
+
+    <div class="example">
+        <button class="toggle-button" aria-expanded="false" aria-controls="details2">
+            <span class="button-text">Section 2: More Information</span>
+        </button>
+        <div id="details2" class="details" aria-hidden="true">
+            <p>This is the second example. It shows that you can have multiple independent widgets on the same page.</p>
             <ul>
-                <li>List item one</li>
-                <li>List item two</li>
-                <li>List item three</li>
+                <li>Each widget is self-contained.</li>
+                <li>Uses ARIA attributes for accessibility.</li>
+                <li>The content container has the class <code>details</code>.</li>
             </ul>
         </div>
     </div>
 
     <div class="example">
-        <h2>Example 2: Another Widget</h2>
-        <button class="toggle-button" aria-expanded="false" aria-controls="details2">Click to Expand</button>
-        <div id="details2" class="details">
-            <p>Different content for the second expand/collapse section. The state of each widget is independent.</p>
-            <p>You can put more detailed information here that the user can reveal on demand.</p>
+        <button class="toggle-button" aria-expanded="false" aria-controls="details3">
+            <span class="button-text">Section 3: Additional Details</span>
+        </button>
+        <div id="details3" class="details" aria-hidden="true">
+            <p>Here is a third example with some different content. The expand/collapse functionality is implemented with a simple JavaScript function that toggles the relevant attributes and classes.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const buttons = document.querySelectorAll('.toggle-button');
-            buttons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const detailsId = this.getAttribute('aria-controls');
-                    const detailsElement = document.getElementById(detailsId);
-                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            const toggleButtons = document.querySelectorAll('.toggle-button');
 
-                    // Toggle the expanded class
-                    detailsElement.classList.toggle('expanded');
-                    // Update the button text and aria-expanded attribute
-                    if (isExpanded) {
-                        this.setAttribute('aria-expanded', 'false');
-                        this.textContent = this.textContent.replace('Hide', 'Show').replace('Less', 'More');
-                    } else {
-                        this.setAttribute('aria-expanded', 'true');
-                        this.textContent = this.textContent.replace('Show', 'Hide').replace('More', 'Less');
-                    }
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const expanded = this.getAttribute('aria-expanded') === 'true';
+                    const targetId = this.getAttribute('aria-controls');
+                    const target = document.getElementById(targetId);
+
+                    this.setAttribute('aria-expanded', !expanded);
+                    target.setAttribute('aria-hidden', expanded);
+
+                    // For a more complex animation, you might toggle a class instead of/in addition to the attribute.
+                    // The CSS currently uses the attribute selector for the animation.
                 });
             });
         });

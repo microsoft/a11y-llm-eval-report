@@ -5,291 +5,244 @@
   <title>Modal Dialog Example</title>
   <style>
     :root {
-      --bg: #0b1220;
-      --panel: #111a2e;
-      --text: #e8eefc;
-      --muted: #a9b6d6;
-      --border: rgba(255,255,255,0.12);
-      --shadow: 0 18px 60px rgba(0,0,0,0.55);
-      --accent: #6ea8ff;
-      --accent2: #8b5cf6;
+      color-scheme: light dark;
+      --overlay: rgba(0, 0, 0, 0.55);
+      --bg: #ffffff;
+      --fg: #111111;
+      --muted: #666;
+      --border: rgba(0, 0, 0, 0.15);
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
       --radius: 14px;
-      --focus: 0 0 0 3px rgba(110,168,255,0.35);
+      --focus: #5b9dff;
     }
 
-    * { box-sizing: border-box; }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #16181d;
+        --fg: #f1f3f5;
+        --muted: #b7bcc4;
+        --border: rgba(255, 255, 255, 0.14);
+        --shadow: 0 18px 60px rgba(0, 0, 0, 0.65);
+      }
+    }
+
     body {
       margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 700px at 20% 10%, rgba(139,92,246,0.25), transparent 60%),
-                  radial-gradient(900px 600px at 80% 30%, rgba(110,168,255,0.22), transparent 55%),
-                  var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 32px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.45;
+      background: canvas;
+      color: var(--fg);
     }
 
-    .card {
-      width: min(720px, 100%);
-      background: rgba(17,26,46,0.75);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 48px 20px;
     }
 
-    h1 {
-      margin: 0 0 10px;
-      font-size: 22px;
-      letter-spacing: 0.2px;
-    }
-
-    p {
-      margin: 0 0 18px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    button {
+    .trigger,
+    .btn {
       appearance: none;
       border: 1px solid var(--border);
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
+      background: color-mix(in oklab, var(--bg) 92%, #2b6cff 8%);
+      color: var(--fg);
       padding: 10px 14px;
-      border-radius: 12px;
+      border-radius: 10px;
       cursor: pointer;
       font-weight: 600;
-      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
-    }
-    button:hover { background: rgba(255,255,255,0.10); }
-    button:active { transform: translateY(1px); }
-    button:focus-visible { outline: none; box-shadow: var(--focus); }
-
-    .trigger {
-      border-color: rgba(110,168,255,0.35);
-      background: linear-gradient(135deg, rgba(110,168,255,0.18), rgba(139,92,246,0.14));
     }
 
-    /* Modal */
-    .modal {
-      position: fixed;
-      inset: 0;
-      display: none; /* closed by default */
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      z-index: 1000;
-    }
-    .modal[aria-hidden="false"] { display: flex; }
-
-    .modal__backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
+    .trigger:hover,
+    .btn:hover {
+      border-color: color-mix(in oklab, var(--border) 40%, #2b6cff 60%);
     }
 
-    .modal__panel {
-      position: relative;
-      width: min(560px, 100%);
-      background: rgba(17,26,46,0.92);
+    .btn.secondary {
+      background: transparent;
+    }
+
+    .trigger:focus-visible,
+    .btn:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
+    dialog.modal {
+      padding: 0;
       border: 1px solid var(--border);
       border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--fg);
+      width: min(560px, calc(100vw - 32px));
       box-shadow: var(--shadow);
-      padding: 18px 18px 16px;
-      backdrop-filter: blur(10px);
     }
 
-    .modal__header {
+    dialog.modal::backdrop {
+      background: var(--overlay);
+    }
+
+    .modal__header,
+    .modal__footer {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal__footer {
+      border-bottom: 0;
+      border-top: 1px solid var(--border);
       display: flex;
-      align-items: start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
+      justify-content: flex-end;
+      gap: 10px;
     }
 
     .modal__title {
       margin: 0;
-      font-size: 18px;
-      line-height: 1.2;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     .modal__close {
-      padding: 8px 10px;
+      background: transparent;
+      border: 1px solid transparent;
       border-radius: 10px;
-      background: rgba(255,255,255,0.06);
+      padding: 6px 10px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .modal__close:hover {
+      border-color: var(--border);
+      color: var(--fg);
     }
 
     .modal__body {
+      padding: 16px;
+    }
+
+    .modal__body p {
+      margin: 0 0 12px 0;
+      color: color-mix(in oklab, var(--fg) 92%, var(--muted) 8%);
+    }
+
+    .kbd-hint {
+      font-size: 0.9rem;
       color: var(--muted);
-      line-height: 1.55;
-      margin: 0 0 14px;
+      margin-top: 8px;
     }
 
-    .modal__footer {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      padding-top: 6px;
-    }
-
-    .primary {
-      border-color: rgba(110,168,255,0.45);
-      background: linear-gradient(135deg, rgba(110,168,255,0.22), rgba(139,92,246,0.18));
-    }
-
-    /* Reduce motion */
-    @media (prefers-reduced-motion: no-preference) {
-      .modal__panel { animation: pop 140ms ease-out; }
-      @keyframes pop {
-        from { transform: translateY(6px) scale(0.98); opacity: 0; }
-        to { transform: translateY(0) scale(1); opacity: 1; }
-      }
+    code.kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.85em;
+      padding: 2px 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: color-mix(in oklab, var(--bg) 88%, #000 12%);
     }
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Modal dialog component</h1>
-    <p>The modal is closed by default. Click the button with the <code>trigger</code> class to open it.</p>
+  <main>
+    <h1>Modal Dialog Component</h1>
+    <p>This example uses the native <code>&lt;dialog&gt;</code> element. The modal is closed by default.</p>
+
     <button class="trigger" type="button" data-modal-open="example-modal">
       Open modal
     </button>
-  </main>
 
-  <div id="example-modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="example-modal-title">
-    <div class="modal__backdrop" data-modal-close tabindex="-1" aria-hidden="true"></div>
-
-    <div class="modal__panel" role="document">
+    <dialog class="modal" id="example-modal" aria-labelledby="example-modal-title">
       <div class="modal__header">
-        <h2 class="modal__title" id="example-modal-title">Example modal</h2>
-        <button class="modal__close" type="button" data-modal-close aria-label="Close dialog">✕</button>
+        <h2 class="modal__title" id="example-modal-title">
+          Example modal
+          <button class="modal__close" type="button" data-modal-close aria-label="Close modal">✕</button>
+        </h2>
       </div>
 
-      <p class="modal__body">
-        This is a simple modal dialog. It traps focus while open, closes on Escape, and closes when you click the backdrop.
-      </p>
+      <div class="modal__body">
+        <p>This is a basic modal dialog. It closes when you press <code class="kbd">Esc</code>, click outside, or use the buttons below.</p>
+        <p class="kbd-hint">Tip: Press <code class="kbd">Esc</code> to close.</p>
+      </div>
 
       <div class="modal__footer">
-        <button type="button" data-modal-close>Cancel</button>
-        <button class="primary" type="button" data-modal-close>Confirm</button>
+        <button class="btn secondary" type="button" data-modal-close>Cancel</button>
+        <button class="btn" type="button" data-modal-close>Done</button>
       </div>
-    </div>
-  </div>
+    </dialog>
+  </main>
 
   <script>
     (function () {
-      const openers = document.querySelectorAll('[data-modal-open]');
-      const focusableSelector = [
-        'a[href]',
-        'button:not([disabled])',
-        'input:not([disabled]):not([type="hidden"])',
-        'select:not([disabled])',
-        'textarea:not([disabled])',
-        '[tabindex]:not([tabindex="-1"])'
-      ].join(',');
+      const openers = document.querySelectorAll('.trigger[data-modal-open]');
+      const dialogsById = new Map([...document.querySelectorAll('dialog.modal[id]')].map(d => [d.id, d]));
 
-      function getFocusable(container) {
-        return Array.from(container.querySelectorAll(focusableSelector))
-          .filter(el => !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true');
-      }
-
-      function openModal(modal, opener) {
-        if (!modal) return;
-
-        modal.__opener = opener || null;
-        modal.setAttribute('aria-hidden', 'false');
-
-        const panel = modal.querySelector('.modal__panel') || modal;
-        const focusables = getFocusable(panel);
-        const initial = panel.querySelector('[autofocus]') || focusables[0] || panel;
-
-        // Prevent background scroll
-        document.documentElement.style.overflow = 'hidden';
-
-        // Focus after paint
-        requestAnimationFrame(() => initial.focus({ preventScroll: true }));
-
-        // Trap focus
-        modal.__onKeyDown = (e) => {
-          if (e.key === 'Escape') {
-            e.preventDefault();
-            closeModal(modal);
-            return;
-          }
-          if (e.key !== 'Tab') return;
-
-          const items = getFocusable(panel);
-          if (!items.length) {
-            e.preventDefault();
-            panel.focus();
-            return;
-          }
-
-          const first = items[0];
-          const last = items[items.length - 1];
-          const active = document.activeElement;
-
-          if (e.shiftKey) {
-            if (active === first || active === panel) {
-              e.preventDefault();
-              last.focus();
-            }
-          } else {
-            if (active === last) {
-              e.preventDefault();
-              first.focus();
-            }
-          }
-        };
-
-        document.addEventListener('keydown', modal.__onKeyDown);
-      }
-
-      function closeModal(modal) {
-        if (!modal) return;
-
-        modal.setAttribute('aria-hidden', 'true');
-        document.documentElement.style.overflow = '';
-
-        if (modal.__onKeyDown) {
-          document.removeEventListener('keydown', modal.__onKeyDown);
-          modal.__onKeyDown = null;
-        }
-
-        const opener = modal.__opener;
-        modal.__opener = null;
-        if (opener && typeof opener.focus === 'function') {
-          requestAnimationFrame(() => opener.focus({ preventScroll: true }));
-        }
+      function getFocusable(dialog) {
+        return dialog.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
       }
 
       openers.forEach(btn => {
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-modal-open');
-          const modal = document.getElementById(id);
-          openModal(modal, btn);
+          const dialog = dialogsById.get(id);
+          if (!dialog) return;
+
+          dialog.dataset.returnFocus = btn.id || '';
+          if (!btn.id) btn.id = 'trigger-' + Math.random().toString(36).slice(2);
+
+          if (typeof dialog.showModal === 'function') {
+            dialog.showModal();
+          } else {
+            // Minimal fallback: open as non-modal if showModal is unavailable
+            dialog.setAttribute('open', '');
+          }
+
+          const focusTarget = getFocusable(dialog);
+          if (focusTarget) focusTarget.focus();
         });
       });
 
-      document.addEventListener('click', (e) => {
-        const closeTarget = e.target.closest('[data-modal-close]');
-        if (!closeTarget) return;
+      function closeDialog(dialog) {
+        if (!dialog) return;
+        if (dialog.open) {
+          dialog.close();
+        } else {
+          dialog.removeAttribute('open');
+        }
 
-        const modal = e.target.closest('.modal');
-        if (modal) closeModal(modal);
+        const triggerId = dialog.dataset.returnFocus;
+        const trigger = triggerId ? document.getElementById(triggerId) : null;
+        if (trigger) trigger.focus();
+      }
+
+      document.querySelectorAll('[data-modal-close]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const dialog = e.target.closest('dialog');
+          closeDialog(dialog);
+        });
       });
 
-      // Optional: close if clicking outside panel (backdrop already handled)
-      document.addEventListener('mousedown', (e) => {
-        const modal = e.target.closest('.modal[aria-hidden="false"]');
-        if (!modal) return;
-        const panel = modal.querySelector('.modal__panel');
-        if (panel && !panel.contains(e.target) && e.target.classList.contains('modal__backdrop')) {
-          closeModal(modal);
-        }
+      // Close on clicking the backdrop (outside the dialog content)
+      document.querySelectorAll('dialog.modal').forEach(dialog => {
+        dialog.addEventListener('click', (e) => {
+          const rect = dialog.getBoundingClientRect();
+          const clickedInside =
+            e.clientX >= rect.left &&
+            e.clientX <= rect.right &&
+            e.clientY >= rect.top &&
+            e.clientY <= rect.bottom;
+
+          if (!clickedInside) closeDialog(dialog);
+        });
+
+        dialog.addEventListener('close', () => {
+          const triggerId = dialog.dataset.returnFocus;
+          const trigger = triggerId ? document.getElementById(triggerId) : null;
+          if (trigger) trigger.focus();
+        });
       });
     })();
   </script>

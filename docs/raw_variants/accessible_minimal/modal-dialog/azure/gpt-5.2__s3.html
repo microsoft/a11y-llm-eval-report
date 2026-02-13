@@ -1,19 +1,28 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Accessible Modal Dialog Example</title>
   <style>
     :root {
       color-scheme: light dark;
-      --bg: Canvas;
-      --fg: CanvasText;
+      --bg: #ffffff;
+      --fg: #111111;
       --overlay: rgba(0, 0, 0, 0.55);
-      --surface: Canvas;
-      --border: color-mix(in oklab, CanvasText 20%, Canvas 80%);
-      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-      --radius: 14px;
-      --focus: Highlight;
+      --panel: #ffffff;
+      --border: rgba(0, 0, 0, 0.18);
+      --focus: #0b57d0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1115;
+        --fg: #eef1f6;
+        --overlay: rgba(0, 0, 0, 0.7);
+        --panel: #171a21;
+        --border: rgba(255, 255, 255, 0.16);
+        --focus: #7aa2ff;
+      }
     }
 
     body {
@@ -24,102 +33,104 @@
       line-height: 1.5;
     }
 
-    main {
-      max-width: 70ch;
-      padding: 2rem 1rem;
+    .container {
+      max-width: 60rem;
       margin: 0 auto;
+      padding: 2rem 1rem;
     }
 
     button {
       font: inherit;
-      padding: 0.65rem 1rem;
-      border-radius: 0.75rem;
       border: 1px solid var(--border);
-      background: color-mix(in oklab, var(--bg) 92%, var(--fg) 8%);
-      color: var(--fg);
+      background: transparent;
+      color: inherit;
+      padding: 0.6rem 1rem;
+      border-radius: 0.6rem;
       cursor: pointer;
     }
 
     button:hover {
-      background: color-mix(in oklab, var(--bg) 86%, var(--fg) 14%);
+      border-color: color-mix(in srgb, var(--border) 50%, currentColor 30%);
     }
 
     button:focus-visible,
-    a:focus-visible,
-    input:focus-visible,
-    textarea:focus-visible {
+    input:focus-visible {
       outline: 3px solid var(--focus);
       outline-offset: 2px;
     }
 
-    dialog {
-      width: min(560px, calc(100vw - 2rem));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0;
-      background: var(--surface);
-      color: var(--fg);
-      box-shadow: var(--shadow);
+    .primary {
+      background: color-mix(in srgb, var(--focus) 20%, transparent);
+      border-color: color-mix(in srgb, var(--focus) 55%, var(--border));
     }
 
-    dialog::backdrop {
+    /* Fallback modal for browsers without <dialog> support */
+    .modal-fallback[hidden] { display: none; }
+    .modal-fallback {
+      position: fixed;
+      inset: 0;
       background: var(--overlay);
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      z-index: 1000;
     }
-
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-      padding: 1rem 1.25rem;
+    .modal-panel {
+      width: min(34rem, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.8rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      padding: 1rem;
     }
-
     .modal-header {
       display: flex;
       align-items: start;
       justify-content: space-between;
       gap: 1rem;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.75rem;
     }
-
     .modal-title {
       margin: 0;
-      font-size: 1.125rem;
+      font-size: 1.25rem;
+      line-height: 1.2;
     }
-
     .modal-body {
-      padding-top: 1rem;
-      padding-bottom: 1rem;
+      margin: 0.75rem 0 1rem;
     }
-
-    .modal-footer {
+    .modal-actions {
       display: flex;
+      gap: 0.5rem;
       justify-content: flex-end;
-      gap: 0.75rem;
-      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
     }
 
-    .icon-button {
-      padding: 0.4rem 0.6rem;
-      border-radius: 0.6rem;
-      line-height: 1;
+    /* Native dialog styling */
+    dialog {
+      width: min(34rem, 100%);
+      border: 1px solid var(--border);
+      border-radius: 0.8rem;
+      padding: 1rem;
+      background: var(--panel);
+      color: inherit;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
-
-    .field {
-      display: grid;
-      gap: 0.35rem;
-      margin-top: 0.75rem;
+    dialog::backdrop {
+      background: var(--overlay);
     }
 
     label {
-      font-weight: 600;
+      display: block;
+      margin: 0.75rem 0 0.25rem;
     }
-
     input[type="text"] {
-      font: inherit;
+      width: 100%;
+      box-sizing: border-box;
       padding: 0.6rem 0.75rem;
       border-radius: 0.6rem;
       border: 1px solid var(--border);
-      background: color-mix(in oklab, var(--bg) 96%, var(--fg) 4%);
-      color: var(--fg);
+      background: transparent;
+      color: inherit;
     }
 
     .sr-only {
@@ -136,78 +147,166 @@
   </style>
 </head>
 <body>
-  <main>
-    <h1>Modal dialog component</h1>
-    <p>This example uses the native <code>&lt;dialog&gt;</code> element for accessible focus management.</p>
+  <main class="container">
+    <h1>Modal Dialog Example</h1>
+    <p>
+      This is an accessible modal dialog. It is closed by default. Use the button below to open it.
+    </p>
 
-    <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="example-modal">
+    <button class="trigger primary" type="button" id="openModal" aria-haspopup="dialog" aria-controls="exampleModal">
       Open modal
     </button>
 
-    <dialog id="example-modal" aria-labelledby="modal-title" aria-describedby="modal-desc">
+    <!-- Preferred: native dialog -->
+    <dialog id="exampleModal" aria-labelledby="modalTitle" aria-describedby="modalDesc">
       <div class="modal-header">
-        <h2 class="modal-title" id="modal-title">Example modal</h2>
-        <button type="button" class="icon-button" data-close>
-          <span aria-hidden="true">×</span>
-          <span class="sr-only">Close modal</span>
+        <h2 class="modal-title" id="modalTitle">Example modal dialog</h2>
+        <button type="button" id="closeModalX">
+          <span aria-hidden="true">Close</span>
+          <span class="sr-only">dialog</span>
         </button>
       </div>
 
-      <div class="modal-body">
-        <p id="modal-desc">
-          This is a modal dialog. Press Escape or use the Close button to dismiss it.
+      <p class="modal-body" id="modalDesc">
+        This is a modal dialog. Press Escape to close, or use the buttons below.
+      </p>
+
+      <form method="dialog">
+        <label for="nameInput">Example input</label>
+        <input id="nameInput" name="name" type="text" autocomplete="name" />
+
+        <div class="modal-actions" style="margin-top: 1rem;">
+          <button value="cancel" id="cancelBtn">Cancel</button>
+          <button class="primary" value="confirm" id="confirmBtn">Confirm</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Fallback for older browsers -->
+    <div id="modalFallback" class="modal-fallback" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitleFb" aria-describedby="modalDescFb">
+      <div class="modal-panel" role="document">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitleFb">Example modal dialog</h2>
+          <button type="button" id="closeFallbackX">
+            <span aria-hidden="true">Close</span>
+            <span class="sr-only">dialog</span>
+          </button>
+        </div>
+
+        <p class="modal-body" id="modalDescFb">
+          This is a modal dialog. Press Escape to close, or use the buttons below.
         </p>
 
-        <div class="field">
-          <label for="name">Name</label>
-          <input id="name" name="name" type="text" autocomplete="name" />
+        <label for="nameInputFb">Example input</label>
+        <input id="nameInputFb" type="text" autocomplete="name" />
+
+        <div class="modal-actions" style="margin-top: 1rem;">
+          <button type="button" id="cancelFallback">Cancel</button>
+          <button type="button" class="primary" id="confirmFallback">Confirm</button>
         </div>
       </div>
-
-      <div class="modal-footer">
-        <button type="button" data-close>Cancel</button>
-        <button type="button" id="save-btn">Save</button>
-      </div>
-    </dialog>
+    </div>
   </main>
 
   <script>
     (function () {
-      const trigger = document.querySelector('button.trigger');
-      const dialog = document.getElementById('example-modal');
-      const closeButtons = dialog.querySelectorAll('[data-close]');
-      const saveBtn = document.getElementById('save-btn');
-      const nameInput = document.getElementById('name');
+      const trigger = document.querySelector('.trigger');
+      const dialog = document.getElementById('exampleModal');
+      const closeX = document.getElementById('closeModalX');
 
-      let lastActiveElement = null;
+      const fallback = document.getElementById('modalFallback');
+      const closeFallbackX = document.getElementById('closeFallbackX');
+      const cancelFallback = document.getElementById('cancelFallback');
+      const confirmFallback = document.getElementById('confirmFallback');
+
+      let lastFocused = null;
+
+      function supportsDialog() {
+        return typeof HTMLDialogElement === 'function' && typeof dialog.showModal === 'function';
+      }
 
       function openModal() {
-        lastActiveElement = document.activeElement;
-        if (typeof dialog.showModal === 'function') {
+        lastFocused = document.activeElement;
+        if (supportsDialog()) {
           dialog.showModal();
-          nameInput.focus();
+          // Focus a meaningful control
+          const focusTarget = dialog.querySelector('#nameInput') || dialog.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          if (focusTarget) focusTarget.focus();
         } else {
-          alert('Your browser does not support the dialog element.');
+          fallback.hidden = false;
+          document.body.style.overflow = 'hidden';
+          const focusTarget = document.getElementById('nameInputFb');
+          if (focusTarget) focusTarget.focus();
         }
+        trigger.setAttribute('aria-expanded', 'true');
       }
 
-      function closeModal() {
-        if (dialog.open) dialog.close();
+      function closeModal(returnFocus = true) {
+        if (supportsDialog()) {
+          if (dialog.open) dialog.close();
+        } else {
+          fallback.hidden = true;
+          document.body.style.overflow = '';
+        }
+        trigger.setAttribute('aria-expanded', 'false');
+        if (returnFocus && lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
       }
 
+      // Open via trigger
       trigger.addEventListener('click', openModal);
 
-      closeButtons.forEach((btn) => btn.addEventListener('click', closeModal));
+      // Close button in native dialog
+      closeX.addEventListener('click', () => closeModal(true));
 
-      saveBtn.addEventListener('click', () => {
-        closeModal();
+      // Native dialog: restore focus when closed by Esc or form submit
+      dialog.addEventListener('close', () => closeModal(true));
+
+      // Fallback close controls
+      closeFallbackX.addEventListener('click', () => closeModal(true));
+      cancelFallback.addEventListener('click', () => closeModal(true));
+      confirmFallback.addEventListener('click', () => closeModal(true));
+
+      // Click outside panel to close (fallback only)
+      fallback.addEventListener('click', (e) => {
+        if (e.target === fallback) closeModal(true);
       });
 
-      dialog.addEventListener('close', () => {
-        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
-          lastActiveElement.focus();
+      // Escape to close (fallback only)
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !supportsDialog() && !fallback.hidden) {
+          e.preventDefault();
+          closeModal(true);
         }
       });
+
+      // Minimal focus trap for fallback
+      function getFocusable(container) {
+        return Array.from(container.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(el => el.offsetParent !== null);
+      }
+
+      fallback.addEventListener('keydown', (e) => {
+        if (fallback.hidden) return;
+        if (e.key !== 'Tab') return;
+
+        const focusables = getFocusable(fallback);
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
+
+      // Initialize aria-expanded (closed by default)
+      trigger.setAttribute('aria-expanded', 'false');
     })();
   </script>
 </body>

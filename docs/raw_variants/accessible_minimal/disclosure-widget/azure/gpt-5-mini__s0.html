@@ -2,232 +2,216 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Accessible Expand/Collapse Widget</title>
+  <title>Accessible Expand/Collapse Widget Examples</title>
   <style>
     :root{
-      --accent: #0b6efd;
-      --bg: #ffffff;
-      --muted: #6b7280;
-      --radius: 8px;
-      --transition: 200ms ease;
+      --accent:#005ea6;
+      --bg:#f8fbff;
+      --surface:#fff;
+      --muted:#6b7280;
+      --focus: 3px solid rgba(0,94,166,0.2);
+      --radius:8px;
     }
-    html,body{height:100%;}
     body{
-      margin:0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
       line-height:1.4;
-      background:#f7f8fb;
+      margin:1rem;
+      background: linear-gradient(180deg,var(--bg),#fff 40%);
       color:#0f172a;
-      padding:2rem;
     }
-
-    h1{font-size:1.25rem;margin:0 0 1rem 0}
-    p.lead{margin:0 0 1.25rem 0;color:var(--muted)}
-
+    header h1{
+      margin:0 0 .25rem 0;
+      font-size:1.25rem;
+    }
+    header p{margin:0 0 1rem 0;color:var(--muted);font-size:.95rem}
     .example{
-      background:var(--bg);
-      border:1px solid #e6e9ee;
+      background:var(--surface);
+      border:1px solid rgba(15,23,42,0.06);
       border-radius:var(--radius);
       padding:1rem;
-      margin-bottom:1rem;
-      box-shadow: 0 1px 2px rgba(15,23,42,0.03);
-      max-width:720px;
+      margin:0 0 1rem 0;
+      box-shadow: 0 1px 0 rgba(15,23,42,0.03);
     }
 
-    /* Button styling */
-    .expander {
-      display:flex;
+    /* Toggle button */
+    .toggle{
+      display:inline-flex;
       align-items:center;
-      justify-content:space-between;
-      width:100%;
+      gap:.5rem;
+      padding:.45rem .6rem;
+      font-size:1rem;
       background:transparent;
-      border:1px solid transparent;
-      padding:0.5rem 0.75rem;
+      border:1px solid rgba(15,23,42,0.08);
       border-radius:6px;
       cursor:pointer;
-      font-size:1rem;
-      text-align:left;
-      gap:0.5rem;
-    }
-    .expander:focus{
-      outline:3px solid rgba(11,110,253,0.12);
-      box-shadow:0 0 0 4px rgba(11,110,253,0.06);
-    }
-    .expander:hover{
-      background:#fbfdff;
-    }
-    .expander .label{
-      display:flex;
-      gap:0.5rem;
-      align-items:center;
-      flex:1 1 auto;
-    }
-    .expander .title{
-      font-weight:600;
-    }
-    .expander .hint{
-      color:var(--muted);
-      font-size:0.9rem;
-    }
-
-    /* Chevron */
-    .chev{
-      width:1.25rem;
-      height:1.25rem;
-      display:inline-block;
-      transition:transform var(--transition);
       color:var(--accent);
-      flex:0 0 auto;
+      transition:background .12s, box-shadow .12s, transform .06s;
     }
-    .expanded .chev{ transform:rotate(180deg); }
+    .toggle:hover{ background: rgba(0,94,166,0.04); }
+    .toggle:active{ transform: translateY(1px); }
+    .toggle:focus{ outline:none; box-shadow: var(--focus); border-color:var(--accent); }
 
-    /* Controlled content */
+    .toggle .icon{
+      width:1rem; height:1rem; display:inline-block; flex:0 0 1rem;
+      transition:transform .18s ease;
+    }
+    /* icon rotate when expanded */
+    .toggle[aria-expanded="true"] .icon{ transform: rotate(180deg); }
+
     .details{
-      margin-top:0.75rem;
-      padding:0.75rem;
+      margin-top:.75rem;
+      padding:.75rem;
       border-radius:6px;
-      background:#fbfdff;
-      border:1px solid #eef2ff;
+      background:linear-gradient(180deg, rgba(0,94,166,0.02), rgba(0,94,166,0.01));
+      border:1px dashed rgba(0,94,166,0.06);
     }
 
-    /* Hidden state for JS toggle: when [hidden] browsers remove from flow; we keep consistent visuals */
-    /* We also set [data-anim] class to allow simple CSS animation when toggled via JS (not relying on hidden attribute). */
-    .details[data-state="collapsed"]{
-      display:none;
-    }
-
-    /* Small utility */
-    .meta{font-size:0.85rem;color:var(--muted);margin-top:0.5rem}
-    a{color:var(--accent)}
+    /* Small helper text and list styles */
+    .muted{ color:var(--muted); font-size:.92rem; margin:.25rem 0 0 0; }
+    .details p{ margin:.25rem 0; }
+    .details ul{ margin:.25rem 0 0 1.25rem; }
     .sr-only{
-      border:0;clip:rect(0 0 0 0);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px;
+      position: absolute!important;
+      height: 1px; width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap;
+      clip-path: inset(50%);
+      border: 0; padding: 0; margin: -1px;
+    }
+
+    /* Responsive */
+    @media (min-width:720px){
+      .example{ max-width:60rem; }
     }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Accessible Expand/Collapse Widget</h1>
-    <p class="lead">Each widget is wrapped with a container that has the <code>example</code> class. The controlled content container uses the <code>details</code> class.</p>
+  <header aria-labelledby="page-title">
+    <h1 id="page-title">Expand / Collapse Widget — Accessible Examples</h1>
+    <p>Each widget is wrapped with a container classed "example". The controlled content containers use the class "details". Use the buttons to expand or collapse content.</p>
+  </header>
 
-    <!-- Example widget (wrapped in .example) -->
-    <div class="example" id="example-1">
-      <button
-        class="expander"
-        id="toggle-1"
-        aria-expanded="false"
-        aria-controls="content-1"
-        aria-describedby="desc-1"
-        type="button"
-      >
-        <span class="label">
-          <span class="title">Show more information</span>
-          <span id="desc-1" class="hint">Additional details about the topic</span>
-        </span>
-        <svg class="chev" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
-          <path fill="currentColor" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
-        </svg>
-      </button>
+  <!-- Example 1: Collapsed by default -->
+  <div class="example" data-example="1">
+    <button
+      id="toggle-1"
+      class="toggle"
+      aria-expanded="false"
+      aria-controls="details-1"
+      aria-describedby="toggle-help-1">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M7 10l5 5 5-5H7z"/>
+      </svg>
+      Show more
+    </button>
+    <span id="toggle-help-1" class="sr-only">Press enter or space to expand</span>
 
-      <div
-        id="content-1"
-        class="details"
-        role="region"
-        aria-labelledby="toggle-1"
-        data-state="collapsed"
-      >
-        <p><strong>Overview:</strong> This section contains supplementary information. Use the button above to expand or collapse this area. The button reflects the current state with <code>aria-expanded</code> and controls this region through <code>aria-controls</code>.</p>
-        <p class="meta">Tip: You can navigate to the expand/collapse button using the Tab key, and activate it with Enter or Space.</p>
-        <p>Learn more: <a href="https://www.w3.org/WAI/ARIA/apg/patterns/Disclosure/" target="_blank" rel="noopener noreferrer">WAI-ARIA disclosure pattern</a>.</p>
-      </div>
+    <div id="details-1" class="details" role="region" aria-labelledby="toggle-1" hidden>
+      <p><strong>Summary:</strong> This content is initially collapsed. It becomes visible when the button is activated.</p>
+      <p>Tips for accessibility:</p>
+      <ul>
+        <li>Use aria-expanded on the controlling element (the button).</li>
+        <li>Use aria-controls to reference the controlled container.</li>
+        <li>The controlled container has role="region" and aria-labelledby to announce its relationship.</li>
+      </ul>
+      <p class="muted">This demonstration uses native buttons for accessible keyboard interaction.</p>
     </div>
+  </div>
 
-    <!-- Another example to show multiple widgets -->
-    <div class="example" id="example-2">
-      <button
-        class="expander"
-        id="toggle-2"
-        aria-expanded="false"
-        aria-controls="content-2"
-        type="button"
-      >
-        <span class="label">
-          <span class="title">Release notes</span>
-          <span class="hint">View the latest changes</span>
-        </span>
-        <svg class="chev" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
-          <path fill="currentColor" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
-        </svg>
-      </button>
+  <!-- Example 2: Expanded by default -->
+  <div class="example" data-example="2">
+    <button
+      id="toggle-2"
+      class="toggle"
+      aria-expanded="true"
+      aria-controls="details-2"
+      aria-describedby="toggle-help-2">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M7 10l5 5 5-5H7z"/>
+      </svg>
+      Show less
+    </button>
+    <span id="toggle-help-2" class="sr-only">Press enter or space to collapse</span>
 
-      <div
-        id="content-2"
-        class="details"
-        role="region"
-        aria-labelledby="toggle-2"
-        data-state="collapsed"
-      >
-        <ul>
-          <li>Version 2.3.1 - Bug fixes and performance improvements.</li>
-          <li>Version 2.3.0 - New export feature for reports.</li>
-          <li>Version 2.2.0 - Improved accessibility and keyboard support.</li>
-        </ul>
-      </div>
+    <div id="details-2" class="details" role="region" aria-labelledby="toggle-2">
+      <p><strong>Expanded example:</strong> This instance starts expanded to show the open state. You can collapse it using the same button.</p>
+      <p>Content here could be long form, additional controls, or any other information you want to reveal on demand.</p>
+      <p class="muted">The content container has the required class "details".</p>
     </div>
-  </main>
+  </div>
 
   <script>
     (function(){
-      // Initialize all expander widgets within .example containers
-      const examples = document.querySelectorAll('.example');
-      examples.forEach(example => {
-        const button = example.querySelector('.expander');
-        const contentId = button.getAttribute('aria-controls');
-        const content = document.getElementById(contentId);
+      // Find all example toggles and wire them up
+      var examples = document.querySelectorAll('.example');
 
-        // Ensure initial state is collapsed in ARIA and DOM
-        if (!content) return;
-        content.setAttribute('data-state', 'collapsed');
-        button.classList.remove('expanded');
+      // Utility to set button label based on expanded state
+      function updateButtonLabel(btn){
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        // Allow customization via data attributes; fallback to defaults
+        var moreLabel = btn.getAttribute('data-more') || 'Show more';
+        var lessLabel = btn.getAttribute('data-less') || 'Show less';
+        btn.firstChild && (btn.firstChild.nodeType === 1); // keep icon in place
+        // Keep icon as first element; place text content after
+        // Remove any existing text nodes except icon and visually hidden spans
+        Array.from(btn.childNodes).forEach(function(node){
+          if(node.nodeType === Node.TEXT_NODE) node.remove();
+        });
+        // Add a single text node after the icon
+        var label = document.createTextNode(expanded ? lessLabel : moreLabel);
+        btn.appendChild(label);
+      }
 
-        function open() {
-          button.setAttribute('aria-expanded', 'true');
-          content.setAttribute('data-state', 'open');
-          button.classList.add('expanded');
+      examples.forEach(function(example, idx){
+        var btn = example.querySelector('.toggle');
+        var details = example.querySelector('.details');
+
+        if(!btn || !details) return;
+
+        // Ensure controlled ID exists
+        if(!details.id){
+          details.id = 'details-' + (idx+1) + '-' + Math.random().toString(36).slice(2,8);
+          btn.setAttribute('aria-controls', details.id);
         }
-        function close() {
-          button.setAttribute('aria-expanded', 'false');
-          content.setAttribute('data-state', 'collapsed');
-          button.classList.remove('expanded');
+        if(!btn.id){
+          btn.id = 'toggle-' + (idx+1) + '-' + Math.random().toString(36).slice(2,8);
+          details.setAttribute('aria-labelledby', btn.id);
         }
-        function toggle(){
-          const expanded = button.getAttribute('aria-expanded') === 'true';
-          if (expanded) {
-            close();
-            // Move focus back to button for keyboard users if desired (keeps context)
-            button.focus();
+
+        // Set initial label based on aria-expanded
+        updateButtonLabel(btn);
+
+        // Click handler
+        btn.addEventListener('click', function(){
+          var expanded = btn.getAttribute('aria-expanded') === 'true';
+          var newState = !expanded;
+          btn.setAttribute('aria-expanded', String(newState));
+          if(newState){
+            details.removeAttribute('hidden');
           } else {
-            open();
+            details.setAttribute('hidden','');
           }
-        }
-
-        // Click toggles
-        button.addEventListener('click', toggle);
-
-        // Spacebar on button: native button handles Enter/Space, but ensure Space doesn't scroll page
-        button.addEventListener('keydown', (e) => {
-          if (e.code === 'Space' || e.key === ' '){
-            // Let the click event handle toggling on keyup; prevent page scroll
-            e.preventDefault();
-          }
+          updateButtonLabel(btn);
         });
 
-        // Allow closing the panel with Escape when open
-        content.addEventListener('keydown', function(e){
-          if (e.key === 'Escape' || e.code === 'Escape') {
-            close();
-            button.focus();
-          }
+        // In case the user toggles aria-expanded via assistive tech or external scripts,
+        // observe mutations to keep label and hidden state in sync.
+        var observer = new MutationObserver(function(mutations){
+          mutations.forEach(function(m){
+            if(m.type === 'attributes' && m.attributeName === 'aria-expanded'){
+              var expanded = btn.getAttribute('aria-expanded') === 'true';
+              if(expanded){
+                details.removeAttribute('hidden');
+              } else {
+                details.setAttribute('hidden','');
+              }
+              updateButtonLabel(btn);
+            }
+          });
         });
+        observer.observe(btn, { attributes: true });
+
       });
     })();
   </script>

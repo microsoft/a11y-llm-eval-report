@@ -5,339 +5,406 @@
   <title>Accessible Expand/Collapse Widget Examples</title>
   <style>
     :root{
-      color-scheme: light dark;
-      --bg: #ffffff;
-      --fg: #0b1b2b;
-      --accent: #0a66c2;
-      --muted: #6b7280;
-      --focus: 3px solid #ffbf47; /* high contrast visible focus */
-      --radius: 8px;
-      --shadow: 0 1px 3px rgba(2,6,23,0.08);
+      --brand:#0b63ff;
+      --bg:#ffffff;
+      --text:#0b0b0b;
+      --muted:#4b4b4b;
+      --focus: 3px solid #ffbf47;
+      --radius:8px;
+      --transition: 280ms cubic-bezier(.2,.8,.2,1);
     }
 
-    @media (prefers-color-scheme: dark){
-      :root{
-        --bg: #071126;
-        --fg: #e6eef8;
-        --accent: #66a8ff;
-        --muted: #9aa6b2;
-        --focus: 3px solid #ffbf47;
-        --shadow: 0 2px 8px rgba(0,0,0,0.6);
-      }
-    }
-
+    /* Basic page layout */
+    html,body{height:100%;}
     body{
-      background: var(--bg);
-      color: var(--fg);
+      margin:0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      line-height: 1.4;
-      margin: 1.25rem;
-      padding: 0;
+      line-height:1.45;
+      color:var(--text);
+      background: #f6f8fb;
+      padding:24px;
     }
 
-    header h1{
-      font-size: 1.375rem;
-      margin: 0 0 0.25rem 0;
-    }
-    header p{
-      margin: 0 0 1rem 0;
-      color: var(--muted);
+    header{
+      margin-bottom:16px;
     }
 
+    h1{
+      font-size:1.25rem;
+      margin:0 0 6px 0;
+    }
+
+    p.lead{
+      margin:0 0 12px 0;
+      color:var(--muted);
+      font-size:0.95rem;
+    }
+
+    /* Skip link */
+    .skip-link{
+      position: absolute;
+      left: -999px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      z-index:1000;
+    }
+    .skip-link:focus{
+      left: 8px;
+      top: 8px;
+      width: auto;
+      height: auto;
+      padding:8px 12px;
+      background:#000;
+      color:#fff;
+      border-radius:4px;
+      text-decoration:none;
+    }
+
+    /* Example wrapper */
     .example{
-      border: 1px solid rgba(11,27,43,0.08);
+      background:#fff;
       border-radius: var(--radius);
-      padding: 1rem;
-      margin-bottom: 1rem;
-      box-shadow: var(--shadow);
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.01));
+      box-shadow: 0 1px 2px rgba(10,10,10,0.04), 0 6px 18px rgba(11,38,77,0.06);
+      padding:16px;
+      margin-bottom:18px;
     }
 
-    /* Accessible button style */
-    .expander{
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 0.75rem;
-      font-size: 1rem;
-      background: transparent;
-      border: 1px solid rgba(11,27,43,0.12);
-      border-radius: 6px;
-      color: var(--fg);
-      cursor: pointer;
-      transition: background 120ms ease, box-shadow 120ms ease;
+    .example h2{
+      font-size:1rem;
+      margin:0 0 10px 0;
+      color:var(--brand);
     }
-    .expander:hover{
-      background: rgba(10,102,194,0.04);
+
+    .instructions{
+      font-size:0. nine rem;
+      margin:0 0 12px 0;
+      color:var(--muted);
     }
-    .expander:active{
-      transform: translateY(1px);
+
+    /* Toggle button */
+    .toggle{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      background:linear-gradient(180deg,#fff,#f3f6ff);
+      border:1px solid rgba(11,99,255,0.12);
+      color:var(--brand);
+      padding:10px 14px;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+      font-size:0.95rem;
+      transition: box-shadow var(--transition), transform var(--transition);
     }
-    .expander:focus{
+    .toggle:hover{ transform: translateY(-1px); }
+    .toggle:active{ transform: translateY(0); }
+    .toggle:focus{
       outline: none;
       box-shadow: var(--focus);
+      border-color: var(--brand);
     }
 
-    /* Icon */
-    .expander .icon{
-      width: 1rem;
-      height: 1rem;
-      display: inline-block;
-      transition: transform 180ms ease;
-      flex: 0 0 1rem;
+    .toggle .chev{
+      display:inline-block;
+      width:18px;height:18px;
+      transition: transform var(--transition);
+      fill: currentColor;
     }
-    .expander[aria-expanded="true"] .icon{
+    /* rotate when expanded */
+    .toggle[aria-expanded="true"] .chev{
       transform: rotate(90deg);
     }
 
-    /* Controlled content: class 'details' required by the task */
+    /* Controlled content: .details */
     .details{
-      margin-top: 0.75rem;
-      padding: 0.75rem;
-      border-radius: 6px;
-      background: rgba(10,102,194,0.03);
-      color: var(--fg);
+      margin-top:12px;
+      overflow:hidden;
+      transition: max-height var(--transition), opacity var(--transition);
+      max-height:0;
+      opacity:0;
+    }
+    /* When expanded set to large max height to allow transition (content-driven) */
+    .details[aria-hidden="false"]{
+      max-height: 1000px; /* large enough for content */
+      opacity:1;
     }
 
-    /* Smooth collapse/expand using max-height for animation */
-    .details[hidden]{
-      display: none;
+    .panel{
+      padding:12px 14px;
+      background: linear-gradient(180deg,#f8fbff,#fff);
+      border-radius:8px;
+      border:1px solid rgba(11,63,128,0.06);
     }
 
-    /* Provide visible labels / helper */
-    .helper{
-      color: var(--muted);
-      font-size: 0.95rem;
-      margin-top: 0.5rem;
-    }
+    .panel p{ margin:0 0 10px 0; color:#0b2340; }
 
-    /* Respect reduced motion preference */
-    @media (prefers-reduced-motion: reduce){
-      .expander .icon,
-      .details{
-        transition: none !important;
-      }
-    }
+    /* Focus outline for focusable items inside */
+    a, button { outline-offset:3px; }
+    a:focus, button:focus { box-shadow: var(--focus); border-radius:6px; }
 
-    /* Strong contrast for focus on the inner focusable content if any */
-    .details :focus{
-      outline: 3px solid var(--accent);
-      outline-offset: 2px;
-    }
+    /* Small helper styles */
+    .meta{ font-size:0.85rem; color:var(--muted); margin-top:8px; }
 
-    /* Visually hidden utility for screen-reader-only text */
-    .sr-only{
-      position: absolute !important;
-      height: 1px; width: 1px;
-      overflow: hidden;
-      clip: rect(1px,1px,1px,1px);
-      white-space: nowrap;
-      border: 0; padding: 0; margin: -1px;
-    }
+    /* Ensure good contrast on small text */
+    .panel strong{ color:#07204b; }
 
-    /* Ensure links and buttons inside have sufficient contrast */
-    .details a{
-      color: var(--accent);
+    /* Responsive */
+    @media (max-width:520px){
+      body{ padding:16px; }
+      .toggle{ width:100%; justify-content:space-between; }
     }
   </style>
 </head>
 <body>
+  <a href="#maincontent" class="skip-link">Skip to main content</a>
+
   <header>
-    <h1>Accessible Expand/Collapse Widgets</h1>
-    <p>Examples of expand/collapse widgets implemented with accessible markup: each widget is wrapped in a div.example and the controlled container uses the details class.</p>
+    <h1>Expand / Collapse Widget — Accessible Examples</h1>
+    <p class="lead">Two accessible expand/collapse widgets. Each widget is wrapped in a container with class "example" and the controlled content container uses class "details". Use keyboard: Tab to the button, then Space or Enter to toggle. Press Escape while focus is inside the panel to close it.</p>
   </header>
 
-  <main>
-    <!-- Example 1: initially collapsed -->
-    <div class="example" id="ex-1">
-      <section aria-labelledby="ex1-heading">
-        <h2 id="ex1-heading" class="sr-only">Example 1 — Collapsed by default</h2>
+  <main id="maincontent" tabindex="-1">
+    <!-- Example 1 -->
+    <div class="example" data-example="basic">
+      <h2>Basic expandable panel</h2>
+      <p class="instructions">This simple panel uses a button with aria-expanded and aria-controls. The pane has class "details".</p>
 
-        <button
-          id="expander-1"
-          class="expander"
-          aria-expanded="false"
-          aria-controls="details-1"
-          aria-describedby="ex1-helper"
-        >
-          <span class="icon" aria-hidden="true">
-            <!-- simple chevron -->
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          <span>Show details</span>
-        </button>
+      <button
+        id="toggle-1"
+        class="toggle"
+        aria-expanded="false"
+        aria-controls="details-1"
+        type="button"
+      >
+        <span>More information</span>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"></path>
+        </svg>
+      </button>
 
-        <p id="ex1-helper" class="helper">Press Enter or Space to expand. This control uses aria-expanded and aria-controls to indicate state.</p>
-
-        <div
-          id="details-1"
-          class="details"
-          role="region"
-          aria-labelledby="expander-1"
-          hidden
-        >
-          <p><strong>What’s inside:</strong> This content is initially hidden and becomes visible when you activate the "Show details" button. The button's aria-expanded attribute is updated to reflect the current state.</p>
-          <ul>
-            <li>Keyboard focus remains logical and visible.</li>
-            <li>Screen readers can discover the region via aria-labelledby and aria-controls.</li>
-            <li>The element uses the required <code>details</code> class.</li>
-          </ul>
-          <p>
-            Example link for testing keyboard focus:
-            <a href="#" onclick="event.preventDefault()">Accessible link</a>
-          </p>
+      <div
+        id="details-1"
+        class="details"
+        role="region"
+        aria-labelledby="toggle-1"
+        aria-hidden="true"
+      >
+        <div class="panel">
+          <p><strong>Accessible by design.</strong> This region is controlled by the button above. When collapsed, assistive technologies will be told the region is hidden. Focusable elements inside are made unfocusable while collapsed to prevent keyboard users from tabbing into hidden content.</p>
+          <p>Try navigating with Tab, and use <kbd>Enter</kbd>/<kbd>Space</kbd> on the button to open and close. When the panel is open and focus moves inside, press <kbd>Escape</kbd> to close and return focus to the toggle button.</p>
+          <p class="meta">Example content includes a link: <a href="https://www.w3.org/WAI/" target="_blank" rel="noopener">WAI — Accessibility</a></p>
         </div>
-      </section>
+      </div>
     </div>
 
-    <!-- Example 2: initially expanded -->
-    <div class="example" id="ex-2">
-      <section aria-labelledby="ex2-heading">
-        <h2 id="ex2-heading" class="sr-only">Example 2 — Expanded by default</h2>
+    <!-- Example 2 -->
+    <div class="example" data-example="long">
+      <h2>Expandable panel with more controls</h2>
+      <p class="instructions">This example demonstrates restoring focusability of interactive elements inside the details region when it opens.</p>
 
-        <button
-          id="expander-2"
-          class="expander"
-          aria-expanded="true"
-          aria-controls="details-2"
-          aria-describedby="ex2-helper"
-        >
-          <span class="icon" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          <span>Hide details</span>
-        </button>
+      <button
+        id="toggle-2"
+        class="toggle"
+        aria-expanded="false"
+        aria-controls="details-2"
+        type="button"
+      >
+        <span>Show controls</span>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"></path>
+        </svg>
+      </button>
 
-        <p id="ex2-helper" class="helper">This example starts expanded. Use the button to collapse the region.</p>
+      <div
+        id="details-2"
+        class="details"
+        role="region"
+        aria-labelledby="toggle-2"
+        aria-hidden="true"
+      >
+        <div class="panel">
+          <p>Form controls inside this panel are disabled for keyboard access while the panel is closed, and restored when opened. That prevents users tabbing to hidden content.</p>
 
-        <div
-          id="details-2"
-          class="details"
-          role="region"
-          aria-labelledby="expander-2"
-        >
-          <p><strong>Expanded content:</strong> This widget starts open so that users without JavaScript still have access to the content. Activating the button will collapse it.</p>
-          <p>Content remains reachable by keyboard and includes an example form control for focus testing:</p>
-          <form onsubmit="event.preventDefault()">
-            <label for="name-2">Name:</label>
-            <input id="name-2" name="name-2" type="text" />
-            <button type="submit">Submit</button>
+          <form aria-label="Example settings">
+            <label>
+              <span>Notification level</span><br>
+              <select name="level">
+                <option>Off</option>
+                <option selected>Important only</option>
+                <option>All</option>
+              </select>
+            </label>
+            <div style="height:8px;"></div>
+            <label>
+              <input type="checkbox" name="email" />
+              <span>Send email updates</span>
+            </label>
+            <div style="height:8px;"></div>
+            <button type="button">Save</button>
           </form>
-        </div>
-      </section>
-    </div>
 
-    <!-- Additional guidance -->
-    <div class="example" id="ex-guidance" aria-hidden="false">
-      <h3 style="margin-top:0">Accessibility notes</h3>
-      <ul>
-        <li>Buttons use aria-expanded and aria-controls to communicate state and relationship with the controlled element.</li>
-        <li>The controlled region uses role="region" and aria-labelledby so assistive technology can identify it.</li>
-        <li>All interactive elements are keyboard accessible (Enter/Space) and have visible focus styles.</li>
-        <li>Animations respect users' prefers-reduced-motion setting.</li>
-      </ul>
+          <p class="meta">While collapsed, the form controls are not reachable with Tab. They become focusable again when you open the panel.</p>
+        </div>
+      </div>
     </div>
   </main>
 
   <script>
     (function(){
-      'use strict';
-
-      /**
-       * Toggle a single expander button and its controlled details area.
-       * - Updates aria-expanded
-       * - Toggles hidden attribute on the details container
-       * - Updates visible label text
-       */
-      function toggleExpander(button){
-        var controlsId = button.getAttribute('aria-controls');
-        if (!controlsId) return;
-        var details = document.getElementById(controlsId);
-        if (!details) return;
-
-        var expanded = button.getAttribute('aria-expanded') === 'true';
-        var willExpand = !expanded;
-
-        // Update ARIA state
-        button.setAttribute('aria-expanded', String(willExpand));
-
-        // Show/hide the details container using the hidden attribute
-        if (willExpand){
-          details.removeAttribute('hidden');
-        } else {
-          details.setAttribute('hidden', '');
-        }
-
-        // Update visible text inside button to reflect action
-        // We expect the label text to be the second child node of the button
-        var labelSpan = Array.prototype.slice.call(button.childNodes).find(function(n){
-          return n.nodeType === Node.ELEMENT_NODE && !n.classList.contains('icon');
-        });
-        if (labelSpan && labelSpan.textContent){
-          labelSpan.textContent = willExpand ? 'Hide details' : 'Show details';
-        }
-
-        // Optional: move focus into the region when expanded (preserve accessibility)
-        if (willExpand){
-          // If region contains focusable elements, don't steal focus.
-          // We only move focus if nothing inside is focused and if first focusable element exists and is not offscreen.
-          var focusable = details.querySelector('a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
-          if (focusable && document.activeElement !== focusable){
-            // Do not automatically move focus if user is currently interacting with other controls.
-            // For demonstration we do not force focus; screen readers will be informed via aria-expanded.
-          }
-        }
+      // Utility: get focusable elements inside a container
+      function getFocusable(el) {
+        if (!el) return [];
+        const selectors = [
+          'a[href]:not([tabindex^="-"]):not([inert])',
+          'area[href]',
+          'input:not([disabled]):not([tabindex^="-"])',
+          'select:not([disabled]):not([tabindex^="-"])',
+          'textarea:not([disabled]):not([tabindex^="-"])',
+          'button:not([disabled]):not([tabindex^="-"])',
+          'iframe',
+          'object',
+          'embed',
+          '[contenteditable]',
+          '[tabindex]:not([tabindex^="-"])'
+        ];
+        return Array.from(el.querySelectorAll(selectors.join(',')));
       }
 
-      // Attach event listeners to all expander buttons
-      var expanders = document.querySelectorAll('.expander');
-      expanders.forEach(function(btn){
-        // Ensure keyboard implicit activation works (native button supports Enter/Space)
-        btn.addEventListener('click', function(e){
-          toggleExpander(btn);
-        });
-
-        // Support Home/End keys for toggling groups if desired.
-        // Here we allow Escape to collapse an expanded region for convenience.
-        btn.addEventListener('keydown', function(e){
-          if (e.key === 'Escape' || e.key === 'Esc'){
-            if (btn.getAttribute('aria-expanded') === 'true'){
-              e.preventDefault();
-              toggleExpander(btn);
-            }
-          }
-        });
-
-        // Ensure initial state matches DOM for cases where JS runs after HTML rendering.
-        var cid = btn.getAttribute('aria-controls');
-        if (cid){
-          var det = document.getElementById(cid);
-          if (det){
-            var expanded = btn.getAttribute('aria-expanded') === 'true';
-            if (expanded){
-              det.removeAttribute('hidden');
-            } else {
-              det.setAttribute('hidden', '');
-            }
-          }
+      // Initialize all toggle buttons that control a details element
+      const toggles = Array.from(document.querySelectorAll('button[aria-controls]'));
+      toggles.forEach(button => {
+        const detailsId = button.getAttribute('aria-controls');
+        const panel = document.getElementById(detailsId);
+        if (!panel || !panel.classList.contains('details')) {
+          // only operate on containers with class "details"
+          return;
         }
-      });
 
-      // Provide accessible keyboard shortcut: focus first expander with Alt+E (example)
-      document.addEventListener('keydown', function(e){
-        // Use Alt+E (or Option+E on Mac) to jump to first expander. Not required, optional helper.
-        if ((e.altKey || e.metaKey) && e.key && e.key.toLowerCase() === 'e'){
-          var first = document.querySelector('.expander');
-          if (first){
-            first.focus();
+        // Ensure role/labels are present
+        panel.setAttribute('role', panel.getAttribute('role') || 'region');
+        panel.setAttribute('aria-labelledby', panel.getAttribute('aria-labelledby') || button.id);
+
+        // Initialize focusable children state: if collapsed, disable them
+        const setChildrenTabindex = (allow) => {
+          const focusables = getFocusable(panel);
+          focusables.forEach(el => {
+            if (allow) {
+              // restore previous tabindex if present
+              if (el.hasAttribute('data-prev-tabindex')) {
+                const prev = el.getAttribute('data-prev-tabindex');
+                if (prev === 'null') {
+                  el.removeAttribute('tabindex');
+                } else {
+                  el.setAttribute('tabindex', prev);
+                }
+                el.removeAttribute('data-prev-tabindex');
+              }
+            } else {
+              // store current tabindex (null if none), then set to -1
+              if (!el.hasAttribute('data-prev-tabindex')) {
+                el.setAttribute('data-prev-tabindex', el.hasAttribute('tabindex') ? el.getAttribute('tabindex') : 'null');
+              }
+              el.setAttribute('tabindex','-1');
+            }
+          });
+        };
+
+        // Start collapsed by default if aria-expanded is false
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        if (!isExpanded) {
+          panel.setAttribute('aria-hidden','true');
+          setChildrenTabindex(false);
+        } else {
+          panel.setAttribute('aria-hidden','false');
+          setChildrenTabindex(true);
+        }
+
+        // Toggle function
+        const toggle = (toState) => {
+          const now = typeof toState === 'boolean' ? toState : (button.getAttribute('aria-expanded') === 'false');
+          if (now) {
+            button.setAttribute('aria-expanded','true');
+            panel.setAttribute('aria-hidden','false');
+            // remove hidden focus barrier
+            try { if ('inert' in panel) panel.inert = false; } catch(e){}
+            setChildrenTabindex(true);
+          } else {
+            button.setAttribute('aria-expanded','false');
+            panel.setAttribute('aria-hidden','true');
+            try { if ('inert' in panel) panel.inert = true; } catch(e){}
+            setChildrenTabindex(false);
+          }
+        };
+
+        // Click handler (button)
+        button.addEventListener('click', function(e){
+          toggle();
+        });
+
+        // If focus moves into the panel and Escape pressed, close and restore focus to button
+        panel.addEventListener('keydown', function(e){
+          if (e.key === 'Escape' || e.key === 'Esc') {
+            // Close and move focus back to button
+            toggle(false);
+            button.focus({preventScroll:false});
+            e.stopPropagation();
             e.preventDefault();
           }
-        }
-      });
+        });
+
+        // Also listen for Escape while any focusable inside panel (bubble from window)
+        // (This covers some cases where focus is on elements inside but keydown not on panel)
+        panel.addEventListener('focusin', function(){
+          // add a one-time listener on document for Escape while focus is inside
+          const escHandler = function(e){
+            if (e.key === 'Escape' || e.key === 'Esc') {
+              toggle(false);
+              button.focus({preventScroll:false});
+              document.removeEventListener('keydown', escHandler, true);
+            }
+          };
+          document.addEventListener('keydown', escHandler, true);
+
+          // remove the listener when focus leaves the panel
+          const cleanup = function() {
+            document.removeEventListener('keydown', escHandler, true);
+            panel.removeEventListener('focusout', cleanup, true);
+          };
+          panel.addEventListener('focusout', cleanup, true);
+        });
+
+        // Keyboard support on button: Enter/Space are native; add ArrowDown to move focus into panel when opening
+        button.addEventListener('keydown', function(e){
+          if ((e.key === 'ArrowDown' || e.key === 'Down') && button.getAttribute('aria-expanded') === 'false') {
+            // open and move focus to first focusable inside
+            toggle(true);
+            const first = getFocusable(panel)[0];
+            if (first) {
+              first.focus();
+              e.preventDefault();
+            }
+          }
+        });
+
+        // Preserve state if someone toggles attributes directly (MutationObserver)
+        const mo = new MutationObserver(function(mutations){
+          for (const m of mutations) {
+            if (m.attributeName === 'aria-expanded') {
+              const expanded = button.getAttribute('aria-expanded') === 'true';
+              const hidden = panel.getAttribute('aria-hidden') === 'true';
+              if (expanded && hidden) {
+                panel.setAttribute('aria-hidden','false'); setChildrenTabindex(true);
+              } else if (!expanded && !hidden) {
+                panel.setAttribute('aria-hidden','true'); setChildrenTabindex(false);
+              }
+            }
+          }
+        });
+        mo.observe(button, { attributes:true });
+
+      }); // end toggles forEach
     })();
   </script>
 </body>

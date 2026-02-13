@@ -13,7 +13,7 @@
         .example {
             margin-bottom: 30px;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 8px;
             overflow: hidden;
         }
         .example h3 {
@@ -33,7 +33,7 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-out;
-            background-color: #fff;
+            background-color: #fafafa;
         }
         .details.expanded {
             max-height: 500px; /* Adjust based on content */
@@ -49,7 +49,7 @@
             transform: rotate(180deg);
         }
         .details[aria-hidden="false"] {
-            padding: 20px;
+            padding: 0;
         }
     </style>
 </head>
@@ -61,9 +61,9 @@
             Basic Information
             <span class="toggle-icon" aria-hidden="true">▼</span>
         </h3>
-        <div class="details" id="details1" aria-hidden="true">
+        <div class="details" aria-hidden="true">
             <div class="details-content">
-                <p>This is the basic information section. It contains details about the topic that can be expanded or collapsed for better user experience.</p>
+                <p>This is the basic information section. Click the header above to expand or collapse this content. The widget uses smooth transitions for a better user experience.</p>
                 <ul>
                     <li>Item 1: First detail</li>
                     <li>Item 2: Second detail</li>
@@ -74,18 +74,17 @@
     </div>
 
     <div class="example">
-        <h3 aria-expanded="false" tabindex="0" role="button">
+        <h3 aria-expanded="true" tabindex="0" role="button">
             Advanced Settings
             <span class="toggle-icon" aria-hidden="true">▼</span>
         </h3>
-        <div class="details" id="details2" aria-hidden="true">
+        <div class="details expanded" aria-hidden="false">
             <div class="details-content">
-                <p>Advanced settings allow users to customize the behavior of the application according to their preferences.</p>
+                <p>Advanced settings are shown by default in this example. You can collapse this section by clicking the header. This demonstrates the expanded state.</p>
                 <table style="width: 100%; border-collapse: collapse;">
-                    <tr><th style="border: 1px solid #ddd; padding: 8px;">Setting</th><th style="border: 1px solid #ddd; padding: 8px;">Value</th></tr>
-                    <tr><td style="border: 1px solid #ddd; padding: 8px;">Animation Speed</td><td style="border: 1px solid #ddd; padding: 8px;">0.3s</td></tr>
-                    <tr><td style="border: 1px solid #ddd; padding: 8px;">Auto-collapse</td><td style="border: 1px solid #ddd; padding: 8px;">Enabled</td></tr>
-                    <tr><td style="border: 1px solid #ddd; padding: 8px;">Theme</td><td style="border: 1px solid #ddd; padding: 8px;">Light</td></tr>
+                    <tr><th style="border: 1px solid #ccc; padding: 8px;">Setting</th><th style="border: 1px solid #ccc; padding: 8px;">Value</th></tr>
+                    <tr><td style="border: 1px solid #ccc; padding: 8px;">Timeout</td><td style="border: 1px solid #ccc; padding: 8px;">30 seconds</td></tr>
+                    <tr><td style="border: 1px solid #ccc; padding: 8px;">Mode</td><td style="border: 1px solid #ccc; padding: 8px;">Advanced</td></tr>
                 </table>
             </div>
         </div>
@@ -93,75 +92,62 @@
 
     <div class="example">
         <h3 aria-expanded="false" tabindex="0" role="button">
-            Usage Instructions
+            FAQ Section
             <span class="toggle-icon" aria-hidden="true">▼</span>
         </h3>
-        <div class="details" id="details3" aria-hidden="true">
+        <div class="details" aria-hidden="true">
             <div class="details-content">
-                <h4>How to use:</h4>
-                <ol>
-                    <li>Click on the header to expand or collapse the content.</li>
-                    <li>Use keyboard navigation by pressing Enter or Space on focused headers.</li>
-                    <li>The animation provides smooth transitions between states.</li>
-                    <li>Multiple widgets can be used independently on the same page.</li>
-                </ol>
-                <p><strong>Note:</strong> This widget is fully accessible and follows ARIA best practices.</p>
+                <h4>What is this widget?</h4>
+                <p>This is an accessible expand/collapse widget that uses ARIA attributes for screen reader support.</p>
+                
+                <h4>How does it work?</h4>
+                <p>The widget toggles the visibility of content using CSS transitions and JavaScript event handlers. It supports both mouse and keyboard interaction.</p>
+                
+                <h4>Customization</h4>
+                <p>You can customize the animation duration, colors, and max-height property in the CSS to fit your design needs.</p>
             </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const headers = document.querySelectorAll('.example h3');
-            
-            headers.forEach(header => {
-                const details = header.nextElementSibling;
-                const content = details.querySelector('.details-content');
-                const icon = header.querySelector('.toggle-icon');
-                
-                // Calculate max-height for smooth animation
-                function calculateMaxHeight() {
-                    details.style.maxHeight = content.scrollHeight + 'px';
-                }
-                
-                header.addEventListener('click', function(e) {
+        document.querySelectorAll('.example h3').forEach(header => {
+            header.addEventListener('click', togglePanel);
+            header.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    toggleDetails(this, details);
-                });
-                
-                // Keyboard support
-                header.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggleDetails(this, details);
-                    }
-                });
-                
-                function toggleDetails(header, details) {
-                    const isExpanded = header.getAttribute('aria-expanded') === 'true';
-                    
-                    if (isExpanded) {
-                        // Collapse
-                        details.style.maxHeight = details.scrollHeight + 'px';
-                        details.offsetHeight; // Force reflow
-                        details.style.maxHeight = '0px';
-                        header.setAttribute('aria-expanded', 'false');
-                        details.setAttribute('aria-hidden', 'true');
-                    } else {
-                        // Expand
-                        header.setAttribute('aria-expanded', 'true');
-                        details.setAttribute('aria-hidden', 'false');
-                        calculateMaxHeight();
-                    }
+                    togglePanel(e);
                 }
-                
-                // Handle window resize for dynamic content
-                window.addEventListener('resize', function() {
-                    if (header.getAttribute('aria-expanded') === 'true') {
-                        calculateMaxHeight();
-                    }
-                });
             });
+        });
+
+        function togglePanel(event) {
+            const header = event.currentTarget;
+            const details = header.nextElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+            const isExpanded = header.getAttribute('aria-expanded') === 'true';
+
+            if (isExpanded) {
+                // Collapse
+                header.setAttribute('aria-expanded', 'false');
+                details.classList.remove('expanded');
+                details.setAttribute('aria-hidden', 'true');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                // Expand
+                header.setAttribute('aria-expanded', 'true');
+                details.classList.add('expanded');
+                details.setAttribute('aria-hidden', 'false');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Set initial states for expanded panels
+        document.querySelectorAll('.details.expanded').forEach(details => {
+            const header = details.previousElementSibling;
+            header.setAttribute('aria-expanded', 'true');
+            details.setAttribute('aria-hidden', 'false');
+            const icon = header.querySelector('.toggle-icon');
+            icon.style.transform = 'rotate(180deg)';
         });
     </script>
 </body>

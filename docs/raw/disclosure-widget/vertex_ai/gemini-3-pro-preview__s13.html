@@ -15,11 +15,12 @@
         h1 {
             text-align: center;
             color: #333;
+            margin-bottom: 2rem;
         }
 
         /* Widget Wrapper */
         .example {
-            background-color: #ffffff;
+            background: #ffffff;
             border: 1px solid #ddd;
             border-radius: 8px;
             margin-bottom: 1rem;
@@ -27,124 +28,123 @@
             overflow: hidden;
         }
 
-        /* Trigger Button */
-        .example button.toggle-btn {
+        /* Toggle Button */
+        .toggle-btn {
             width: 100%;
             background: none;
             border: none;
+            padding: 1rem 1.5rem;
             text-align: left;
-            padding: 1rem;
+            cursor: pointer;
             font-size: 1rem;
             font-weight: 600;
-            color: #333;
-            cursor: pointer;
+            color: #2c3e50;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s ease;
         }
 
-        .example button.toggle-btn:hover {
-            background-color: #f9f9f9;
+        .toggle-btn:hover {
+            background-color: #f8f9fa;
         }
 
-        .example button.toggle-btn:focus {
-            outline: 2px solid #0056b3;
+        .toggle-btn:focus {
+            outline: 2px solid #3498db;
             outline-offset: -2px;
         }
 
-        /* Icon rotation */
-        .example button.toggle-btn::after {
-            content: '+';
-            font-size: 1.2rem;
-            font-weight: bold;
+        /* Icon rotation logic */
+        .icon {
             transition: transform 0.3s ease;
         }
-
-        .example button.toggle-btn[aria-expanded="true"]::after {
-            transform: rotate(45deg);
-        }
-
-        .example button.toggle-btn[aria-expanded="true"] {
-            background-color: #f0f0f0;
-            border-bottom: 1px solid #eee;
+        
+        .toggle-btn[aria-expanded="true"] .icon {
+            transform: rotate(180deg);
         }
 
         /* Content Container */
         .details {
-            display: none; /* Hidden by default */
-            padding: 1rem;
-            line-height: 1.6;
-            color: #555;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background-color: #fafafa;
             border-top: 1px solid transparent;
         }
 
-        /* Visible State */
-        .details.is-open {
-            display: block;
-            animation: fadeIn 0.3s ease-in-out;
+        .details p {
+            padding: 1.5rem;
+            margin: 0;
+            color: #555;
+            line-height: 1.6;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Active state styling for the content */
+        .toggle-btn[aria-expanded="true"] + .details {
+            border-top-color: #eee;
         }
     </style>
 </head>
 <body>
 
-    <h1>FAQ Widgets</h1>
+    <h1>Frequently Asked Questions</h1>
 
     <!-- Widget 1 -->
     <div class="example">
-        <button type="button" class="toggle-btn" aria-expanded="false" aria-controls="content-1">
-            What is the return policy?
+        <button class="toggle-btn" aria-expanded="false" aria-controls="content-1">
+            <span>What is an expand/collapse widget?</span>
+            <span class="icon" aria-hidden="true">▼</span>
         </button>
         <div id="content-1" class="details">
-            <p>Our return policy allows you to return items within 30 days of purchase. Items must be in their original condition and packaging. Please retain your receipt for proof of purchase.</p>
+            <p>An expand/collapse widget, often called an accordion or a disclosure widget, allows users to toggle the visibility of content. This helps in managing screen real estate by hiding information until it is requested.</p>
         </div>
     </div>
 
     <!-- Widget 2 -->
     <div class="example">
-        <button type="button" class="toggle-btn" aria-expanded="false" aria-controls="content-2">
-            How do I track my order?
+        <button class="toggle-btn" aria-expanded="false" aria-controls="content-2">
+            <span>How does this implementation work?</span>
+            <span class="icon" aria-hidden="true">▼</span>
         </button>
         <div id="content-2" class="details">
-            <p>Once your order has shipped, you will receive an email with a tracking number. You can use this number on our carrier's website to see the current status of your delivery.</p>
+            <p>This implementation uses vanilla JavaScript to toggle the `aria-expanded` attribute on the button and dynamically sets the `max-height` of the content container to create a smooth sliding animation.</p>
         </div>
     </div>
 
     <!-- Widget 3 -->
     <div class="example">
-        <button type="button" class="toggle-btn" aria-expanded="false" aria-controls="content-3">
-            Do you offer international shipping?
+        <button class="toggle-btn" aria-expanded="false" aria-controls="content-3">
+            <span>Is this accessible?</span>
+            <span class="icon" aria-hidden="true">▼</span>
         </button>
         <div id="content-3" class="details">
-            <p>Yes, we ship to over 50 countries worldwide. Shipping costs and delivery times vary depending on the destination. Please check our shipping page for a full list of countries and rates.</p>
+            <p>Yes. By using proper HTML buttons and ARIA attributes like `aria-expanded` and `aria-controls`, screen readers can understand the relationship between the toggle and the content, and announce the state changes correctly.</p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const triggers = document.querySelectorAll('.toggle-btn');
+            const toggles = document.querySelectorAll('.toggle-btn');
 
-            triggers.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Get the ID of the content to toggle
-                    const contentId = btn.getAttribute('aria-controls');
+            toggles.forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    // Get the content associated with this button
+                    const contentId = toggle.getAttribute('aria-controls');
                     const content = document.getElementById(contentId);
                     
                     // Check current state
-                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+                    const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
 
-                    // Toggle State
-                    btn.setAttribute('aria-expanded', !isExpanded);
-                    
+                    // Toggle accessibility state
+                    toggle.setAttribute('aria-expanded', !isExpanded);
+
+                    // Toggle height for animation
                     if (!isExpanded) {
-                        content.classList.add('is-open');
+                        // Expand: Set max-height to the scrollHeight (actual height of content)
+                        content.style.maxHeight = content.scrollHeight + "px";
                     } else {
-                        content.classList.remove('is-open');
+                        // Collapse: Set max-height back to 0
+                        content.style.maxHeight = null;
                     }
                 });
             });

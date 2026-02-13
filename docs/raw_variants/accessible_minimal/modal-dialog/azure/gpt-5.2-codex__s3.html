@@ -1,131 +1,75 @@
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Accessible Modal Example</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-      background: #f7f7f7;
-      color: #222;
-    }
-    .trigger {
-      padding: 0.75rem 1.25rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 4px;
-      background: #1a73e8;
-      color: #fff;
-      cursor: pointer;
-    }
-    .trigger:focus {
-      outline: 3px solid #000;
-      outline-offset: 2px;
-    }
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-backdrop[aria-hidden="false"] {
-      display: flex;
-    }
-    .modal {
-      background: #fff;
-      max-width: 480px;
-      width: 90%;
-      padding: 1.5rem;
-      border-radius: 6px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-    }
-    .modal h2 {
-      margin-top: 0;
-    }
-    .modal .actions {
-      margin-top: 1rem;
-      display: flex;
-      gap: 0.5rem;
-      justify-content: flex-end;
-    }
-    .modal button {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .primary {
-      background: #1a73e8;
-      color: #fff;
-    }
-    .secondary {
-      background: #e0e0e0;
-      color: #222;
-    }
-    .modal button:focus {
-      outline: 3px solid #000;
-      outline-offset: 2px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessible Modal Example</title>
+<style>
+  body { font-family: Arial, sans-serif; line-height: 1.5; padding: 2rem; }
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-backdrop[aria-hidden="false"] { display: flex; }
+  .modal {
+    background: #fff; max-width: 32rem; width: 90%;
+    border-radius: 8px; padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  }
+  .modal h2 { margin-top: 0; }
+  .modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+  .trigger, button { padding: 0.6rem 1rem; font-size: 1rem; }
+  .close { background: #eee; }
+</style>
 </head>
 <body>
-  <main>
-    <h1>Modal Dialog Component</h1>
-    <p>This example shows a modal dialog that is closed by default.</p>
-    <button class="trigger" id="openModal" aria-haspopup="dialog" aria-controls="demoModal">Open Modal</button>
-  </main>
+<h1>Modal Dialog Example</h1>
+<p>This example shows a modal dialog that is closed by default.</p>
+<button class="trigger" id="openModal" aria-haspopup="dialog" aria-controls="modalBackdrop">
+  Open modal
+</button>
 
-  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
-      <h2 id="modalTitle">Example Modal</h2>
-      <p id="modalDesc">This is a sample modal dialog. Press Escape or use the buttons below to close it.</p>
-      <div class="actions">
-        <button class="secondary" id="closeModal">Close</button>
-        <button class="primary" id="confirmAction">Confirm</button>
-      </div>
+<div class="modal-backdrop" id="modalBackdrop" role="presentation" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+    <h2 id="modalTitle">Modal Title</h2>
+    <p id="modalDesc">This is an accessible modal dialog. Press Escape or the Close button to dismiss it.</p>
+    <div class="modal-actions">
+      <button type="button" class="close" id="closeModal">Close</button>
+      <button type="button">Primary Action</button>
     </div>
   </div>
+</div>
 
-  <script>
-    (function () {
-      const openBtn = document.getElementById('openModal');
-      const closeBtn = document.getElementById('closeModal');
-      const confirmBtn = document.getElementById('confirmAction');
-      const backdrop = document.getElementById('modalBackdrop');
-      const modal = backdrop.querySelector('.modal');
-      let lastFocusedElement = null;
+<script>
+  const openBtn = document.getElementById('openModal');
+  const closeBtn = document.getElementById('closeModal');
+  const backdrop = document.getElementById('modalBackdrop');
+  let lastFocused = null;
 
-      function openModal() {
-        lastFocusedElement = document.activeElement;
-        backdrop.setAttribute('aria-hidden', 'false');
-        modal.setAttribute('tabindex', '-1');
-        modal.focus();
-        document.addEventListener('keydown', handleKeydown);
-      }
+  function openModal() {
+    lastFocused = document.activeElement;
+    backdrop.setAttribute('aria-hidden', 'false');
+    closeBtn.focus();
+    document.addEventListener('keydown', handleKeydown);
+  }
 
-      function closeModal() {
-        backdrop.setAttribute('aria-hidden', 'true');
-        document.removeEventListener('keydown', handleKeydown);
-        if (lastFocusedElement) lastFocusedElement.focus();
-      }
+  function closeModal() {
+    backdrop.setAttribute('aria-hidden', 'true');
+    if (lastFocused) lastFocused.focus();
+    document.removeEventListener('keydown', handleKeydown);
+  }
 
-      function handleKeydown(event) {
-        if (event.key === 'Escape') {
-          closeModal();
-        }
-      }
+  function handleKeydown(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  }
 
-      openBtn.addEventListener('click', openModal);
-      closeBtn.addEventListener('click', closeModal);
-      confirmBtn.addEventListener('click', closeModal);
-      backdrop.addEventListener('click', function (e) {
-        if (e.target === backdrop) closeModal();
-      });
-    })();
-  </script>
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeModal();
+  });
+</script>
 </body>
 </html>

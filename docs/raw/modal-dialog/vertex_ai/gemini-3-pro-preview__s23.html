@@ -4,11 +4,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modal Dialog Example</title>
     <style>
-        /* Basic Reset */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --overlay-color: rgba(0, 0, 0, 0.6);
+            --modal-bg: #ffffff;
+            --modal-radius: 8px;
+            --primary-color: #3b82f6;
+            --text-color: #1f2937;
         }
 
         body {
@@ -17,131 +18,155 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f4f4f9;
+            margin: 0;
+            background-color: #f3f4f6;
         }
 
-        /* Trigger Button Styles */
+        /* Trigger Button */
         .trigger {
             padding: 12px 24px;
-            background-color: #007bff;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 1rem;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .trigger:hover {
-            background-color: #0056b3;
+            background-color: #2563eb;
         }
 
-        /* Modal Overlay (Background) */
+        /* Modal Overlay */
         .modal-overlay {
-            display: none; /* Hidden by default */
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            background-color: var(--overlay-color);
+            display: flex;
             justify-content: center;
             align-items: center;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
         }
 
-        /* Modal Content Box */
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
+        /* Modal Active State */
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal Content */
+        .modal-container {
+            background-color: var(--modal-bg);
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: var(--modal-radius);
+            padding: 2rem;
             position: relative;
             transform: translateY(-20px);
             transition: transform 0.3s ease;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
-        /* Active State for Modal */
-        .modal-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        .modal-overlay.active .modal-content {
+        .modal-overlay.active .modal-container {
             transform: translateY(0);
         }
 
-        /* Close Button (X) */
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 24px;
-            font-weight: bold;
-            color: #aaa;
-            cursor: pointer;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .modal-close-icon {
             background: none;
             border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: 0;
+            color: #9ca3af;
         }
 
-        .close-btn:hover {
-            color: #333;
-        }
-
-        /* Modal Typography */
-        .modal-header {
-            margin-bottom: 15px;
-            font-size: 24px;
-            font-weight: 600;
-            color: #333;
+        .modal-close-icon:hover {
+            color: #4b5563;
         }
 
         .modal-body {
-            font-size: 16px;
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 20px;
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
         }
 
         .modal-footer {
-            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
         }
 
-        .action-btn {
+        .btn {
             padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
+            border-radius: 6px;
             border: none;
-            border-radius: 4px;
             cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
         }
-        
-        .action-btn:hover {
-            background-color: #218838;
+
+        .btn-cancel {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-cancel:hover {
+            background-color: #d1d5db;
+        }
+
+        .btn-confirm {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background-color: #2563eb;
         }
     </style>
 </head>
 <body>
 
-    <!-- The Trigger Button -->
+    <!-- Trigger Button -->
     <button class="trigger" id="openModalBtn">Open Modal</button>
 
-    <!-- The Modal Structure -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-content">
-            <button class="close-btn" id="closeModalBtn">&times;</button>
+    <!-- Modal Structure -->
+    <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+        <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
             <div class="modal-header">
-                Confirmation
+                <h2 class="modal-title" id="modalTitle">Confirmation</h2>
+                <button class="modal-close-icon" aria-label="Close modal">&times;</button>
             </div>
+            
             <div class="modal-body">
-                <p>This is a modal dialog component. It is hidden by default and triggered by the button on the main page. You can close it by clicking the 'X', the 'Understood' button, or clicking outside the box.</p>
+                <p>Are you sure you want to proceed with this action? This cannot be undone once confirmed.</p>
             </div>
+            
             <div class="modal-footer">
-                <button class="action-btn" id="modalActionBtn">Understood</button>
+                <button class="btn btn-cancel modal-close">Cancel</button>
+                <button class="btn btn-confirm modal-close">Confirm</button>
             </div>
         </div>
     </div>
@@ -149,41 +174,36 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const openBtn = document.getElementById('openModalBtn');
-            const closeBtn = document.getElementById('closeModalBtn');
-            const actionBtn = document.getElementById('modalActionBtn');
             const modalOverlay = document.getElementById('modalOverlay');
+            const closeButtons = document.querySelectorAll('.modal-close, .modal-close-icon');
 
             // Function to open modal
             const openModal = () => {
                 modalOverlay.classList.add('active');
-                // Small delay to allow display:flex to apply before opacity transition
-                requestAnimationFrame(() => {
-                    modalOverlay.style.opacity = '1';
-                });
+                modalOverlay.setAttribute('aria-hidden', 'false');
             };
 
             // Function to close modal
             const closeModal = () => {
-                modalOverlay.style.opacity = '0';
-                // Wait for transition to finish before hiding
-                setTimeout(() => {
-                    modalOverlay.classList.remove('active');
-                }, 300);
+                modalOverlay.classList.remove('active');
+                modalOverlay.setAttribute('aria-hidden', 'true');
             };
 
             // Event Listeners
             openBtn.addEventListener('click', openModal);
-            closeBtn.addEventListener('click', closeModal);
-            actionBtn.addEventListener('click', closeModal);
 
-            // Close when clicking outside the modal content
+            closeButtons.forEach(btn => {
+                btn.addEventListener('click', closeModal);
+            });
+
+            // Close when clicking outside content (on the overlay)
             modalOverlay.addEventListener('click', (e) => {
                 if (e.target === modalOverlay) {
                     closeModal();
                 }
             });
 
-            // Close on Escape key press
+            // Close on Escape key
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
                     closeModal();

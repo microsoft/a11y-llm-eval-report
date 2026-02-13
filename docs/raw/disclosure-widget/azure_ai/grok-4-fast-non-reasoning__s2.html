@@ -49,7 +49,7 @@
             transform: rotate(180deg);
         }
         .details[aria-hidden="false"] {
-            padding: 20px;
+            max-height: 500px;
         }
     </style>
 </head>
@@ -57,13 +57,13 @@
     <h1>Expand/Collapse Widget Demo</h1>
 
     <div class="example">
-        <h3 aria-expanded="false" tabindex="0" role="button">
+        <h3 aria-expanded="false" aria-controls="content1" tabindex="0">
             Basic Information
             <span class="toggle-icon" aria-hidden="true">▼</span>
         </h3>
-        <div class="details" id="details1" aria-hidden="true">
+        <div class="details" id="content1" aria-labelledby="heading1" aria-hidden="true">
             <div class="details-content">
-                <p>This is the basic information section. It contains details about the topic that can be expanded or collapsed for better user experience. The content here can include text, lists, or any other HTML elements.</p>
+                <p>This is the basic information section. It contains details about the topic, including key facts and figures. The content is hidden by default and expands when the header is clicked.</p>
                 <ul>
                     <li>Item 1: First detail</li>
                     <li>Item 2: Second detail</li>
@@ -74,67 +74,74 @@
     </div>
 
     <div class="example">
-        <h3 aria-expanded="false" tabindex="0" role="button">
-            Advanced Settings
+        <h3 aria-expanded="false" aria-controls="content2" tabindex="0">
+            Advanced Features
             <span class="toggle-icon" aria-hidden="true">▼</span>
         </h3>
-        <div class="details" id="details2" aria-hidden="true">
+        <div class="details" id="content2" aria-labelledby="heading2" aria-hidden="true">
             <div class="details-content">
-                <p>Advanced settings allow users to customize the behavior of the application. These options are typically hidden by default to avoid overwhelming new users.</p>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                    <tr>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Option</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Description</th>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #ddd; padding: 8px;">Auto-save</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">Automatically save changes every 30 seconds</td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #ddd; padding: 8px;">Notifications</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">Enable desktop notifications</td>
-                    </tr>
+                <p>This section covers advanced features and technical specifications. It includes more complex information that might be relevant to developers or advanced users.</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr><th style="border: 1px solid #ddd; padding: 8px;">Feature</th><th style="border: 1px solid #ddd; padding: 8px;">Description</th></tr>
+                    <tr><td style="border: 1px solid #ddd; padding: 8px;">API Support</td><td style="border: 1px solid #ddd; padding: 8px;">Full RESTful API</td></tr>
+                    <tr><td style="border: 1px solid #ddd; padding: 8px;">Customization</td><td style="border: 1px solid #ddd; padding: 8px;">Theme and layout options</td></tr>
+                    <tr><td style="border: 1px solid #ddd; padding: 8px;">Performance</td><td style="border: 1px solid #ddd; padding: 8px;">Optimized for speed</td></tr>
                 </table>
             </div>
         </div>
     </div>
 
     <div class="example">
-        <h3 aria-expanded="true" tabindex="0" role="button">
-            FAQ Section
+        <h3 aria-expanded="true" aria-controls="content3" tabindex="0">
+            Getting Started Guide
             <span class="toggle-icon" aria-hidden="true">▼</span>
         </h3>
-        <div class="details expanded" id="details3" aria-hidden="false">
+        <div class="details expanded" id="content3" aria-labelledby="heading3" aria-hidden="false">
             <div class="details-content">
-                <h4>Common Questions</h4>
-                <p>Here are some frequently asked questions about our service:</p>
-                <dl>
-                    <dt>What is your return policy?</dt>
-                    <dd>We offer a 30-day money-back guarantee on all purchases.</dd>
-                    <dt>How do I contact support?</dt>
-                    <dd>You can reach our support team via email at support@example.com or by phone at 1-800-123-4567.</dd>
-                    <dt>Do you ship internationally?</dt>
-                    <dd>Yes, we ship to most countries worldwide. Shipping times and costs vary by destination.</dd>
-                </dl>
+                <p>This is an expanded section by default. It provides step-by-step instructions for getting started with the application.</p>
+                <ol>
+                    <li>Download and install the application from the official website.</li>
+                    <li>Create a new account or log in with existing credentials.</li>
+                    <li>Follow the setup wizard to configure your preferences.</li>
+                    <li>Begin exploring the available features and tools.</li>
+                </ol>
+                <p>For more detailed instructions, refer to the full documentation.</p>
             </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const examples = document.querySelectorAll('.example h3');
+            const examples = document.querySelectorAll('.example');
             
-            examples.forEach(header => {
-                const details = header.nextElementSibling;
-                const content = details.querySelector('.details-content');
+            examples.forEach(example => {
+                const header = example.querySelector('h3');
+                const details = example.querySelector('.details');
                 const icon = header.querySelector('.toggle-icon');
                 
-                // Set initial max-height for expanded state
-                if (details.classList.contains('expanded')) {
-                    details.style.maxHeight = content.scrollHeight + 'px';
+                function toggleDetails() {
+                    const isExpanded = details.classList.contains('expanded');
+                    const isHidden = details.getAttribute('aria-hidden') === 'true';
+                    
+                    if (isHidden) {
+                        // Expand
+                        details.classList.add('expanded');
+                        details.setAttribute('aria-hidden', 'false');
+                        header.setAttribute('aria-expanded', 'true');
+                        icon.textContent = '▲';
+                    } else {
+                        // Collapse
+                        details.classList.remove('expanded');
+                        details.setAttribute('aria-hidden', 'true');
+                        header.setAttribute('aria-expanded', 'false');
+                        icon.textContent = '▼';
+                    }
                 }
                 
+                // Click handler
                 header.addEventListener('click', toggleDetails);
+                
+                // Keyboard handler
                 header.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -142,26 +149,9 @@
                     }
                 });
                 
-                function toggleDetails() {
-                    const isExpanded = details.classList.contains('expanded');
-                    const isHidden = details.getAttribute('aria-hidden') === 'true';
-                    
-                    if (isExpanded || !isHidden) {
-                        // Collapse
-                        details.style.maxHeight = content.scrollHeight + 'px';
-                        details.classList.remove('expanded');
-                        setTimeout(() => {
-                            details.style.maxHeight = '0';
-                        }, 10);
-                        details.setAttribute('aria-hidden', 'true');
-                        header.setAttribute('aria-expanded', 'false');
-                    } else {
-                        // Expand
-                        details.style.maxHeight = content.scrollHeight + 'px';
-                        details.classList.add('expanded');
-                        details.setAttribute('aria-hidden', 'false');
-                        header.setAttribute('aria-expanded', 'true');
-                    }
+                // Set initial icon based on aria-expanded
+                if (header.getAttribute('aria-expanded') === 'true') {
+                    icon.textContent = '▲';
                 }
             });
         });

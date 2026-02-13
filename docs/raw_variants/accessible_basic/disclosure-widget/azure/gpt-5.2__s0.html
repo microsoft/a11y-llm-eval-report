@@ -2,51 +2,34 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Expand/Collapse Widget Example</title>
+  <title>Expand/Collapse Widget Examples</title>
   <style>
     :root {
       --bg: #ffffff;
-      --text: #111827;
+      --fg: #111827;
       --muted: #4b5563;
       --border: #d1d5db;
       --focus: #1d4ed8;
       --panel: #f9fafb;
-      --shadow: 0 1px 2px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.1);
-      --radius: 12px;
-      --space: 1rem;
-      color-scheme: light;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0b1220;
-        --text: #e5e7eb;
-        --muted: #cbd5e1;
-        --border: #334155;
-        --focus: #93c5fd;
-        --panel: #0f172a;
-        --shadow: none;
-        color-scheme: dark;
-      }
     }
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: var(--bg);
-      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       line-height: 1.5;
+      color: var(--fg);
+      background: var(--bg);
     }
 
     main {
-      max-width: 56rem;
+      max-width: 60rem;
+      padding: 1.5rem;
       margin: 0 auto;
-      padding: clamp(1rem, 3vw, 2rem);
     }
 
     h1 {
-      font-size: clamp(1.4rem, 2.2vw, 2rem);
-      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+      margin: 0 0 1rem 0;
     }
 
     p {
@@ -56,191 +39,188 @@
 
     .example {
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: var(--space);
-      background: var(--panel);
-      box-shadow: var(--shadow);
+      border-radius: 0.75rem;
+      padding: 1rem;
       margin: 1rem 0;
+      background: #fff;
     }
 
     .example > h2 {
-      font-size: 1.1rem;
+      font-size: 1.125rem;
       margin: 0 0 0.75rem 0;
-      color: var(--text);
     }
 
-    details.details {
+    /* Native details styling */
+    details {
       border: 1px solid var(--border);
-      border-radius: calc(var(--radius) - 4px);
-      background: var(--bg);
-      padding: 0.25rem;
+      border-radius: 0.75rem;
+      background: var(--panel);
     }
 
-    details.details + details.details {
-      margin-top: 0.75rem;
-    }
-
-    summary {
+    details > summary {
       cursor: pointer;
-      list-style: none;
-      padding: 0.75rem 0.75rem;
-      border-radius: calc(var(--radius) - 6px);
+      padding: 0.75rem 1rem;
       font-weight: 600;
-      color: var(--text);
-      outline: none;
+      list-style: none;
     }
 
-    summary::-webkit-details-marker {
-      display: none;
-    }
+    /* Remove default marker, replace with custom */
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary::marker { content: ""; }
 
-    summary::before {
-      content: "▸";
+    details > summary .marker {
       display: inline-block;
       width: 1.25rem;
+      text-align: center;
       margin-right: 0.25rem;
-      transform-origin: 50% 55%;
-      transition: transform 160ms ease;
+      font-weight: 700;
     }
 
-    details[open] > summary::before {
-      transform: rotate(90deg);
+    details[open] > summary .marker::before { content: "−"; }
+    details:not([open]) > summary .marker::before { content: "+"; }
+
+    details > summary:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+      border-radius: 0.5rem;
     }
 
-    summary:focus-visible {
+    .details {
+      padding: 0 1rem 1rem 1rem;
+      color: var(--fg);
+    }
+
+    .details > *:first-child { margin-top: 0.5rem; }
+    .details > *:last-child { margin-bottom: 0; }
+
+    /* Button-controlled region styling */
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      background: var(--panel);
+      color: var(--fg);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .toggle:focus-visible {
       outline: 3px solid var(--focus);
       outline-offset: 3px;
     }
 
-    .details__content {
-      padding: 0.25rem 0.75rem 0.9rem 2rem;
-      color: var(--text);
+    .toggle .marker {
+      width: 1.25rem;
+      text-align: center;
+      font-weight: 700;
     }
 
-    .details__content p {
-      color: var(--text);
-      margin: 0.5rem 0 0 0;
+    .panel {
+      margin-top: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      background: var(--panel);
+      padding: 1rem;
     }
 
-    .details__content ul {
-      margin: 0.5rem 0 0 1.25rem;
-      padding: 0;
-    }
+    .panel[hidden] { display: none; }
 
-    .details__content a {
-      color: inherit;
-      text-decoration-thickness: 2px;
-      text-underline-offset: 0.2em;
-    }
-
-    .details__content a:focus-visible {
-      outline: 3px solid var(--focus);
-      outline-offset: 3px;
-      border-radius: 4px;
-    }
-
-    .hint {
+    .help {
       font-size: 0.95rem;
       color: var(--muted);
       margin-top: 0.75rem;
+    }
+
+    a {
+      color: #0b4ab8;
+    }
+
+    a:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: 0.25rem;
     }
   </style>
 </head>
 <body>
   <main>
-    <header>
-      <h1>Expand/Collapse Widget</h1>
-      <p>This page demonstrates accessible expand/collapse widgets using native HTML. Use Tab to focus a summary, then press Enter or Space to toggle.</p>
-    </header>
+    <h1>Expand/Collapse Widget</h1>
+    <p>
+      Two accessible patterns are shown: a native <code>&lt;details&gt;</code> widget and a
+      button-controlled disclosure region.
+    </p>
 
-    <section class="example" aria-labelledby="ex1-title">
-      <h2 id="ex1-title">Example 1: Single panel</h2>
-
-      <details class="details">
-        <summary>What is this widget?</summary>
-        <div class="details__content">
+    <div class="example">
+      <h2>Example 1: Native details/summary</h2>
+      <details>
+        <summary>
+          <span class="marker" aria-hidden="true"></span>
+          What information is included?
+        </summary>
+        <div class="details">
           <p>
-            This is a native <code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> disclosure pattern.
-            It supports keyboard interaction and communicates state to assistive technologies automatically.
+            This content is the controlled region. The native <code>&lt;details&gt;</code> element provides
+            built-in keyboard interaction and conveys state to assistive technologies.
           </p>
-          <p class="hint">
-            Tip: You can toggle this panel with the keyboard when the summary is focused.
-          </p>
-        </div>
-      </details>
-    </section>
-
-    <section class="example" aria-labelledby="ex2-title">
-      <h2 id="ex2-title">Example 2: Multiple panels</h2>
-
-      <details class="details">
-        <summary>Shipping information</summary>
-        <div class="details__content">
-          <p>Orders typically ship within 2–3 business days.</p>
           <ul>
-            <li>Tracking is provided by email.</li>
-            <li>Delivery times vary by location.</li>
-            <li>International shipping may incur customs fees.</li>
+            <li>Keyboard: Tab to the summary, then Enter/Space to toggle.</li>
+            <li>State: Open/closed state is exposed automatically.</li>
+            <li>Focus: Visible focus indicator is provided.</li>
           </ul>
         </div>
       </details>
+    </div>
 
-      <details class="details">
-        <summary>Returns policy</summary>
-        <div class="details__content">
-          <p>
-            Returns are accepted within 30 days of delivery if items are unused and in original packaging.
-            Read the <a href="#returns">returns details section</a> below for more.
-          </p>
-        </div>
-      </details>
+    <div class="example">
+      <h2>Example 2: Button + controlled region</h2>
+      <button type="button" class="toggle" id="toggle-1" aria-expanded="false" aria-controls="panel-1">
+        <span class="marker" aria-hidden="true">+</span>
+        Account recovery options
+      </button>
 
-      <details class="details" open>
-        <summary>Contact support</summary>
-        <div class="details__content">
-          <p>
-            Email: <a href="mailto:support@example.com">support@example.com</a><br />
-            Phone: <a href="tel:+15551234567">+1 (555) 123-4567</a>
-          </p>
-        </div>
-      </details>
-    </section>
+      <div id="panel-1" class="details panel" role="region" aria-labelledby="toggle-1" hidden>
+        <p>
+          Add at least one recovery option so you can regain access if you forget your password.
+        </p>
+        <ul>
+          <li>Email recovery</li>
+          <li>Authenticator app</li>
+          <li>Recovery codes (print and store securely)</li>
+        </ul>
+        <p class="help">
+          Learn more about <a href="#" onclick="return false;">account recovery</a>.
+        </p>
+      </div>
 
-    <section class="example" id="returns" aria-labelledby="ex3-title">
-      <h2 id="ex3-title">Example 3: Panel with form controls</h2>
-
-      <details class="details">
-        <summary>Request a return label</summary>
-        <div class="details__content">
-          <form action="#" method="post">
-            <div style="display:grid; gap:0.75rem; max-width: 28rem;">
-              <div>
-                <label for="order-id">Order ID</label><br />
-                <input id="order-id" name="order-id" type="text" inputmode="text" autocomplete="off"
-                  style="width:100%; padding:0.6rem; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text);" />
-              </div>
-              <div>
-                <label for="reason">Reason for return</label><br />
-                <select id="reason" name="reason"
-                  style="width:100%; padding:0.6rem; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text);">
-                  <option value="">Select a reason</option>
-                  <option value="damaged">Arrived damaged</option>
-                  <option value="wrong">Wrong item</option>
-                  <option value="changed-mind">Changed my mind</option>
-                </select>
-              </div>
-              <button type="submit"
-                style="justify-self:start; padding:0.65rem 0.9rem; border:1px solid var(--border); border-radius:10px; background:var(--panel); color:var(--text); font-weight:600; cursor:pointer;">
-                Submit request
-              </button>
-              <p class="hint" style="margin:0;">
-                Note: This form is for demonstration only and does not submit anywhere.
-              </p>
-            </div>
-          </form>
-        </div>
-      </details>
-    </section>
+      <p class="help">
+        Keyboard: Tab to the button, press Enter/Space to toggle.
+      </p>
+    </div>
   </main>
+
+  <script>
+    (function () {
+      const btn = document.getElementById('toggle-1');
+      const panel = document.getElementById('panel-1');
+      const marker = btn.querySelector('.marker');
+
+      function setExpanded(expanded) {
+        btn.setAttribute('aria-expanded', String(expanded));
+        panel.hidden = !expanded;
+        marker.textContent = expanded ? '−' : '+';
+      }
+
+      btn.addEventListener('click', () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        setExpanded(!expanded);
+      });
+
+      // Initialize a consistent state in case the DOM changes.
+      setExpanded(false);
+    })();
+  </script>
 </body>
 </html>

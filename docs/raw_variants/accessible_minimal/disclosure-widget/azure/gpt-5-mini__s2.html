@@ -5,256 +5,257 @@
   <title>Accessible Expand/Collapse Widget Examples</title>
   <style>
     :root{
-      --bg:#ffffff;
-      --fg:#0b0f15;
-      --accent:#006fa6;
-      --muted:#6b7280;
-      --focus: 3px solid Highlight;
+      --accent:#0366d6;
+      --bg:#f8fafc;
+      --panel-bg:#ffffff;
+      --border:#e2e8f0;
+      --radius:8px;
+      --duration:220ms;
+      --text:#0f172a;
     }
-    html,body{height:100%}
+
     body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-      background:var(--bg);
-      color:var(--fg);
-      line-height:1.4;
-      padding:1.25rem;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      line-height:1.5;
+      margin:1.25rem;
+      color:var(--text);
+      background:linear-gradient(180deg,var(--bg),#ffffff 60%);
     }
 
-    a.skip {
-      position: absolute;
-      left: -999px;
-      top: auto;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-    }
-    a.skip:focus {
-      left: 1rem;
-      top: 1rem;
-      width: auto;
-      height: auto;
-      padding: .5rem .75rem;
-      background: #000;
-      color: #fff;
-      z-index: 9999;
-      border-radius: .25rem;
-      text-decoration: none;
-    }
-
-    header h1{
-      margin:0 0 .5rem 0;
+    h1{
       font-size:1.25rem;
-    }
-    p.lead{
       margin:0 0 1rem 0;
-      color:var(--muted);
     }
 
     .example{
-      border:1px solid #e6eef6;
-      background:#fbfdff;
+      background:var(--panel-bg);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
       padding:1rem;
-      border-radius:8px;
       margin:0 0 1rem 0;
+      box-shadow:0 1px 2px rgba(16,24,40,0.03);
+      max-width:760px;
     }
 
-    .widget-row{
+    .widget-header{
       display:flex;
-      gap:.75rem;
       align-items:center;
-      flex-wrap:wrap;
+      gap:0.75rem;
     }
 
     .toggle{
       appearance:none;
-      border:1px solid #cde6f8;
-      background:linear-gradient(#fff,#f3fbff);
-      color:var(--accent);
-      padding:.5rem .75rem;
+      -webkit-appearance:none;
+      border:1px solid var(--border);
+      background:white;
+      color:var(--text);
+      padding:0.5rem 0.75rem;
       border-radius:6px;
-      font-weight:600;
-      cursor:pointer;
       display:inline-flex;
       align-items:center;
-      gap:.5rem;
+      justify-content:center;
+      gap:0.5rem;
+      cursor:pointer;
+      font:inherit;
+      box-shadow:none;
+      transition:box-shadow var(--duration), transform var(--duration), border-color var(--duration);
     }
 
     .toggle:focus{
-      outline:none;
-      box-shadow:var(--focus);
+      outline:3px solid rgba(3,102,214,0.15);
+      outline-offset:2px;
+    }
+
+    .toggle:hover{
+      border-color:rgba(3,102,214,0.12);
     }
 
     .toggle .icon{
+      display:inline-block;
       width:1rem;
       height:1rem;
-      display:inline-block;
       transform-origin:center;
-      transition:transform .18s ease;
+      transition:transform var(--duration) ease;
     }
+
     .toggle[aria-expanded="true"] .icon{
       transform:rotate(90deg);
     }
 
-    .details{
-      margin-top:.75rem;
-      padding:.75rem;
-      border-radius:6px;
-      background:#fff;
-      border:1px dashed #e6eef6;
-    }
-    .details h3{
-      margin:.25rem 0 .5rem 0;
+    .title{
+      font-weight:600;
       font-size:1rem;
+      color:var(--text);
     }
+
+    /* details panel (controlled content) */
+    .details{
+      margin-top:0.75rem;
+      overflow:hidden;
+      transition:max-height var(--duration) ease, opacity var(--duration) ease;
+      max-height:0;
+      opacity:0;
+      border-top:1px solid var(--border);
+      padding-top:0.75rem;
+    }
+
+    .details.open{
+      opacity:1;
+      max-height:100vh; /* large value to allow expand; respects natural height */
+    }
+
     .details p{
-      margin:.25rem 0;
+      margin:0 0 0.75rem 0;
     }
 
-    /* hidden attribute: keep it out of layout and assistive tree */
-    .details[hidden]{
-      display:none;
-    }
-
-    /* focus outline for keyboard users inside details */
-    .details :focus{
-      outline:2px solid Highlight;
-      outline-offset:2px;
-    }
-
-    /* small utility for visually-hidden text for screen reader only */
     .visually-hidden{
-      position:absolute!important;
-      height:1px;width:1px;
+      position:absolute !important;
+      height:1px;
+      width:1px;
       overflow:hidden;
       clip:rect(1px,1px,1px,1px);
       white-space:nowrap;
-      clip-path:inset(50%);
-      border:0;padding:0;margin:-1px;
+      border:0;
+      padding:0;
+      margin:-1px;
+    }
+
+    /* Respect reduced motion preference */
+    @media (prefers-reduced-motion: reduce){
+      .details{
+        transition:none;
+      }
+      .toggle .icon{
+        transition:none;
+      }
     }
   </style>
 </head>
 <body>
-  <a href="#main" class="skip">Skip to content</a>
+  <h1>Accessible Expand/Collapse Widget Examples</h1>
 
-  <header>
-    <h1>Expand/Collapse Widget Examples</h1>
-    <p class="lead">Two accessible expand/collapse widgets. Each widget is wrapped in a div.example and the controlled content uses a container with class="details".</p>
-  </header>
-
-  <main id="main" lang="en">
-    <div class="example" aria-labelledby="ex1-toggle-label">
-      <div class="widget-row">
-        <button id="ex1-toggle"
-                class="toggle"
-                aria-expanded="false"
-                aria-controls="ex1-details">
-          <span class="icon" aria-hidden="true">▸</span>
-          <span id="ex1-toggle-label">Show product details</span>
-        </button>
-        <p class="visually-hidden" id="ex1-instructions">Press Enter or Space to expand or collapse the details.</p>
-      </div>
-
-      <div id="ex1-details"
-           class="details"
-           role="region"
-           aria-labelledby="ex1-toggle"
-           hidden>
-        <h3>Product details</h3>
-        <p>Our insulated water bottle keeps drinks cold for 24 hours and hot for 12 hours. It is made from BPA-free stainless steel and comes with a leak-proof lid.</p>
-        <p><strong>Capacity:</strong> 750 ml</p>
-        <p><a href="#buy">Buy now</a> • <a href="#more">More specifications</a></p>
-      </div>
+  <div class="example" data-example="1">
+    <div class="widget-header">
+      <button class="toggle"
+              id="toggle-1"
+              aria-expanded="false"
+              aria-controls="details-1"
+              type="button">
+        <span class="icon" aria-hidden="true">▶</span>
+        <span class="title">About Mountain Lions</span>
+      </button>
+      <div class="visually-hidden" aria-hidden="true">Press Enter or Space to expand or collapse the panel.</div>
     </div>
 
-    <div class="example" aria-labelledby="ex2-toggle-label">
-      <div class="widget-row">
-        <button id="ex2-toggle"
-                class="toggle"
-                aria-expanded="false"
-                aria-controls="ex2-details">
-          <span class="icon" aria-hidden="true">▸</span>
-          <span id="ex2-toggle-label">Show accessibility tips</span>
-        </button>
-      </div>
-
-      <div id="ex2-details"
-           class="details"
-           role="region"
-           aria-labelledby="ex2-toggle"
-           hidden>
-        <h3>Accessibility tips</h3>
-        <ul>
-          <li>Use semantic elements (headings, lists) to structure content.</li>
-          <li>Provide visible focus styles and sufficient color contrast.</li>
-          <li>Ensure interactive controls have accessible names and states (aria-expanded, aria-controls).</li>
-        </ul>
-        <p><a href="#learn-more">Learn more about accessibility</a></p>
-      </div>
+    <div id="details-1" class="details"
+         role="region"
+         aria-labelledby="toggle-1"
+         aria-hidden="true">
+      <p>Mountain lions (also called cougars or pumas) are large felines native to the Americas. They are solitary and territorial animals that prefer regions with cover for stalking prey.</p>
+      <p>These cats are adaptable and can be found in a range of habitats, including deserts, forests, and mountains. They are crepuscular, most active at dawn and dusk.</p>
     </div>
-  </main>
+  </div>
+
+  <div class="example" data-example="2">
+    <div class="widget-header">
+      <button class="toggle"
+              id="toggle-2"
+              aria-expanded="true"
+              aria-controls="details-2"
+              type="button">
+        <span class="icon" aria-hidden="true">▶</span>
+        <span class="title">How to Prepare Tea</span>
+      </button>
+    </div>
+
+    <div id="details-2" class="details open"
+         role="region"
+         aria-labelledby="toggle-2"
+         aria-hidden="false">
+      <p>Start with fresh, cold water. Heat to the temperature recommended for your tea type — near-boiling for black tea, lower for green or white. Use about one teaspoon of loose tea per cup.</p>
+      <p>Steep for the recommended time, strain the leaves, and enjoy. Adjust steep time and tea quantity to taste.</p>
+    </div>
+  </div>
+
+  <div class="example" data-example="3">
+    <div class="widget-header">
+      <button class="toggle"
+              id="toggle-3"
+              aria-expanded="false"
+              aria-controls="details-3"
+              type="button">
+        <span class="icon" aria-hidden="true">▶</span>
+        <span class="title">Accessibility Notes</span>
+      </button>
+    </div>
+
+    <div id="details-3" class="details"
+         role="region"
+         aria-labelledby="toggle-3"
+         aria-hidden="true">
+      <p>This widget uses native button elements with aria-expanded and aria-controls to communicate state and relationships. The content region uses role="region" and aria-labelledby to link back to the control.</p>
+      <p>Keyboard users can activate the toggle with Enter or Space. Motion preference is respected via prefers-reduced-motion.</p>
+    </div>
+  </div>
 
   <script>
     (function(){
-      // Attach behavior to any button with aria-controls inside .example
-      const examples = document.querySelectorAll('.example');
-      examples.forEach(example => {
-        const btn = example.querySelector('button[aria-controls]');
-        if (!btn) return;
+      // Graceful setup: find all examples that contain a button.toggle and a .details panel
+      var examples = document.querySelectorAll('.example');
+      var uidCounter = 0;
 
-        const detailsId = btn.getAttribute('aria-controls');
-        const details = document.getElementById(detailsId);
-        if (!details) return;
+      examples.forEach(function(example){
+        var btn = example.querySelector('.toggle');
+        var panel = example.querySelector('.details');
+        if(!btn || !panel) return;
 
-        // Ensure initial ARIA state is consistent with hidden attribute
-        const isHidden = details.hasAttribute('hidden');
-        btn.setAttribute('aria-expanded', String(!isHidden));
-
-        function updateState(expanded){
-          btn.setAttribute('aria-expanded', String(expanded));
-          if (expanded){
-            details.removeAttribute('hidden');
-            details.removeAttribute('aria-hidden');
-          } else {
-            details.setAttribute('hidden','');
-            details.setAttribute('aria-hidden','true');
-          }
+        // Ensure unique IDs if missing
+        if(!btn.id){
+          uidCounter += 1;
+          btn.id = 'toggle-auto-' + uidCounter;
+        }
+        if(!panel.id){
+          uidCounter += 1;
+          panel.id = 'details-auto-' + uidCounter;
         }
 
-        // Toggle on click
-        btn.addEventListener('click', () => {
-          const expanded = btn.getAttribute('aria-expanded') === 'true';
-          updateState(!expanded);
+        // Initialize state from attributes already in markup
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        setState(btn, panel, expanded);
 
-          // If expanding, move focus into the details to help keyboard users (optional)
-          if (!expanded) {
-            // Try to focus the first focusable element inside details
-            const focusable = details.querySelector('a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
-            if (focusable) {
-              focusable.focus();
-            } else {
-              // If nothing focusable, set focus to the region for screen reader context
-              details.setAttribute('tabindex','-1');
-              details.focus();
-              // remove tabindex after blur to keep DOM tidy
-              details.addEventListener('blur', function onBlur(){
-                details.removeAttribute('tabindex');
-                details.removeEventListener('blur', onBlur);
-              });
-            }
-          }
+        // Click toggles
+        btn.addEventListener('click', function(){
+          var isExpanded = btn.getAttribute('aria-expanded') === 'true';
+          setState(btn, panel, !isExpanded);
         });
 
-        // Allow toggling with Space/Enter is automatic for native button; ensure keyboard users get hint
-        // Close details when Escape pressed while focus is inside details
-        details.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' || e.key === 'Esc') {
-            e.stopPropagation();
-            updateState(false);
-            btn.focus();
+        // Allow Home/End keys to open/close all examples in a simple way (optional accessibility enhancement)
+        btn.addEventListener('keydown', function(e){
+          if(e.key === 'Home'){
+            e.preventDefault();
+            setState(btn, panel, true);
+          } else if(e.key === 'End'){
+            e.preventDefault();
+            setState(btn, panel, false);
           }
         });
       });
+
+      function setState(button, panel, toOpen){
+        if(toOpen){
+          button.setAttribute('aria-expanded','true');
+          panel.classList.add('open');
+          panel.setAttribute('aria-hidden','false');
+        } else {
+          button.setAttribute('aria-expanded','false');
+          panel.classList.remove('open');
+          panel.setAttribute('aria-hidden','true');
+        }
+      }
+
+      // If JavaScript is disabled, ensure panels that were intended to be open remain visible.
+      // We already used classes/open and aria-hidden in markup for the initial states,
+      // so no further action is required here for progressive enhancement.
     })();
   </script>
 </body>

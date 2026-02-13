@@ -4,340 +4,314 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Modal Dialog Example</title>
   <style>
-    :root {
-      --bg: #fff;
-      --overlay: rgba(0,0,0,0.6);
+    :root{
+      --bg: #0f1724;
+      --card: #ffffff;
+      --muted: #6b7280;
       --accent: #2563eb;
-      --radius: 10px;
-      --max-width: 520px;
-      --gap: 1rem;
+      --radius: 12px;
     }
-
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin: 0;
-      padding: 2rem;
-      line-height: 1.4;
-      background: #f8fafc;
-      color: #0f172a;
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #eef2ff 0%, #ffffff 100%);
+      color: #0f1724;
+    }
+    .wrap{
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:48px;
+      box-sizing:border-box;
+      gap:20px;
+      flex-direction:column;
     }
 
     /* Trigger button */
     .trigger {
-      background: var(--accent);
+      appearance: none;
+      -webkit-appearance: none;
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(90deg,var(--accent), #7c3aed);
       color: white;
-      border: none;
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
-      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 6px 18px rgba(37,99,235,0.18);
+      transition: transform .14s ease, box-shadow .14s ease, opacity .14s ease;
     }
-    .trigger:focus {
-      outline: 3px solid rgba(37,99,235,0.25);
-      outline-offset: 2px;
-    }
+    .trigger:active{ transform: translateY(1px) scale(.997); }
+    .trigger:focus{ outline: 3px solid rgba(37,99,235,0.18); outline-offset: 4px; }
 
-    /* <dialog> styling */
-    dialog.example {
+    /* Dialog base */
+    dialog.modal {
       border: none;
-      border-radius: var(--radius);
       padding: 0;
-      width: min(var(--max-width), calc(100% - 2rem));
-      box-shadow: 0 20px 40px rgba(2,6,23,0.25);
-      background: var(--bg);
-      color: inherit;
-      max-width: var(--max-width);
+      border-radius: var(--radius);
+      width: min(720px, calc(100% - 48px));
+      box-shadow: 0 20px 50px rgba(2,6,23,0.18), 0 2px 6px rgba(2,6,23,0.06);
+      background: linear-gradient(180deg, var(--card), #fbfdff);
+      transform-origin: center center;
+      overflow: visible;
     }
 
-    dialog.example::backdrop {
-      background: var(--overlay);
-      backdrop-filter: blur(2px);
-      animation: fadeIn 160ms ease;
+    dialog.modal::backdrop{
+      background: rgba(2,6,23,0.48);
+      backdrop-filter: blur(3px) saturate(1.03);
+      animation: fadeBackdrop .18s ease;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0 }
-      to { opacity: 1 }
+    dialog.modal[open]{
+      animation: popIn .18s cubic-bezier(.2,.9,.2,1);
     }
 
-    .dialog-header {
-      padding: 1rem 1rem 0.25rem 1rem;
-      border-bottom: 1px solid rgba(15,23,42,0.06);
+    @keyframes popIn {
+      from { opacity:0; transform: translateY(6px) scale(.98); }
+      to   { opacity:1; transform: translateY(0) scale(1); }
+    }
+    @keyframes fadeBackdrop {
+      from{ opacity: 0; }
+      to{ opacity: 1; }
     }
 
-    .dialog-body {
-      padding: 1rem;
+    .modal__header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      padding:20px 20px 0 20px;
     }
-
-    .dialog-footer {
-      padding: 0.75rem 1rem 1rem 1rem;
-      display: flex;
-      gap: 0.5rem;
-      justify-content: flex-end;
-      border-top: 1px solid rgba(15,23,42,0.04);
+    .modal__title{
+      margin:0;
+      font-size:18px;
+      line-height:1.1;
+      font-weight:700;
+      color: #07133a;
     }
-
-    .close-btn {
-      background: #e5e7eb;
+    .modal__close{
+      margin-left:auto;
+      background: transparent;
       border: none;
-      padding: 0.5rem 0.75rem;
-      border-radius: 8px;
-      cursor: pointer;
+      width:36px;
+      height:36px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:8px;
+      cursor:pointer;
+      color: #374151;
     }
-    .close-btn:hover { filter: brightness(0.98) }
-    .primary-btn {
+    .modal__close:hover{ background: rgba(15,23,36,0.04); }
+
+    .modal__body{
+      padding: 8px 20px 20px 20px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .modal__actions{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      padding: 12px 20px 20px 20px;
+      background: linear-gradient(180deg, transparent, rgba(15,23,36,0.02));
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+    .btn {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(15,23,36,0.06);
+      background: white;
+      cursor: pointer;
+      font-weight: 600;
+      color: #0f1724;
+    }
+    .btn.primary {
       background: var(--accent);
       color: white;
       border: none;
-      padding: 0.5rem 0.75rem;
-      border-radius: 8px;
-      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(37,99,235,0.14);
     }
-
-    /* Polyfill overlay (used if <dialog> isn't supported) */
-    .modal-polyfill-overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--overlay);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .modal-polyfill-overlay.open {
-      display: flex;
-    }
-    .modal-polyfill {
-      background: var(--bg);
-      border-radius: var(--radius);
-      width: min(var(--max-width), calc(100% - 2rem));
-      box-shadow: 0 20px 40px rgba(2,6,23,0.25);
-      max-width: var(--max-width);
-      outline: none;
+    .sr-only {
+      position:absolute;
+      width:1px;height:1px;
+      padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);
+      white-space:nowrap;border:0;
     }
 
     /* Small responsive tweaks */
-    @media (max-width: 480px) {
-      .dialog-header, .dialog-body, .dialog-footer { padding-left: 0.75rem; padding-right: 0.75rem; }
-      .dialog-header { padding-top: 0.75rem }
+    @media (max-width:480px){
+      .modal__title{ font-size:16px; }
+      .modal{ width: calc(100% - 32px); }
     }
-
   </style>
 </head>
 <body>
-  <main>
-    <h1>Modal Dialog Component</h1>
-    <p>This demo shows a modal dialog component. The dialog is closed by default. Use the button below to open it.</p>
+  <div class="wrap">
+    <h1 style="margin:0 0 8px 0; font-size:20px;">Modal Dialog Component</h1>
+    <p style="margin:0 0 20px 0; color:var(--muted); max-width:520px; text-align:center;">
+      This modal is closed by default. Click the button to open it. The opening button uses the class "trigger".
+    </p>
 
-    <button class="trigger" id="openDialog" aria-haspopup="dialog" aria-controls="exampleDialog">
-      Open modal
-    </button>
-  </main>
+    <button class="trigger" id="open-sample">Open modal</button>
+  </div>
 
-  <!-- Native <dialog> used when available -->
-  <dialog id="exampleDialog" class="example" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
-    <div class="dialog-header">
-      <h2 id="dialogTitle" style="margin:0; font-size:1.125rem;">Subscribe to updates</h2>
+  <dialog id="exampleModal" class="modal" aria-labelledby="modalTitle" aria-describedby="modalDesc" role="dialog">
+    <div class="modal__header">
+      <h2 id="modalTitle" class="modal__title">Confirm action</h2>
+      <button class="modal__close" aria-label="Close dialog" data-close>
+        <!-- Simple "X" icon -->
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     </div>
 
-    <div class="dialog-body" id="dialogDesc">
-      <p style="margin-top:0.4rem; margin-bottom:0.75rem;">Get occasional updates about new features and examples.</p>
-
-      <form method="dialog" id="dialogForm" style="display:flex; flex-direction:column; gap:0.6rem;">
-        <label style="font-size:0.9rem;">
-          Email
-          <input type="email" name="email" required placeholder="you@example.com" style="display:block; width:100%; padding:0.5rem; border-radius:8px; border:1px solid rgba(15,23,42,0.08);" />
-        </label>
-
-        <label style="font-size:0.9rem;">
-          <input type="checkbox" name="agree" style="margin-right:0.35rem;" />
-          I agree to receive emails.
-        </label>
-      </form>
+    <div class="modal__body" id="modalDesc">
+      <p style="margin-top:0;">
+        Are you sure you want to continue with this action? This operation may make irreversible changes.
+      </p>
+      <p style="margin-bottom:0; color:var(--muted); font-size:13px;">
+        You can close this dialog with the <kbd>Esc</kbd> key, by clicking outside the modal, or by using the buttons below.
+      </p>
     </div>
 
-    <div class="dialog-footer">
-      <button class="close-btn" data-close>Cancel</button>
-      <button class="primary-btn" id="confirmBtn">Subscribe</button>
+    <div class="modal__actions">
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn primary" id="confirmBtn">Confirm</button>
     </div>
   </dialog>
 
-  <!-- Polyfill fallback (hidden by default) -->
-  <div id="polyfillOverlay" class="modal-polyfill-overlay" aria-hidden="true">
-    <div id="polyfillDialog" class="modal-polyfill" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogDesc" tabindex="-1">
-      <!-- Container content is cloned into this node when <dialog> isn't available -->
-    </div>
-  </div>
-
   <script>
     (function () {
-      const triggers = Array.from(document.querySelectorAll('.trigger'));
-      const dialog = document.getElementById('exampleDialog');
-      const polyOverlay = document.getElementById('polyfillOverlay');
-      const polyDialog = document.getElementById('polyfillDialog');
-
-      // Utility: find focusable elements within a container
-      function getFocusable(container) {
-        const focusable = container.querySelectorAll('a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])');
-        return Array.from(focusable);
-      }
-
-      // Remember the last focused element to return focus on close
+      const dialog = document.getElementById('exampleModal');
+      const triggers = document.querySelectorAll('.trigger');
       let lastFocused = null;
 
-      // Focus trap handler
-      function trapFocus(container, event) {
-        if (event.key !== 'Tab') return;
-        const nodes = getFocusable(container);
-        if (nodes.length === 0) {
+      // Utility: get focusable elements inside container
+      const focusableSelector = [
+        'a[href]:not([tabindex^="-"])',
+        'area[href]:not([tabindex^="-"])',
+        'input:not([disabled]):not([type="hidden"]):not([tabindex^="-"])',
+        'select:not([disabled]):not([tabindex^="-"])',
+        'textarea:not([disabled]):not([tabindex^="-"])',
+        'button:not([disabled]):not([tabindex^="-"])',
+        'iframe',
+        'object',
+        'embed',
+        '[contenteditable]',
+        '[tabindex]:not([tabindex^="-"])'
+      ].join(',');
+
+      // Open modal
+      function openModal(triggerEl) {
+        if (typeof dialog.showModal !== 'function') {
+          // Basic fallback if <dialog> not supported: show by attribute
+          dialog.setAttribute('open', '');
+        } else {
+          dialog.showModal();
+        }
+        lastFocused = triggerEl || document.activeElement;
+        // Focus first focusable element inside dialog, or the dialog itself
+        const focusables = Array.from(dialog.querySelectorAll(focusableSelector));
+        if (focusables.length) {
+          focusables[0].focus();
+        } else {
+          dialog.focus();
+        }
+        document.addEventListener('keydown', onKeyDown);
+        dialog.addEventListener('click', onDialogClick);
+      }
+
+      // Close modal
+      function closeModal(returnValue) {
+        if (typeof dialog.close === 'function' && dialog.hasAttribute('open')) {
+          dialog.close(returnValue);
+        } else {
+          dialog.removeAttribute('open');
+        }
+        document.removeEventListener('keydown', onKeyDown);
+        dialog.removeEventListener('click', onDialogClick);
+        // Restore focus
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+          lastFocused.focus();
+        }
+      }
+
+      // Click outside (backdrop) should close when clicking the backdrop area
+      function onDialogClick(event) {
+        // In <dialog>, clicking the backdrop produces event.target === dialog
+        if (event.target === dialog) {
+          closeModal();
+        }
+      }
+
+      // Key handling: Escape to close, Tab to trap focus
+      function onKeyDown(event) {
+        if (event.key === 'Escape') {
           event.preventDefault();
+          closeModal();
           return;
         }
-        const first = nodes[0];
-        const last = nodes[nodes.length - 1];
-        if (event.shiftKey) {
-          if (document.activeElement === first) {
+        if (event.key === 'Tab') {
+          // Focus trap
+          const focusables = Array.from(dialog.querySelectorAll(focusableSelector))
+            .filter(el => el.offsetParent !== null); // visible
+          if (focusables.length === 0) {
+            // nothing to trap
             event.preventDefault();
-            last.focus();
+            return;
           }
-        } else {
-          if (document.activeElement === last) {
-            event.preventDefault();
-            first.focus();
-          }
-        }
-      }
-
-      // Close logic common to both implementations
-      function closeModal(instanceType) {
-        lastFocused = lastFocused || document.activeElement;
-        if (instanceType === 'native') {
-          if (dialog.open) dialog.close();
-        } else {
-          polyOverlay.classList.remove('open');
-          polyOverlay.setAttribute('aria-hidden', 'true');
-          document.body.style.overflow = '';
-        }
-        // return focus to the trigger if possible
-        if (lastFocused) lastFocused.focus();
-      }
-
-      // Open logic common
-      function openModal(triggerEl) {
-        lastFocused = triggerEl || document.activeElement;
-        if (typeof dialog.showModal === 'function') {
-          try {
-            dialog.showModal();
-            // focus first focusable element or the dialog itself
-            const focusables = getFocusable(dialog);
-            (focusables[0] || dialog).focus();
-          } catch (e) {
-            // fallback to polyfill below if showModal fails
-            openPolyfill(triggerEl);
-          }
-        } else {
-          openPolyfill(triggerEl);
-        }
-      }
-
-      // Polyfill open: clone the content of the <dialog> into the polyfill container
-      function openPolyfill(triggerEl) {
-        // copy content
-        polyDialog.innerHTML = dialog.innerHTML;
-        polyOverlay.classList.add('open');
-        polyOverlay.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-
-        // wire up buttons inside the polyfilled dialog
-        const closeBtn = polyDialog.querySelector('[data-close]');
-        if (closeBtn) closeBtn.addEventListener('click', () => closeModal('polyfill'));
-
-        const confirmBtn = polyDialog.querySelector('#confirmBtn');
-        if (confirmBtn) confirmBtn.addEventListener('click', () => {
-          // Example action: just close
-          closeModal('polyfill');
-        });
-
-        // close on backdrop click
-        polyOverlay.addEventListener('click', (e) => {
-          if (e.target === polyOverlay) closeModal('polyfill');
-        }, { once: false });
-
-        // trap focus
-        polyDialog.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-            e.preventDefault();
-            closeModal('polyfill');
+          const firstEl = focusables[0];
+          const lastEl = focusables[focusables.length - 1];
+          if (event.shiftKey) {
+            if (document.activeElement === firstEl || document.activeElement === dialog) {
+              lastEl.focus();
+              event.preventDefault();
+            }
           } else {
-            trapFocus(polyDialog, e);
+            if (document.activeElement === lastEl) {
+              firstEl.focus();
+              event.preventDefault();
+            }
           }
-        });
-
-        // focus first focusable
-        setTimeout(() => {
-          const focusables = getFocusable(polyDialog);
-          (focusables[0] || polyDialog).focus();
-        }, 0);
+        }
       }
 
-      // Wire up triggers
-      triggers.forEach(t => {
-        t.addEventListener('click', (e) => {
-          openModal(t);
+      // Attach triggers
+      triggers.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          openModal(btn);
         });
       });
 
-      // Native dialog event handling (if supported)
-      if (typeof dialog.showModal === 'function') {
-        // close buttons inside dialog
-        dialog.addEventListener('click', (e) => {
-          // Close when clicking the backdrop (target === dialog)
-          if (e.target === dialog) {
-            closeModal('native');
-          }
-        });
+      // Elements that close the modal (data-close)
+      dialog.querySelectorAll('[data-close]').forEach(el => {
+        el.addEventListener('click', () => closeModal());
+      });
 
-        dialog.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-            // close on Escape
-            closeModal('native');
-          } else {
-            trapFocus(dialog, e);
-          }
-        });
+      // Example confirm action
+      document.getElementById('confirmBtn').addEventListener('click', () => {
+        // Simulate action then close
+        document.getElementById('confirmBtn').textContent = 'Working...';
+        document.getElementById('confirmBtn').disabled = true;
+        setTimeout(() => {
+          closeModal('confirmed');
+          // restore text
+          const btn = document.getElementById('confirmBtn');
+          btn.textContent = 'Confirm';
+          btn.disabled = false;
+        }, 700);
+      });
 
-        const nativeCloseButtons = dialog.querySelectorAll('[data-close]');
-        nativeCloseButtons.forEach(btn => {
-          btn.addEventListener('click', () => closeModal('native'));
-        });
-
-        const confirm = dialog.querySelector('#confirmBtn');
-        if (confirm) {
-          confirm.addEventListener('click', () => {
-            // Example action: read form data then close
-            const form = dialog.querySelector('form');
-            if (form) {
-              const formData = new FormData(form);
-              // (In a real app you'd send formData; here we just close)
-            }
-            closeModal('native');
-          });
-        }
-      } else {
-        // If native dialog not supported, ensure the polyfill overlay has close handlers for keyboard
-        polyOverlay.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') closeModal('polyfill');
-        });
-      }
-
-      // Expose close to global for debugging (optional)
-      window._exampleModal = {
-        open: () => openModal(document.querySelector('.trigger')),
-        close: () => {
-          if (typeof dialog.showModal === 'function') closeModal('native');
-          else closeModal('polyfill');
-        }
-      };
+      // Optional: close modal if window/tab loses focus while opened (cleanup)
+      window.addEventListener('blur', () => {
+        // noop: leaving as placeholder if needed
+      });
     })();
   </script>
 </body>

@@ -4,8 +4,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accessible Expand/Collapse Widget Example</title>
     <style>
+        :root {
+            --primary-color: #005a9c;
+            --border-color: #ccc;
+            --bg-color: #f9f9f9;
+            --focus-ring: 3px solid #005a9c;
+            --focus-offset: 2px;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
             max-width: 800px;
             margin: 2rem auto;
@@ -14,137 +22,165 @@
         }
 
         h1 {
-            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
         }
 
+        /* 
+         * Example 1: Native HTML <details> and <summary> 
+         * This is the preferred semantic way.
+         */
         .example {
-            border: 1px solid #ccc;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            margin-bottom: 1rem;
-            background-color: #fff;
         }
 
-        .disclosure-button {
+        details {
             width: 100%;
+        }
+
+        summary {
+            cursor: pointer;
             padding: 1rem;
-            text-align: left;
-            background: none;
-            border: none;
-            font-size: 1rem;
+            background-color: var(--bg-color);
             font-weight: bold;
+            list-style: none; /* Hide default triangle in some browsers */
+            position: relative;
+        }
+
+        /* Custom marker styling */
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: "+";
+            position: absolute;
+            right: 1rem;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        details[open] summary {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        details[open] summary::after {
+            content: "-";
+        }
+
+        summary:focus-visible {
+            outline: var(--focus-ring);
+            outline-offset: -3px; /* Draws inside the box */
+            z-index: 1;
+        }
+        
+        /* 
+         * Example 2: ARIA-based Disclosure Pattern 
+         * Used when styling requirements exceed <details> capabilities or for legacy support.
+         */
+        .disclosure-btn {
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            background-color: var(--bg-color);
+            border: none;
+            border-bottom: 1px solid transparent;
+            font-weight: bold;
+            font-size: 1rem;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #222;
         }
 
-        .disclosure-button:hover {
-            background-color: #f4f4f4;
+        .disclosure-btn:focus-visible {
+            outline: var(--focus-ring);
+            outline-offset: -3px;
         }
 
-        .disclosure-button:focus-visible {
-            outline: 2px solid #005a9c;
-            outline-offset: -2px;
-            background-color: #eef;
+        .disclosure-btn[aria-expanded="true"] {
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .disclosure-button[aria-expanded="true"] {
-            border-bottom: 1px solid #ccc;
-            background-color: #f9f9f9;
+        .disclosure-icon {
+            transition: transform 0.2s;
         }
 
-        .icon {
-            display: inline-block;
-            width: 1em;
-            height: 1em;
-            transition: transform 0.2s ease-in-out;
-            fill: currentColor;
-        }
-
-        .disclosure-button[aria-expanded="true"] .icon {
+        .disclosure-btn[aria-expanded="true"] .disclosure-icon {
             transform: rotate(180deg);
         }
 
         .details {
             padding: 1rem;
-            display: none;
             background-color: #fff;
         }
 
-        /* Utility class to show content */
-        .details:not([hidden]) {
-            display: block;
-        }
-        
-        /* High contrast mode support */
-        @media (forced-colors: active) {
-            .disclosure-button:focus-visible {
-                outline: 2px solid CanvasText;
-            }
-            .example {
-                border: 2px solid CanvasText;
-            }
+        /* Utility for ARIA example to hide content accessibly */
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <h1>Expand/Collapse Widget Examples</h1>
+    <main>
+        <h1>Expand/Collapse Examples</h1>
+        
+        <h2>Example 1: Semantic HTML (Preferred)</h2>
+        <p>Using the native <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements. This requires no JavaScript for basic functionality and is accessible by default.</p>
 
-    <!-- Example 1: Basic Text Content -->
-    <div class="example">
-        <h2>
-            <button type="button" aria-expanded="false" class="disclosure-button" aria-controls="content-1" id="btn-1">
-                <span>What is the refund policy?</span>
-                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
-                    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-                </svg>
-            </button>
-        </h2>
-        <div id="content-1" class="details" hidden>
-            <p>You can return any item within 30 days of purchase for a full refund. Items must be in their original condition and packaging.</p>
+        <div class="example">
+            <details class="details">
+                <summary>Review Shipping Information</summary>
+                <div class="details-content">
+                    <p>Standard shipping is free for orders over $50. Expedited shipping options are available at checkout.</p>
+                    <p>Estimated delivery: 3-5 business days.</p>
+                </div>
+            </details>
         </div>
-    </div>
 
-    <!-- Example 2: Complex Content -->
-    <div class="example">
-        <h2>
-            <button type="button" aria-expanded="false" class="disclosure-button" aria-controls="content-2" id="btn-2">
-                <span>Shipping Options</span>
-                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
-                    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-                </svg>
+        <h2>Example 2: ARIA Disclosure Pattern</h2>
+        <p>Using a <code>&lt;button&gt;</code> and a container <code>&lt;div&gt;</code> linked via <code>aria-expanded</code> and <code>aria-controls</code>. This is useful when you need precise animation control or custom behaviors not supported by native elements.</p>
+
+        <div class="example">
+            <button type="button" class="disclosure-btn" aria-expanded="false" aria-controls="content-2">
+                <span>Payment Options</span>
+                <span class="disclosure-icon" aria-hidden="true">▼</span>
             </button>
-        </h2>
-        <div id="content-2" class="details" hidden>
-            <ul>
-                <li><strong>Standard:</strong> 5-7 business days (Free)</li>
-                <li><strong>Expedited:</strong> 2-3 business days ($15.00)</li>
-                <li><strong>Overnight:</strong> Next business day ($35.00)</li>
-            </ul>
-            <p><a href="#">Learn more about international shipping</a>.</p>
+            <div id="content-2" class="details hidden">
+                <p>We accept Visa, Mastercard, American Express, and PayPal.</p>
+                <p><a href="#">Manage saved payment methods</a>.</p>
+            </div>
         </div>
-    </div>
+
+    </main>
 
     <script>
+        /**
+         * Logic for Example 2 (ARIA Disclosure)
+         * WCAG requirement: State must be programmatically associated and focus manageable.
+         */
         document.addEventListener('DOMContentLoaded', () => {
-            const buttons = document.querySelectorAll('.disclosure-button');
+            const disclosureButtons = document.querySelectorAll('.disclosure-btn');
 
-            buttons.forEach(button => {
+            disclosureButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    const expanded = button.getAttribute('aria-expanded') === 'true';
-                    const controlledId = button.getAttribute('aria-controls');
-                    const content = document.getElementById(controlledId);
+                    // 1. Toggle aria-expanded state
+                    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+                    button.setAttribute('aria-expanded', !isExpanded);
 
-                    // Toggle aria-expanded
-                    button.setAttribute('aria-expanded', !expanded);
-
-                    // Toggle visibility
-                    if (expanded) {
-                        content.setAttribute('hidden', '');
-                    } else {
-                        content.removeAttribute('hidden');
+                    // 2. Control visibility of the associated panel
+                    const controlsId = button.getAttribute('aria-controls');
+                    const content = document.getElementById(controlsId);
+                    
+                    if (content) {
+                        if (!isExpanded) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
                     }
                 });
             });

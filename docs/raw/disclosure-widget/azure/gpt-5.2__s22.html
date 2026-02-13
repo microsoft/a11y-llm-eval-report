@@ -1,52 +1,55 @@
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Expand/Collapse Widget Demo</title>
   <style>
     :root {
       --bg: #0b1020;
-      --panel: #121a33;
+      --card: #121a33;
       --text: #e8ecff;
-      --muted: #b7c0ff;
+      --muted: #a9b3d6;
       --border: rgba(255,255,255,0.14);
-      --focus: #7aa2ff;
+      --accent: #6aa6ff;
       --shadow: 0 10px 30px rgba(0,0,0,0.35);
       --radius: 14px;
-      --gap: 14px;
-      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     }
 
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: var(--font);
-      background: radial-gradient(1200px 700px at 20% 10%, rgba(122,162,255,0.25), transparent 55%),
-                  radial-gradient(900px 600px at 80% 20%, rgba(167,139,250,0.18), transparent 60%),
+      font-family: var(--sans);
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(106,166,255,0.25), transparent 60%),
+                  radial-gradient(900px 600px at 90% 10%, rgba(134,255,188,0.18), transparent 55%),
                   var(--bg);
       color: var(--text);
-      line-height: 1.45;
+      min-height: 100vh;
+      padding: 32px 18px 60px;
     }
 
     main {
-      max-width: 980px;
+      max-width: 920px;
       margin: 0 auto;
-      padding: 28px 18px 60px;
     }
 
     header {
+      display: grid;
+      gap: 10px;
       margin-bottom: 18px;
     }
 
     h1 {
-      font-size: 1.6rem;
-      margin: 0 0 6px;
+      margin: 0;
+      font-size: 1.35rem;
       letter-spacing: 0.2px;
     }
 
     p.lead {
       margin: 0;
       color: var(--muted);
+      line-height: 1.45;
       max-width: 70ch;
     }
 
@@ -54,7 +57,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 16px;
-      margin-top: 18px;
+      margin-top: 16px;
     }
 
     .example {
@@ -62,295 +65,278 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow: clip;
+      overflow: hidden;
     }
 
-    .example .header {
+    .example .topbar {
       padding: 14px 14px 0;
-      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .example .label {
       font-size: 0.92rem;
+      color: var(--muted);
     }
 
-    .example .content {
-      padding: 14px;
-      padding-top: 10px;
+    .example .hint {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: rgba(232,236,255,0.75);
+      opacity: 0.9;
+      white-space: nowrap;
     }
 
-    /* Widget base */
+    /* Expand/collapse control */
     .toggle {
       width: 100%;
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      padding: 12px 14px 14px;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(18, 26, 51, 0.65);
-      color: var(--text);
-      cursor: pointer;
-      user-select: none;
-      text-align: left;
-      font: inherit;
-    }
-
-    .toggle:hover {
-      border-color: rgba(255,255,255,0.22);
-      background: rgba(18, 26, 51, 0.8);
+      gap: 14px;
+      font-size: 1rem;
     }
 
     .toggle:focus-visible {
-      outline: 3px solid rgba(122,162,255,0.55);
-      outline-offset: 2px;
-    }
-
-    .toggle .label {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
     }
 
     .toggle .title {
       font-weight: 650;
-      letter-spacing: 0.2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      letter-spacing: 0.1px;
     }
 
-    .toggle .subtitle {
-      color: var(--muted);
-      font-size: 0.9rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .chev {
-      width: 34px;
-      height: 34px;
+    .toggle .chev {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 24px;
       border-radius: 10px;
       display: grid;
       place-items: center;
-      flex: 0 0 auto;
-      background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.12);
-      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+      background: rgba(255,255,255,0.05);
+      transition: transform 180ms ease;
     }
 
-    .toggle[aria-expanded="true"] .chev {
+    .example[data-open="true"] .toggle .chev {
       transform: rotate(180deg);
-      background: rgba(122,162,255,0.14);
-      border-color: rgba(122,162,255,0.35);
     }
 
-    /* Controlled content container must be .details */
     .details {
-      margin-top: 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(18, 26, 51, 0.45);
-      overflow: hidden;
+      padding: 0 14px 14px;
+      color: rgba(232,236,255,0.92);
+      line-height: 1.45;
+      border-top: 1px solid rgba(255,255,255,0.10);
     }
 
-    .details[hidden] { display: none; }
+    /* Collapsible animation */
+    .details[hidden] { display: block; } /* keep for measurement; JS will manage height */
+    .details.collapsing {
+      overflow: hidden;
+      height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-top-width: 0;
+    }
 
-    .details .inner {
-      padding: 12px 12px;
-      color: rgba(232,236,255,0.92);
+    .details-inner {
+      padding-top: 12px;
+    }
+
+    .details code {
+      font-family: var(--mono);
+      font-size: 0.95em;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 0.12em 0.35em;
+      border-radius: 8px;
     }
 
     .details ul {
       margin: 10px 0 0;
       padding-left: 18px;
-      color: rgba(232,236,255,0.88);
+      color: rgba(232,236,255,0.85);
     }
 
-    .details code {
-      background: rgba(255,255,255,0.08);
-      padding: 0.12em 0.35em;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-
-    /* Native <details> example styling */
-    details.native {
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(18, 26, 51, 0.65);
-      padding: 0;
-      overflow: hidden;
-    }
-
-    details.native > summary {
-      list-style: none;
-      cursor: pointer;
-      padding: 12px 12px;
+    .actions {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
       gap: 10px;
-      user-select: none;
+      flex-wrap: wrap;
+      margin-top: 10px;
     }
 
-    details.native > summary::-webkit-details-marker { display: none; }
+    .pill {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
 
-    details.native > summary:focus-visible {
-      outline: 3px solid rgba(122,162,255,0.55);
+    .pill:focus-visible {
+      outline: 2px solid var(--accent);
       outline-offset: 2px;
-      border-radius: 12px;
     }
 
-    details.native .summary-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-
-    details.native .summary-text .title {
-      font-weight: 650;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    details.native .summary-text .subtitle {
-      color: var(--muted);
+    footer {
+      margin-top: 18px;
+      color: rgba(232,236,255,0.6);
       font-size: 0.9rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    details.native .chev {
-      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
-    }
-
-    details.native[open] .chev {
-      transform: rotate(180deg);
-      background: rgba(122,162,255,0.14);
-      border-color: rgba(122,162,255,0.35);
-    }
-
-    details.native .details {
-      margin: 0;
-      border: 0;
-      border-top: 1px solid rgba(255,255,255,0.12);
-      border-radius: 0;
-      background: rgba(18, 26, 51, 0.45);
-    }
-
-    .kbd {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 0.92em;
-      padding: 0.12em 0.35em;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.08);
-      color: rgba(232,236,255,0.95);
     }
   </style>
 </head>
 <body>
   <main>
     <header>
-      <h1>Expand/Collapse Widget Demo</h1>
-      <p class="lead">
-        Two examples: a custom button-controlled panel and a native <code>&lt;details&gt;</code> element.
-        In both cases, the controlled content container uses the <code>details</code> class.
-        Tip: use <span class="kbd">Tab</span> then <span class="kbd">Enter</span>/<span class="kbd">Space</span>.
-      </p>
+      <h1>Expand/Collapse Widget</h1>
+      <p class="lead">Two accessible expand/collapse widgets. Each widget is wrapped in a <code>div.example</code>, and the controlled content container uses the <code>details</code> class.</p>
     </header>
 
     <section class="grid" aria-label="Expand/collapse examples">
-      <!-- Example 1: Custom button + controlled panel -->
-      <div class="example">
-        <div class="header">Example 1 — Button + ARIA</div>
-        <div class="content">
-          <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-a" id="toggle-a">
-            <span class="label">
-              <span class="title">Shipping & delivery</span>
-              <span class="subtitle">Estimated times, tracking, and fees</span>
-            </span>
-            <span class="chev" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M6.5 9.5L12 15l5.5-5.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
+      <div class="example" data-open="false">
+        <div class="topbar">
+          <div class="label">Example 1</div>
+          <div class="hint">button + aria-controls</div>
+        </div>
 
-          <div class="details" id="panel-a" role="region" aria-labelledby="toggle-a" hidden>
-            <div class="inner">
-              <div>
-                Orders typically ship within <strong>1–2 business days</strong>. You’ll receive a tracking link once the label is created.
-              </div>
-              <ul>
-                <li>Standard: 3–5 business days</li>
-                <li>Express: 1–2 business days</li>
-                <li>International: varies by destination</li>
-              </ul>
+        <button type="button" class="toggle" aria-expanded="false" aria-controls="details-a">
+          <span class="title">What does this widget do?</span>
+          <span class="chev" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </button>
+
+        <div id="details-a" class="details" hidden>
+          <div class="details-inner">
+            It toggles visibility of the controlled content using:
+            <ul>
+              <li><code>aria-expanded</code> on the button</li>
+              <li><code>aria-controls</code> referencing this container</li>
+              <li>Smooth height animation for expand/collapse</li>
+            </ul>
+            <div class="actions" aria-label="Example actions">
+              <button type="button" class="pill" data-action="open">Open</button>
+              <button type="button" class="pill" data-action="close">Close</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Example 2: Native details/summary, with controlled content container using .details -->
-      <div class="example">
-        <div class="header">Example 2 — Native &lt;details&gt;</div>
-        <div class="content">
-          <details class="native" id="native-b">
-            <summary>
-              <span class="summary-text">
-                <span class="title">Account security</span>
-                <span class="subtitle">Passwords, 2FA, and recovery</span>
-              </span>
-              <span class="chev" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M6.5 9.5L12 15l5.5-5.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </span>
-            </summary>
+      <div class="example" data-open="true">
+        <div class="topbar">
+          <div class="label">Example 2</div>
+          <div class="hint">starts open</div>
+        </div>
 
-            <div class="details">
-              <div class="inner">
-                <div>
-                  Enable <strong>two-factor authentication</strong> for better protection. Keep recovery codes in a safe place.
-                </div>
-                <ul>
-                  <li>Use a password manager to generate unique passwords.</li>
-                  <li>Prefer authenticator apps over SMS when possible.</li>
-                  <li>Review active sessions regularly.</li>
-                </ul>
-              </div>
-            </div>
-          </details>
+        <button type="button" class="toggle" aria-expanded="true" aria-controls="details-b">
+          <span class="title">Keyboard support?</span>
+          <span class="chev" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </button>
+
+        <div id="details-b" class="details">
+          <div class="details-inner">
+            This is a native <code>&lt;button&gt;</code>, so it works with Tab, Enter, and Space by default. Focus styles use <code>:focus-visible</code>.
+            <ul>
+              <li>Press Tab to focus the header</li>
+              <li>Press Enter/Space to toggle</li>
+            </ul>
+          </div>
         </div>
       </div>
     </section>
+
+    <footer>
+      Tip: You can duplicate <code>div.example</code> blocks to create more widgets. The controlled region must keep the <code>details</code> class.
+    </footer>
   </main>
 
   <script>
     (function () {
-      function wireToggle(button, panel) {
-        function setExpanded(expanded) {
-          button.setAttribute('aria-expanded', String(expanded));
-          panel.hidden = !expanded;
+      const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const DURATION = reduceMotion ? 0 : 200;
+
+      function setOpen(exampleEl, open) {
+        const btn = exampleEl.querySelector('.toggle');
+        const panel = exampleEl.querySelector('.details');
+        if (!btn || !panel) return;
+
+        exampleEl.dataset.open = open ? 'true' : 'false';
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+        if (DURATION === 0) {
+          panel.hidden = !open;
+          panel.style.height = '';
+          panel.classList.remove('collapsing');
+          return;
         }
 
-        button.addEventListener('click', function () {
-          const expanded = button.getAttribute('aria-expanded') === 'true';
-          setExpanded(!expanded);
-        });
+        const startHeight = panel.hidden ? 0 : panel.getBoundingClientRect().height;
 
-        // Initialize state
-        setExpanded(button.getAttribute('aria-expanded') === 'true');
+        // Ensure measurable
+        panel.hidden = false;
+        panel.classList.add('collapsing');
+        panel.style.height = startHeight + 'px';
+
+        // Force reflow
+        panel.getBoundingClientRect();
+
+        const endHeight = open ? panel.scrollHeight : 0;
+        panel.style.transition = 'height ' + DURATION + 'ms ease';
+        panel.style.height = endHeight + 'px';
+
+        const onEnd = (e) => {
+          if (e.propertyName !== 'height') return;
+          panel.removeEventListener('transitionend', onEnd);
+          panel.style.transition = '';
+          panel.style.height = '';
+          panel.classList.remove('collapsing');
+          panel.hidden = !open;
+        };
+        panel.addEventListener('transitionend', onEnd);
       }
 
-      const btnA = document.getElementById('toggle-a');
-      const panelA = document.getElementById('panel-a');
-      if (btnA && panelA) wireToggle(btnA, panelA);
+      // Initialize states
+      document.querySelectorAll('.example').forEach((ex) => {
+        const btn = ex.querySelector('.toggle');
+        const panel = ex.querySelector('.details');
+        if (!btn || !panel) return;
+
+        const open = ex.dataset.open === 'true' || btn.getAttribute('aria-expanded') === 'true' || !panel.hasAttribute('hidden');
+        ex.dataset.open = open ? 'true' : 'false';
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        panel.hidden = !open;
+
+        btn.addEventListener('click', () => {
+          const next = btn.getAttribute('aria-expanded') !== 'true';
+          setOpen(ex, next);
+        });
+
+        ex.addEventListener('click', (evt) => {
+          const actionBtn = evt.target.closest('button[data-action]');
+          if (!actionBtn) return;
+          const action = actionBtn.getAttribute('data-action');
+          if (action === 'open') setOpen(ex, true);
+          if (action === 'close') setOpen(ex, false);
+        });
+      });
     })();
   </script>
 </body>

@@ -2,133 +2,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expand/Collapse Widget Example</title>
+    <title>Expand/Collapse Widget Demo</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            padding: 2rem;
             background-color: #f4f4f9;
-            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            gap: 20px;
+            margin: 0;
         }
 
-        /* Wrapper class as requested */
+        /* Container for the widget */
         .example {
-            background: #ffffff;
+            background: white;
             border: 1px solid #ddd;
             border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            max-width: 500px;
+            width: 300px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
-        .widget-header {
-            margin: 0 0 1rem 0;
-            font-size: 1.25rem;
-        }
-
-        .toggle-button {
+        /* Button styling */
+        .toggle-btn {
             width: 100%;
-            padding: 10px 15px;
-            background-color: #0056b3;
-            color: white;
+            padding: 15px;
+            background: #fff;
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
+            border-bottom: 1px solid transparent;
             text-align: left;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: background-color 0.2s;
         }
 
-        .toggle-button:hover {
-            background-color: #004494;
-        }
-
-        .toggle-button:focus {
-            outline: 2px solid #0056b3;
-            outline-offset: 2px;
+        .toggle-btn:hover {
+            background-color: #f9f9f9;
         }
 
         /* Icon rotation */
-        .icon {
+        .toggle-btn::after {
+            content: '+';
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
             transition: transform 0.3s ease;
         }
-        
-        .toggle-button[aria-expanded="true"] .icon {
-            transform: rotate(180deg);
+
+        .toggle-btn[aria-expanded="true"] {
+            border-bottom: 1px solid #ddd;
         }
 
-        /* Content container class as requested */
+        .toggle-btn[aria-expanded="true"]::after {
+            transform: rotate(45deg);
+        }
+
+        /* The expandable content */
         .details {
-            margin-top: 10px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-left: 4px solid #0056b3;
-            border-radius: 0 4px 4px 0;
-            line-height: 1.6;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            background-color: #fafafa;
         }
 
-        /* Hiding mechanism */
-        .details[hidden] {
-            display: none;
+        .details p {
+            margin: 0;
+            padding: 15px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        /* Active state for content */
+        .details.open {
+            max-height: 200px; /* Arbitrary large height */
         }
     </style>
 </head>
 <body>
 
-    <!-- Widget Instance 1 -->
+    <!-- Widget 1: JavaScript approach -->
     <div class="example">
-        <h2 class="widget-header">Product Description</h2>
-        <button type="button" class="toggle-button" aria-expanded="false" aria-controls="content-1">
-            <span>View Details</span>
-            <span class="icon" aria-hidden="true">▼</span>
+        <button class="toggle-btn" aria-expanded="false" aria-controls="content-1">
+            Product Features
         </button>
-        <div id="content-1" class="details" hidden>
-            <p>This is a high-quality widget designed to demonstrate accessible expand and collapse functionality. It uses ARIA attributes to ensure screen readers understand the state of the content.</p>
+        <div id="content-1" class="details">
+            <p>
+                Our product features advanced analytics, real-time data processing, and a user-friendly interface designed to boost your productivity immediately.
+            </p>
         </div>
     </div>
 
-    <!-- Widget Instance 2 -->
+    <!-- Widget 2: JavaScript approach -->
     <div class="example">
-        <h2 class="widget-header">Shipping Information</h2>
-        <button type="button" class="toggle-button" aria-expanded="false" aria-controls="content-2">
-            <span>Shipping Options</span>
-            <span class="icon" aria-hidden="true">▼</span>
+        <button class="toggle-btn" aria-expanded="false" aria-controls="content-2">
+            Pricing Plans
         </button>
-        <div id="content-2" class="details" hidden>
-            <ul>
-                <li>Standard Shipping: 5-7 Business Days</li>
-                <li>Express Shipping: 2-3 Business Days</li>
-                <li>Overnight: Next Day Delivery</li>
-            </ul>
+        <div id="content-2" class="details">
+            <p>
+                We offer three tiers: Basic ($10/mo), Pro ($25/mo), and Enterprise (Contact us). All plans include 24/7 support.
+            </p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const toggles = document.querySelectorAll('.toggle-button');
+            const buttons = document.querySelectorAll('.toggle-btn');
 
-            toggles.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Get the target content ID
-                    const controlsId = btn.getAttribute('aria-controls');
-                    const content = document.getElementById(controlsId);
-
-                    // Check current state
-                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-
-                    // Toggle state
-                    btn.setAttribute('aria-expanded', !isExpanded);
-
-                    if (content) {
-                        if (isExpanded) {
-                            content.setAttribute('hidden', '');
-                        } else {
-                            content.removeAttribute('hidden');
-                        }
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const contentId = button.getAttribute('aria-controls');
+                    const content = document.getElementById(contentId);
+                    
+                    // Toggle the expanded state
+                    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+                    
+                    button.setAttribute('aria-expanded', !isExpanded);
+                    
+                    if (!isExpanded) {
+                        content.classList.add('open');
+                        // Use scrollHeight for smooth animation to exact height
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    } else {
+                        content.classList.remove('open');
+                        content.style.maxHeight = null;
                     }
                 });
             });

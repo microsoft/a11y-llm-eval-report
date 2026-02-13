@@ -1,22 +1,24 @@
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Accessible Expand/Collapse Widget Demo</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Accessible Expand/Collapse Widget Example</title>
   <style>
     :root{
-      --bg:#f8fafc;
-      --card:#ffffff;
-      --accent:#0b79d0;
-      --text:#0b1720;
-      --muted:#5b6b76;
-      --focus: 3px solid #ffd54f;
+      --bg:#ffffff;
+      --surface:#f7f9fb;
+      --accent:#0b66ff;
+      --text:#0b1a2b;
+      --muted:#6b7280;
+      --radius:8px;
+      --shadow: 0 1px 2px rgba(11,26,43,0.06), 0 4px 12px rgba(11,26,43,0.08);
     }
+
     html,body{
       height:100%;
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-      background:var(--bg);
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:linear-gradient(180deg,#fbfdff 0%, #f3f7fb 100%);
       color:var(--text);
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
@@ -24,28 +26,29 @@
     }
 
     main{
-      max-width:900px;
+      max-width:780px;
       margin:48px auto;
-      padding:20px;
+      padding:24px;
     }
 
     h1{
-      margin:0 0 8px 0;
-      font-size:1.45rem;
-    }
-    p.lead{
-      margin:0 0 20px 0;
-      color:var(--muted);
+      font-size:1.25rem;
+      margin:0 0 12px 0;
     }
 
-    /* Example wrapper required by spec */
+    p.lead{
+      margin:0 0 24px 0;
+      color:var(--muted);
+      font-size:0.95rem;
+    }
+
+    /* Example wrapper */
     .example{
-      background:var(--card);
-      border:1px solid #e6eef6;
-      border-radius:8px;
+      background:var(--surface);
+      border-radius:var(--radius);
       padding:16px;
+      box-shadow:var(--shadow);
       margin:18px 0;
-      box-shadow:0 1px 2px rgba(11,23,32,0.03);
     }
 
     /* Toggle button */
@@ -56,226 +59,272 @@
       padding:10px 14px;
       font-size:1rem;
       color:var(--accent);
-      background:transparent;
-      border:1px solid #dbeefc;
-      border-radius:6px;
+      background:linear-gradient(180deg, #fff, #f2f8ff);
+      border:1px solid rgba(11,102,255,0.12);
+      border-radius:8px;
       cursor:pointer;
-      transition:background .15s, border-color .15s, color .15s;
+      transition:box-shadow 120ms ease, transform 120ms ease;
     }
-    .toggle:hover{
-      background:#f0fbff;
-      border-color:#bfe9ff;
-    }
+
+    .toggle:active{ transform:translateY(1px); }
     .toggle:focus{
       outline:none;
-      box-shadow:var(--focus);
-      border-color:var(--accent);
+      box-shadow:0 0 0 4px rgba(11,102,255,0.12);
     }
 
-    /* Icon (pure CSS) */
-    .toggle .icon{
-      width:14px;
-      height:14px;
+    .toggle .chev{
+      width:12px;
+      height:12px;
+      transition:transform 220ms ease;
       display:inline-block;
-      position:relative;
-      flex:0 0 14px;
-    }
-    .toggle .icon::before,
-    .toggle .icon::after{
-      content:"";
-      position:absolute;
-      left:0;
-      right:0;
-      height:2px;
-      background:currentColor;
-      top:50%;
-      transform:translateY(-50%);
-      transition:transform .18s ease;
-      border-radius:2px;
-    }
-    .toggle .icon::after{
-      width:100%;
       transform-origin:center;
     }
-    .toggle[aria-expanded="false"] .icon::before{
-      transform: translateY(-50%) rotate(90deg);
-    }
-    .toggle[aria-expanded="true"] .icon::before{
-      transform: translateY(-50%) rotate(0deg);
+
+    /* When expanded, rotate the chevron */
+    .toggle[aria-expanded="true"] .chev{
+      transform:rotate(90deg);
     }
 
-    /* Details container (must have class details) */
+    /* Controlled content container (must have class "details") */
     .details{
       margin-top:12px;
+      overflow:hidden;
+      /* start collapsed */
+      max-height:0;
+      transition:max-height 320ms cubic-bezier(.2,.9,.2,1);
+      border-radius:8px;
+    }
+
+    /* When open, we'll add a class "open" to expand; max-height will be set inline to content height to animate smoothly */
+    .details.open{
+      /* max-height is set dynamically via JS to the scrollHeight */
+    }
+
+    .details .panel{
       padding:12px;
+      background:linear-gradient(180deg,#ffffff,#fbfdff);
+      border:1px solid rgba(11,26,43,0.04);
       border-radius:6px;
-      background:#fbfeff;
-      border:1px dashed #e8f6ff;
+      box-shadow:0 1px 0 rgba(11,26,43,0.02) inset;
     }
 
-    /* When hidden via attribute [hidden] browsers hide it; provide subtle transition when open */
-    .details[hidden]{
-      display:none;
+    .details p{ margin:0 0 10px 0; color:var(--muted); }
+    .details a{ color:var(--accent); }
+
+    /* Visual focus indicator for interactive elements inside details */
+    .details a:focus, .details button:focus{
+      outline:none;
+      box-shadow:0 0 0 4px rgba(11,102,255,0.08);
+      border-radius:6px;
     }
 
-    /* Additional styling inside details */
-    .details p{
-      margin:0 0 10px 0;
-      color:var(--muted);
-    }
-    .details ul{
-      margin:0 0 10px 20px;
+    /* Reduced motion preference */
+    @media (prefers-reduced-motion: reduce){
+      .details{ transition:none; }
+      .toggle{ transition:none; }
+      .toggle .chev{ transition:none; }
     }
 
-    /* Small visually hidden helper for screen readers */
-    .visually-hidden{
-      position:absolute!important;
+    /* Screen-reader only helper */
+    .sr-only{
+      position:absolute !important;
       height:1px; width:1px;
       overflow:hidden;
       clip:rect(1px, 1px, 1px, 1px);
-      white-space:nowrap;
+      white-space:nowrap; /* added line */
     }
 
-    /* Helpful footer note */
-    footer{
-      margin-top:26px;
+    /* Small helper text */
+    .hint{
+      margin-left:12px;
       color:var(--muted);
-      font-size:.9rem;
+      font-size:0.95rem;
     }
 
-    /* Responsive */
-    @media (max-width:520px){
-      .toggle{
-        width:100%;
-        justify-content:space-between;
-      }
+    footer{
+      margin-top:28px;
+      color:var(--muted);
+      font-size:0.9rem;
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>Expand / Collapse Widget — Accessible Demo</h1>
-    <p class="lead">Each widget below is wrapped with a container that has the class "example". The controlled content uses the class "details". Buttons manage aria-expanded and aria-controls for assistive technologies.</p>
+    <h1>Accessible Expand/Collapse Widget</h1>
+    <p class="lead">This page demonstrates an accessible expand/collapse widget. Each widget is wrapped in a container with class "example" and the controlled content container has the class "details". Use Enter or Space to toggle; press Escape to close when open.</p>
 
-    <!-- Example 1 -->
+    <!-- Example widget -->
     <div class="example" id="example-1">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-        <div>
-          <strong>Widget 1:</strong>
-          <div style="color:var(--muted); font-size:.95rem;">Basic information you can reveal or hide</div>
-        </div>
-        <div>
-          <button class="toggle"
-                  id="toggle-1"
-                  aria-expanded="false"
-                  aria-controls="details-1">
-            <span class="icon" aria-hidden="true"></span>
-            <span class="label">Show details</span>
-          </button>
-        </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button
+          id="toggle-1"
+          class="toggle"
+          aria-expanded="false"
+          aria-controls="details-1"
+          aria-describedby="toggle-1-desc">
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <polyline points="8 4 16 12 8 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          More details
+        </button>
+        <span id="toggle-1-desc" class="hint">Press Enter or Space to toggle</span>
       </div>
 
-      <div id="details-1" class="details" role="region" aria-labelledby="toggle-1" hidden aria-hidden="true">
-        <p><strong>Additional details:</strong> This section contains more information about the item above. It is hidden by default and can be revealed by activating the "Show details" button.</p>
-        <p>Keyboard interaction: Use Tab to focus the toggle button; press Space or Enter to toggle the content. Press Escape to close when open.</p>
-        <ul>
-          <li>Accessible labels: the button has aria-expanded and aria-controls.</li>
-          <li>The content region has role="region" and aria-labelledby pointing to the button.</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Example 2 -->
-    <div class="example" id="example-2">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-        <div>
-          <strong>Widget 2:</strong>
-          <div style="color:var(--muted); font-size:.95rem;">Example with links and a longer paragraph</div>
+      <!-- Controlled content container: must have class "details" -->
+      <div
+        id="details-1"
+        class="details"
+        role="region"
+        aria-labelledby="toggle-1"
+        aria-hidden="true">
+        <div class="panel">
+          <h2 style="margin:0 0 8px 0; font-size:1rem;">About this widget</h2>
+          <p>This content is inside the expandable region. When collapsed, assistive technologies are informed via aria-hidden. Focusable controls inside will still receive focus if tabbed to; use Escape to quickly close the region and return focus to the toggle.</p>
+          <p>Examples of interactive elements inside:</p>
+          <ul style="margin:0 0 12px 20px; color:var(--muted);">
+            <li><a href="#" id="link-inside-1">A link inside the details</a></li>
+            <li><button id="action-inside-1">A button inside</button></li>
+          </ul>
+          <p style="margin:0;color:var(--muted)">When open, the chevron rotates and the container expands smoothly.</p>
         </div>
-        <div>
-          <button class="toggle"
-                  id="toggle-2"
-                  aria-expanded="false"
-                  aria-controls="details-2">
-            <span class="icon" aria-hidden="true"></span>
-            <span class="label">Reveal content</span>
-          </button>
-        </div>
-      </div>
-
-      <div id="details-2" class="details" role="region" aria-labelledby="toggle-2" hidden aria-hidden="true">
-        <p>This content area can include interactive elements such as links, buttons, and form controls. When expanded, keyboard focus can move into this region and interact with its contents.</p>
-        <p><a href="#" style="color:var(--accent)">Example link</a> — this demonstrates that links remain keyboard accessible while inside the expanded region.</p>
-        <p>If you need to programmatically focus the first control when expanding, that can be done from script in a manner that remains respectful to the user's expectations.</p>
       </div>
     </div>
 
     <footer>
-      Note: If JavaScript is disabled, content remains collapsed (hidden). This demo includes a small script to toggle aria attributes and the hidden state for accessibility.
+      Note: This is a custom widget using a button and a container with class "details". The script manages aria-expanded, aria-hidden and keyboard behavior for accessibility.
     </footer>
   </main>
 
   <script>
     (function(){
-      // Find all examples and set up toggle behavior
-      const examples = document.querySelectorAll('.example');
+      // Helper to set up one toggleable widget
+      function setupToggle(toggleId, detailsId){
+        var toggle = document.getElementById(toggleId);
+        var details = document.getElementById(detailsId);
 
-      examples.forEach(example => {
-        const toggle = example.querySelector('.toggle');
-        if (!toggle) return;
+        if(!toggle || !details) return;
 
-        const detailsId = toggle.getAttribute('aria-controls');
-        const details = example.querySelector('#' + CSS.escape(detailsId));
-
-        if (!details) return;
-
-        // Helper to update UI state
-        function setOpen(open, moveFocus){
-          toggle.setAttribute('aria-expanded', String(open));
-          if (open){
-            // Show region
-            details.hidden = false;
-            details.setAttribute('aria-hidden','false');
-            example.classList.add('open');
-            // Update label text
-            const label = toggle.querySelector('.label');
-            if (label) label.textContent = 'Hide details';
-            if (moveFocus){
-              // Optional: move focus into the details region to the first focusable element,
-              // otherwise leave focus on the toggle button. Here we keep focus on the button
-              // but if you want to focus first control inside, implement that logic.
-            }
+        // Support for "inert" when available (improves accessibility)
+        function setInert(el, inert){
+          if('inert' in HTMLElement.prototype){
+            el.inert = inert;
           } else {
-            details.hidden = true;
-            details.setAttribute('aria-hidden','true');
-            example.classList.remove('open');
-            const label = toggle.querySelector('.label');
-            if (label) label.textContent = toggle.id === 'toggle-2' ? 'Reveal content' : 'Show details';
+            // fallback: manage tabindex for focusable children if necessary (basic)
+            var focusables = el.querySelectorAll('a[href],button,textarea,input,select,[tabindex]');
+            focusables.forEach(function(node){
+              if(inert){
+                // store previous tabindex
+                if(node.hasAttribute('tabindex')){
+                  node.setAttribute('data-prev-tabindex', node.getAttribute('tabindex'));
+                }
+                node.setAttribute('tabindex', '-1');
+              } else {
+                if(node.hasAttribute('data-prev-tabindex')){
+                  node.setAttribute('tabindex', node.getAttribute('data-prev-tabindex'));
+                  node.removeAttribute('data-prev-tabindex');
+                } else {
+                  node.removeAttribute('tabindex');
+                }
+              }
+            });
           }
         }
 
-        // Initialize (respect markup initial state)
-        setOpen(toggle.getAttribute('aria-expanded') === 'true');
+        // Open details: animate using max-height set to scrollHeight
+        function openDetails(){
+          // set aria states
+          toggle.setAttribute('aria-expanded','true');
+          details.setAttribute('aria-hidden','false');
+
+          // Measure and set max-height for transition
+          var startHeight = details.scrollHeight;
+          details.classList.add('open');
+          // Ensure the element has max-height set to allow transition from 0 to measured height
+          details.style.maxHeight = startHeight + 'px';
+
+          // Remove inert on children to allow interaction
+          setInert(details, false);
+
+          // After transition, clear max-height to allow natural height if content grows
+          var cleanup = function(){
+            // Only clear if still open
+            if(details.classList.contains('open')){
+              details.style.maxHeight = 'none';
+            }
+            details.removeEventListener('transitionend', cleanup);
+          };
+          details.addEventListener('transitionend', cleanup);
+        }
+
+        function closeDetails(){
+          toggle.setAttribute('aria-expanded','false');
+          details.setAttribute('aria-hidden','true');
+
+          // If maxHeight is none (no explicit height), set to scrollHeight to animate from current to 0
+          var currentMax = getComputedStyle(details).maxHeight;
+          if(currentMax === 'none'){
+            details.style.maxHeight = details.scrollHeight + 'px';
+            // Force style recalc so the transition will run
+            // eslint-disable-next-line no-unused-expressions
+            details.offsetHeight;
+          }
+          // then set to 0 to collapse
+          details.style.maxHeight = '0px';
+          // remove 'open' class after transition
+          var after = function(){
+            details.classList.remove('open');
+            details.removeEventListener('transitionend', after);
+          };
+          details.addEventListener('transitionend', after);
+
+          // Make children inert to avoid them being focusable (best-effort)
+          setInert(details, true);
+        }
+
+        // Toggle handler
+        function toggleHandler(event){
+          var expanded = toggle.getAttribute('aria-expanded') === 'true';
+          if(expanded){
+            closeDetails();
+          } else {
+            openDetails();
+          }
+        }
 
         // Click toggles
-        toggle.addEventListener('click', () => {
-          const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-          setOpen(!isOpen);
+        toggle.addEventListener('click', function(e){
+          toggleHandler(e);
         });
 
-        // Close on Escape when open
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' || e.key === 'Esc'){
-            if (toggle.getAttribute('aria-expanded') === 'true'){
-              setOpen(false);
+        // Keyboard: Escape closes when open (and returns focus to toggle)
+        details.addEventListener('keydown', function(e){
+          if(e.key === 'Escape' || e.key === 'Esc'){
+            // If open, close and move focus to toggle
+            if(toggle.getAttribute('aria-expanded') === 'true'){
+              closeDetails();
               toggle.focus();
             }
           }
         });
 
-        // If details contain links or other interactive elements, we do not trap focus.
-        // Optional: keep developer control for more complex focus management.
-      });
+        // If focus moves into the details and it's hidden (aria-hidden="true"), open it for keyboard users
+        details.addEventListener('focusin', function(){
+          if(toggle.getAttribute('aria-expanded') === 'false'){
+            openDetails();
+          }
+        });
+
+        // Initialize: ensure details starts hidden and inert
+        details.classList.remove('open');
+        details.style.maxHeight = '0px';
+        details.setAttribute('aria-hidden','true');
+        setInert(details, true);
+      }
+
+      // Setup the example widget(s)
+      setupToggle('toggle-1','details-1');
+
+      // If you add more widgets, call setupToggle with their IDs.
     })();
   </script>
 </body>

@@ -1,281 +1,244 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Expand/Collapse Widget Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
   <style>
     :root {
-      --bg: #0b1020;
-      --panel: #121a33;
-      --text: #e8ecff;
-      --muted: #b8c0e6;
-      --border: rgba(255,255,255,0.14);
-      --accent: #7aa2ff;
-      --shadow: 0 10px 30px rgba(0,0,0,0.35);
-      --radius: 14px;
-      --focus: 0 0 0 3px rgba(122,162,255,0.35);
+      color-scheme: light dark;
+      --border: color-mix(in oklab, CanvasText 18%, transparent);
+      --bg: color-mix(in oklab, Canvas 92%, CanvasText 8%);
+      --shadow: 0 10px 30px color-mix(in oklab, CanvasText 15%, transparent);
+      --radius: 12px;
+      --pad: 14px;
+      --gap: 10px;
+      --accent: #5b7cfa;
     }
 
-    * { box-sizing: border-box; }
     body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 600px at 20% 0%, rgba(122,162,255,0.25), transparent 60%),
-                  radial-gradient(900px 500px at 90% 10%, rgba(138,255,214,0.18), transparent 55%),
-                  var(--bg);
-      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       line-height: 1.45;
-    }
-
-    main {
-      max-width: 900px;
-      margin: 48px auto;
-      padding: 0 18px 60px;
+      margin: 0;
+      padding: 28px;
+      background: Canvas;
+      color: CanvasText;
     }
 
     h1 {
-      font-size: 1.6rem;
-      margin: 0 0 10px;
+      margin: 0 0 18px;
+      font-size: 20px;
       letter-spacing: 0.2px;
     }
 
-    p.lead {
-      margin: 0 0 26px;
-      color: var(--muted);
-      max-width: 70ch;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
     .example {
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      max-width: 760px;
+      margin: 0 0 18px;
+      padding: 16px;
       border: 1px solid var(--border);
       border-radius: var(--radius);
+      background: var(--bg);
       box-shadow: var(--shadow);
-      overflow: hidden;
     }
 
-    .example header {
-      padding: 14px 16px 0;
-    }
+    .example + .example { margin-top: 16px; }
 
-    .example header .label {
-      font-size: 0.9rem;
-      color: var(--muted);
-      margin: 0 0 10px;
-    }
-
-    /* Widget button */
-    .toggle {
-      width: 100%;
+    .row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 14px 16px;
-      border: 0;
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      cursor: pointer;
-      font-size: 1rem;
-      text-align: left;
+      gap: var(--gap);
     }
 
-    .toggle:hover { background: rgba(255,255,255,0.06); }
-    .toggle:focus-visible { outline: none; box-shadow: var(--focus); }
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: Canvas;
+      color: CanvasText;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      min-width: 160px;
+    }
 
-    .toggle .title {
+    .toggle:focus-visible {
+      outline: 3px solid color-mix(in oklab, var(--accent) 60%, transparent);
+      outline-offset: 2px;
+    }
+
+    .meta {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-top: 6px;
+    }
+
+    .details {
+      margin-top: 12px;
+      border-top: 1px dashed var(--border);
+      padding-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    /* Hidden state helper (JS sets [hidden]) */
+    .details[hidden] { display: none; }
+
+    .details p { margin: 0; }
+
+    .chip {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .badge {
-      font-size: 0.75rem;
-      padding: 2px 8px;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.18);
-      color: var(--muted);
-      background: rgba(0,0,0,0.15);
-      white-space: nowrap;
+      width: fit-content;
+      background: Canvas;
+      font-size: 13px;
     }
 
-    .chev {
-      width: 18px;
-      height: 18px;
-      flex: 0 0 auto;
-      transition: transform 180ms ease;
-      opacity: 0.9;
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      padding: 1px 6px;
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      background: color-mix(in oklab, Canvas 86%, CanvasText 14%);
     }
 
-    /* Controlled content container */
-    .details {
-      padding: 0 16px;
-      border-top: 1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.12);
-      overflow: hidden;
-      max-height: 0;
-      opacity: 0;
-      transition: max-height 220ms ease, opacity 180ms ease;
-    }
-
-    .details .inner {
-      padding: 14px 0 16px;
-      color: var(--muted);
-    }
-
-    .details a { color: var(--accent); text-decoration: none; }
-    .details a:hover { text-decoration: underline; }
-
-    /* Open state */
-    .example[data-open="true"] .details {
-      max-height: 420px; /* enough for demo content */
-      opacity: 1;
-    }
-    .example[data-open="true"] .chev { transform: rotate(180deg); }
-
-    /* Small helper list styling */
-    ul {
-      margin: 10px 0 0;
-      padding-left: 18px;
-    }
-    li { margin: 6px 0; }
-
-    footer.note {
-      margin-top: 22px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    code.kbd {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 0.9em;
-      padding: 2px 6px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(0,0,0,0.18);
-      color: var(--text);
+    /* Simple height animation */
+    .details.animating {
+      overflow: clip;
+      transition: height 220ms ease;
+      will-change: height;
     }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Expand/Collapse Widget</h1>
-    <p class="lead">
-      Each widget is wrapped in a <code class="kbd">div.example</code>. The controlled content container uses the <code class="kbd">details</code> class.
-      Use mouse/touch, or focus the button and press <code class="kbd">Enter</code>/<code class="kbd">Space</code>.
-    </p>
+  <h1>Expand/Collapse Widget Demos</h1>
 
-    <section class="grid" aria-label="Expand/collapse examples">
-      <div class="example" data-open="false">
-        <header>
-          <p class="label">Example 1</p>
-        </header>
-        <button class="toggle" type="button" aria-expanded="false" aria-controls="details-1">
-          <span class="title">
-            Shipping information
-            <span class="badge">Policy</span>
-          </span>
-          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29Z"/>
-          </svg>
-        </button>
-        <div class="details" id="details-1" role="region" aria-label="Shipping information">
-          <div class="inner">
-            Orders ship within 1–2 business days. Delivery times vary by location.
-            <ul>
-              <li>Free standard shipping over $50</li>
-              <li>Expedited options available at checkout</li>
-              <li>See <a href="#" onclick="return false;">full shipping policy</a></li>
-            </ul>
-          </div>
-        </div>
+  <div class="example" data-widget>
+    <div class="row">
+      <div>
+        <div style="font-weight:700;">Controlled panel (button + aria-expanded)</div>
+        <div class="meta">Toggles a <code>.details</code> region using JavaScript, with a small height animation.</div>
       </div>
+      <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-1">
+        Show details
+      </button>
+    </div>
 
-      <div class="example" data-open="false">
-        <header>
-          <p class="label">Example 2</p>
-        </header>
-        <button class="toggle" type="button" aria-expanded="false" aria-controls="details-2">
-          <span class="title">
-            FAQ: Returns
-            <span class="badge">30 days</span>
-          </span>
-          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29Z"/>
-          </svg>
-        </button>
-        <div class="details" id="details-2" role="region" aria-label="Returns FAQ">
-          <div class="inner">
-            You can return unused items within 30 days for a refund.
-            <ul>
-              <li>Keep original packaging when possible</li>
-              <li>Refunds processed within 3–5 business days</li>
-              <li>Some items are final sale</li>
-            </ul>
-          </div>
-        </div>
+    <div class="details" id="panel-1" role="region" aria-label="Details panel" hidden>
+      <p>This is the controlled content container. It has the <code>details</code> class as requested.</p>
+      <p class="chip">Tip: Use <span class="kbd">Tab</span> to focus the button, then <span class="kbd">Enter</span> / <span class="kbd">Space</span> to toggle.</p>
+      <ul style="margin:0; padding-left: 18px;">
+        <li>Accessible state via <code>aria-expanded</code></li>
+        <li>Content visibility controlled with <code>hidden</code></li>
+        <li>Optional height transition</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="example" data-widget>
+    <div class="row">
+      <div>
+        <div style="font-weight:700;">Accordion-style (one open at a time)</div>
+        <div class="meta">Opening this panel will close the other JS-controlled panels on the page.</div>
       </div>
+      <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-2">
+        Show details
+      </button>
+    </div>
 
-      <div class="example" data-open="false">
-        <header>
-          <p class="label">Example 3</p>
-        </header>
-        <button class="toggle" type="button" aria-expanded="false" aria-controls="details-3">
-          <span class="title">
-            Keyboard shortcuts
-            <span class="badge">Tips</span>
-          </span>
-          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.09l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29Z"/>
-          </svg>
-        </button>
-        <div class="details" id="details-3" role="region" aria-label="Keyboard shortcuts">
-          <div class="inner">
-            This widget uses a button with <code class="kbd">aria-expanded</code> and a region with <code class="kbd">aria-controls</code>.
-            <ul>
-              <li><code class="kbd">Tab</code> to focus the toggle</li>
-              <li><code class="kbd">Enter</code>/<code class="kbd">Space</code> to expand/collapse</li>
-              <li>Click/tap anywhere on the header row</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer class="note">
-      Tip: You can duplicate any <code class="kbd">div.example</code> block to create more widgets.
-    </footer>
-  </main>
+    <div class="details" id="panel-2" role="region" aria-label="Accordion panel" hidden>
+      <p>When you expand this one, other JS-controlled panels collapse.</p>
+      <p class="chip">State is synced to the button label: “Show details” / “Hide details”.</p>
+    </div>
+  </div>
 
   <script>
     (function () {
-      function setOpen(exampleEl, open) {
-        exampleEl.dataset.open = open ? "true" : "false";
-        const btn = exampleEl.querySelector(".toggle");
-        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      const widgets = Array.from(document.querySelectorAll('[data-widget]'));
+
+      function setButtonLabel(btn, expanded) {
+        btn.textContent = expanded ? 'Hide details' : 'Show details';
       }
 
-      document.querySelectorAll(".example").forEach((exampleEl) => {
-        const btn = exampleEl.querySelector(".toggle");
-        const details = exampleEl.querySelector(".details");
+      async function animatePanel(panel, open) {
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduceMotion) return;
 
-        if (!btn || !details) return;
+        panel.classList.add('animating');
+        const startHeight = panel.getBoundingClientRect().height;
 
-        // Ensure initial state is consistent
-        const initialOpen = exampleEl.dataset.open === "true";
-        setOpen(exampleEl, initialOpen);
+        if (open) {
+          panel.hidden = false;
+          panel.style.height = startHeight + 'px';
+          const endHeight = panel.scrollHeight;
+          panel.getBoundingClientRect(); // force reflow
+          panel.style.height = endHeight + 'px';
+        } else {
+          const endHeight = 0;
+          panel.style.height = startHeight + 'px';
+          panel.getBoundingClientRect(); // force reflow
+          panel.style.height = endHeight + 'px';
+        }
 
-        btn.addEventListener("click", () => {
-          const isOpen = exampleEl.dataset.open === "true";
-          setOpen(exampleEl, !isOpen);
+        await new Promise(resolve => {
+          const done = () => {
+            panel.removeEventListener('transitionend', done);
+            resolve();
+          };
+          panel.addEventListener('transitionend', done, { once: true });
+          setTimeout(resolve, 350); // fallback
         });
-      });
+
+        panel.classList.remove('animating');
+        panel.style.height = '';
+
+        if (!open) panel.hidden = true;
+      }
+
+      function closeAllExcept(exceptPanelId) {
+        for (const w of widgets) {
+          const btn = w.querySelector('.toggle');
+          const panelId = btn?.getAttribute('aria-controls');
+          const panel = panelId ? document.getElementById(panelId) : null;
+          if (!btn || !panel) continue;
+          if (panelId === exceptPanelId) continue;
+
+          const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+          if (isExpanded) {
+            btn.setAttribute('aria-expanded', 'false');
+            setButtonLabel(btn, false);
+            animatePanel(panel, false);
+          }
+        }
+      }
+
+      for (const w of widgets) {
+        const btn = w.querySelector('.toggle');
+        if (!btn) continue;
+
+        const panelId = btn.getAttribute('aria-controls');
+        const panel = panelId ? document.getElementById(panelId) : null;
+        if (!panel || !panel.classList.contains('details')) continue;
+
+        setButtonLabel(btn, false);
+
+        btn.addEventListener('click', async () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          const next = !expanded;
+
+          // Accordion behavior: close others when opening
+          if (next) closeAllExcept(panelId);
+
+          btn.setAttribute('aria-expanded', String(next));
+          setButtonLabel(btn, next);
+          await animatePanel(panel, next);
+        });
+      }
     })();
   </script>
 </body>

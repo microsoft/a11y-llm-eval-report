@@ -2,294 +2,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expand/Collapse Widget Example - Accessibility Demo</title>
+    <title>Expand/Collapse Widget Example - Accessible Components</title>
     <style>
+        /* 
+         * CSS Custom Properties (Design Tokens)
+         * Enforcing specific color palette for consistency and contrast.
+         */
         :root {
-            /* Design Tokens */
             --color-bg: #ffffff;
-            --color-text: #212121;
-            --color-muted: #595959;
-            --color-primary: #005a9c;
+            --color-text: #212529;
+            --color-primary: #005a9c; /* Meets 4.5:1 against white */
             --color-primary-hover: #004475;
-            --color-border: #767676;
-            --color-focus: #000000;
-            --color-focus-bg: #ffdd00;
-            
-            /* Spacing */
-            --space-sm: 0.5rem;
-            --space-md: 1rem;
-            --space-lg: 1.5rem;
-            
-            /* Typography */
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --color-border: #ced4da;
+            --color-bg-light: #f8f9fa;
+            --color-focus: #005a9c;
+            --color-focus-ring: #80bdff;
+            --focus-outline-width: 3px;
         }
 
-        /* Reset & Base */
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-
+        /* 
+         * Base Styles 
+         */
         body {
-            margin: 0;
-            font-family: var(--font-family);
-            background-color: var(--color-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
             color: var(--color-text);
-            line-height: 1.5;
+            background-color: var(--color-bg);
+            margin: 0;
+            padding: 0;
         }
 
-        /* Skip Link */
+        /* 
+         * Skip Link 
+         * Hidden visually until focused.
+         */
         .skip-link {
             position: absolute;
             top: 0;
             left: 0;
-            padding: var(--space-sm) var(--space-md);
-            background: var(--color-bg);
-            color: var(--color-primary);
-            border: 2px solid var(--color-primary);
+            background: var(--color-primary);
+            color: #fff;
+            padding: 0.5rem 1rem;
             z-index: 100;
+            text-decoration: none;
             transform: translateY(-100%);
             transition: transform 0.2s;
-            text-decoration: none;
-            font-weight: bold;
         }
 
         .skip-link:focus {
             transform: translateY(0);
-            outline: 3px solid var(--color-focus);
+            outline: var(--focus-outline-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
-        /* Layout */
-        .container {
-            max-width: 48rem; /* ~768px */
+        /* 
+         * Layout Landmarks 
+         */
+        header, main, footer {
+            padding: 1rem;
+            max-width: 800px;
             margin: 0 auto;
-            padding: var(--space-lg);
         }
 
-        /* Typography */
+        header {
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 2rem;
+        }
+
         h1 {
-            margin-top: 0;
+            margin: 0;
             font-size: 2rem;
         }
 
         h2 {
             font-size: 1.5rem;
-            color: var(--color-text);
+            margin-top: 2rem;
+            color: var(--color-primary);
         }
 
-        p {
-            margin-bottom: var(--space-md);
-            max-width: 65ch; /* Readable line length */
-        }
-
-        /* Focus Management */
-        :focus-visible {
-            outline: 3px solid var(--color-focus);
-            outline-offset: 2px;
-            background-color: var(--color-focus-bg);
-            color: var(--color-focus);
-        }
-
-        /* Widget Styles */
+        /* 
+         * Widget Styling 
+         */
         .example {
             border: 1px solid var(--color-border);
             border-radius: 4px;
-            margin-bottom: var(--space-lg);
-            overflow: hidden; /* Ensures border radius clips content */
+            margin-bottom: 1.5rem;
+            overflow: hidden; /* Ensures rounded corners */
         }
 
-        .accordion-trigger {
+        /* 
+         * Trigger Button
+         * Using native <button> for keyboard accessibility.
+         */
+        .disclosure-btn {
             appearance: none;
-            background: transparent;
+            background-color: var(--color-bg-light);
             border: none;
-            border-bottom: 1px solid transparent; /* Reserve space for border */
-            width: 100%;
-            text-align: left;
-            padding: var(--space-md);
-            font-size: 1.125rem;
-            font-weight: bold;
-            color: var(--color-primary);
+            border-bottom: 1px solid transparent; /* Reserve space for border when open */
+            color: var(--color-text);
             cursor: pointer;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            font-size: 1.125rem;
+            font-weight: 600;
+            padding: 1rem;
+            text-align: left;
+            width: 100%;
         }
 
-        .accordion-trigger:hover {
-            background-color: #f0f6fc;
-            color: var(--color-primary-hover);
-            text-decoration: underline;
+        .disclosure-btn:hover {
+            background-color: #e2e6ea;
+            color: var(--color-primary);
         }
 
-        .accordion-trigger[aria-expanded="true"] {
-            border-bottom-color: var(--color-border);
-            background-color: #f8f9fa;
-            color: var(--color-text);
+        /* Focus styles: High contrast double border approach for visibility */
+        .disclosure-btn:focus-visible {
+            outline: var(--focus-outline-width) solid var(--color-focus);
+            outline-offset: -2px; /* Pulls outline inside */
+            z-index: 1; /* Ensure outline sits above content */
         }
 
-        /* Icon rotation */
-        .accordion-icon {
+        /* SVG Icon rotation based on state */
+        .disclosure-btn svg {
             width: 1.5rem;
             height: 1.5rem;
+            fill: currentColor; /* Adapts to text color automatically */
             transition: transform 0.2s ease-in-out;
-            fill: currentColor;
-            pointer-events: none; /* Icon is decorative */
         }
 
-        .accordion-trigger[aria-expanded="true"] .accordion-icon {
+        .disclosure-btn[aria-expanded="true"] svg {
             transform: rotate(180deg);
         }
 
+        .disclosure-btn[aria-expanded="true"] {
+            border-bottom-color: var(--color-border);
+            background-color: #e9ecef;
+        }
+
+        /* 
+         * Content Panel 
+         * Using [hidden] attribute for state management.
+         */
         .details {
-            padding: var(--space-md);
+            padding: 1rem;
             background-color: var(--color-bg);
         }
 
-        /* Utility for hiding content accessibly */
-        [hidden] {
-            display: none !important;
+        /* Ensure hidden content is truly hidden from layout and AT */
+        .details[hidden] {
+            display: none;
         }
 
-        /* High Contrast / Forced Colors Mode Support */
+        /* 
+         * High Contrast / Forced Colors Mode Support 
+         */
         @media (forced-colors: active) {
-            .skip-link {
-                border: 2px solid ButtonText;
+            .disclosure-btn:focus-visible {
+                outline: 2px solid CanvasText;
+                outline-offset: 2px;
             }
             
             .example {
                 border: 2px solid CanvasText;
             }
 
-            .accordion-trigger {
-                border: 1px solid ButtonBorder;
-                color: ButtonText;
-            }
-            
-            .accordion-trigger:hover,
-            .accordion-trigger:focus {
-                border: 2px solid Highlight;
-            }
-
-            :focus-visible {
-                outline: 2px solid Highlight;
-                background-color: Canvas;
-                color: CanvasText;
+            .disclosure-btn {
+                border-bottom: 1px solid ButtonText;
             }
         }
     </style>
 </head>
 <body>
 
+    <a href="#maincontent" class="skip-link">Skip to main content</a>
+
     <header>
-        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <h1>Accessible Expand/Collapse Widgets</h1>
     </header>
 
-    <main id="main-content" class="container" tabindex="-1">
-        <h1>Frequently Asked Questions</h1>
-        <p>Select a question below to reveal the answer.</p>
+    <main id="maincontent" tabindex="-1">
+        
+        <p>
+            The following examples demonstrate accessible disclosure widgets (often called accordions or expand/collapse sections). 
+            They use semantic HTML buttons, ARIA attributes for state, and high-contrast focus indicators.
+        </p>
 
-        <!-- Widget 1 -->
-        <div class="example">
-            <h3>
-                <button type="button" 
-                        class="accordion-trigger" 
-                        aria-expanded="false" 
-                        aria-controls="sect1" 
-                        id="accordion1id">
-                    <span>What is the return policy?</span>
-                    <svg class="accordion-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
-                    </svg>
-                </button>
-            </h3>
-            <div id="sect1" 
-                 class="details" 
-                 role="region" 
-                 aria-labelledby="accordion1id" 
-                 hidden>
-                <p>You can return any item within 30 days of purchase. Please ensure the item is in its original condition and packaging.</p>
-                <p><a href="#">Read full return policy</a>.</p>
+        <!-- Example 1: Single Disclosure -->
+        <section aria-labelledby="heading-1">
+            <h2 id="heading-1">Frequently Asked Questions</h2>
+            
+            <div class="example">
+                <h3>
+                    <button type="button" 
+                            class="disclosure-btn" 
+                            aria-expanded="false" 
+                            aria-controls="faq-answer-1" 
+                            id="faq-btn-1">
+                        <span>What is the return policy?</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
+                        </svg>
+                    </button>
+                </h3>
+                <div id="faq-answer-1" class="details" hidden>
+                    <p>Our return policy allows you to return items within 30 days of purchase for a full refund. Items must be in their original condition and packaging.</p>
+                </div>
             </div>
-        </div>
 
-        <!-- Widget 2 -->
-        <div class="example">
-            <h3>
-                <button type="button" 
-                        class="accordion-trigger" 
-                        aria-expanded="false" 
-                        aria-controls="sect2" 
-                        id="accordion2id">
-                    <span>How do I track my order?</span>
-                    <svg class="accordion-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
-                    </svg>
-                </button>
-            </h3>
-            <div id="sect2" 
-                 class="details" 
-                 role="region" 
-                 aria-labelledby="accordion2id" 
-                 hidden>
-                <p>Once your order ships, you will receive an email with a tracking number. You can also view your order status in your account dashboard.</p>
+            <div class="example">
+                <h3>
+                    <button type="button" 
+                            class="disclosure-btn" 
+                            aria-expanded="false" 
+                            aria-controls="faq-answer-2" 
+                            id="faq-btn-2">
+                        <span>How do I track my order?</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
+                        </svg>
+                    </button>
+                </h3>
+                <div id="faq-answer-2" class="details" hidden>
+                    <p>Once your order has shipped, you will receive an email with a tracking number. You can use this number on our website to check the status of your delivery.</p>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Widget 3 -->
-        <div class="example">
-            <h3>
-                <button type="button" 
-                        class="accordion-trigger" 
-                        aria-expanded="false" 
-                        aria-controls="sect3" 
-                        id="accordion3id">
-                    <span>Do you offer international shipping?</span>
-                    <svg class="accordion-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
-                    </svg>
-                </button>
-            </h3>
-            <div id="sect3" 
-                 class="details" 
-                 role="region" 
-                 aria-labelledby="accordion3id" 
-                 hidden>
-                <p>Yes, we ship to over 50 countries worldwide. Shipping costs and delivery times vary by location.</p>
+        <!-- Example 2: Complex Content -->
+        <section aria-labelledby="heading-2">
+            <h2 id="heading-2">Account Settings</h2>
+
+            <div class="example">
+                <h3>
+                    <button type="button" 
+                            class="disclosure-btn" 
+                            aria-expanded="false" 
+                            aria-controls="privacy-settings" 
+                            id="privacy-btn">
+                        <span>Privacy Preferences</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
+                        </svg>
+                    </button>
+                </h3>
+                <div id="privacy-settings" class="details" hidden>
+                    <p>Manage how your data is used.</p>
+                    <form action="#" method="get">
+                        <div style="margin-bottom: 1rem;">
+                            <input type="checkbox" id="marketing-emails" name="marketing">
+                            <label for="marketing-emails">Receive marketing emails</label>
+                        </div>
+                        <button type="button" style="padding: 0.5rem 1rem; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Save Changes</button>
+                    </form>
+                </div>
             </div>
-        </div>
+        </section>
 
     </main>
 
+    <footer>
+        <p>&copy; 2023 Accessible Widgets Demo.</p>
+    </footer>
+
     <script>
         /**
-         * Accessible Expand/Collapse Widget Logic
-         * 
-         * Requirements:
-         * 1. Toggle aria-expanded on the trigger button.
-         * 2. Toggle the hidden attribute (or display style) on the controlled content.
+         * Accessible Disclosure Pattern
+         * Handles toggle logic and ARIA state updates.
          */
         document.addEventListener('DOMContentLoaded', () => {
-            const triggers = document.querySelectorAll('.accordion-trigger');
+            const triggers = document.querySelectorAll('.disclosure-btn');
 
             triggers.forEach(trigger => {
                 trigger.addEventListener('click', () => {
+                    // Get the value of aria-expanded (string "true" or "false")
                     const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
-                    const controlsId = trigger.getAttribute('aria-controls');
-                    const content = document.getElementById(controlsId);
+                    const targetId = trigger.getAttribute('aria-controls');
+                    const content = document.getElementById(targetId);
 
-                    if (!content) {
-                        console.warn(`No content found for ID: ${controlsId}`);
-                        return;
-                    }
+                    if (!content) return;
 
                     // Toggle State
+                    // 1. Toggle aria-expanded on the button
                     trigger.setAttribute('aria-expanded', !isExpanded);
-                    
-                    // Toggle Visibility
+
+                    // 2. Toggle the hidden attribute on the content container
                     if (isExpanded) {
-                        content.setAttribute('hidden', '');
+                        content.hidden = true;
                     } else {
-                        content.removeAttribute('hidden');
+                        content.hidden = false;
                     }
                 });
             });

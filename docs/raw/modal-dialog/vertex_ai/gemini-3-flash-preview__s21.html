@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modal Dialog Example</title>
+    <title>Modal Dialog Component</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -17,13 +17,12 @@
         .trigger {
             padding: 12px 24px;
             font-size: 16px;
-            font-weight: 600;
-            color: white;
+            cursor: pointer;
             background-color: #007bff;
+            color: white;
             border: none;
             border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background 0.2s;
         }
 
         .trigger:hover {
@@ -36,15 +35,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.5);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-        }
-
-        .modal-overlay.active {
-            display: flex;
         }
 
         .modal-content {
@@ -53,73 +48,102 @@
             border-radius: 8px;
             width: 90%;
             max-width: 400px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: relative;
-            animation: slideDown 0.3s ease-out;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
         }
 
-        @keyframes slideDown {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
         }
 
         .modal-header {
-            margin-bottom: 16px;
+            margin-top: 0;
             font-size: 20px;
-            font-weight: bold;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
         }
 
         .modal-body {
-            margin-bottom: 24px;
-            color: #4b5563;
+            margin: 15px 0;
+            color: #444;
             line-height: 1.5;
         }
 
-        .close-btn {
-            padding: 8px 16px;
-            background-color: #e5e7eb;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            float: right;
+        .modal-footer {
+            text-align: right;
+            margin-top: 20px;
         }
 
-        .close-btn:hover {
-            background-color: #d1d5db;
+        .btn-close-modal {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
 
-    <button class="trigger" id="openModal">Open Modal</button>
+    <button class="trigger">Open Modal</button>
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
-            <div class="modal-header">Modal Title</div>
+            <button class="modal-close" id="closeX">&times;</button>
+            <h2 class="modal-header">Modal Title</h2>
             <div class="modal-body">
-                This is a standalone modal dialog. It is hidden by default and appears when you click the trigger button.
+                <p>This is a standalone modal dialog component. It is hidden by default and appears when you click the trigger button.</p>
             </div>
-            <button class="close-btn" id="closeModal">Close</button>
-            <div style="clear: both;"></div>
+            <div class="modal-footer">
+                <button class="btn-close-modal" id="closeBtn">Close</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const trigger = document.getElementById('openModal');
+        const trigger = document.querySelector('.trigger');
         const overlay = document.getElementById('modalOverlay');
-        const closeBtn = document.getElementById('closeModal');
+        const closeX = document.getElementById('closeX');
+        const closeBtn = document.getElementById('closeBtn');
 
-        trigger.addEventListener('click', () => {
+        function openModal() {
             overlay.classList.add('active');
-        });
+            document.body.style.overflow = 'hidden';
+        }
 
-        closeBtn.addEventListener('click', () => {
+        function closeModal() {
             overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        trigger.addEventListener('click', openModal);
+        closeX.addEventListener('click', closeModal);
+        closeBtn.addEventListener('click', closeModal);
+
+        // Close when clicking outside the content
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal();
         });
 
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.classList.remove('active');
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                closeModal();
             }
         });
     </script>

@@ -1,361 +1,278 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Expand/Collapse Widget Examples</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
   <style>
     :root {
-      --bg: #0b1020;
-      --panel: #121a33;
-      --text: #e9eefc;
-      --muted: #b7c2e6;
-      --border: rgba(255,255,255,.14);
-      --accent: #7aa2ff;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius: 14px;
-      --focus: 0 0 0 3px rgba(122,162,255,.35);
+      color-scheme: light dark;
+      --border: color-mix(in oklab, CanvasText 20%, Canvas);
+      --bg: color-mix(in oklab, Canvas 96%, CanvasText);
+      --muted: color-mix(in oklab, CanvasText 55%, Canvas);
+      --accent: color-mix(in oklab, Highlight 85%, CanvasText);
+      --radius: 12px;
+      --shadow: 0 10px 30px color-mix(in oklab, CanvasText 12%, transparent);
     }
 
-    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 600px at 20% 0%, rgba(122,162,255,.18), transparent 60%),
-                  radial-gradient(900px 500px at 90% 10%, rgba(122,255,214,.10), transparent 55%),
-                  var(--bg);
-      color: var(--text);
-      line-height: 1.45;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: Canvas;
+      color: CanvasText;
+      line-height: 1.4;
     }
 
     main {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 28px 18px 60px;
-    }
-
-    header {
-      margin: 10px 0 22px;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 16px 40px;
     }
 
     h1 {
+      margin: 0 0 14px;
       font-size: 1.6rem;
-      margin: 0 0 6px;
-      letter-spacing: .2px;
+      letter-spacing: -0.02em;
     }
 
-    p.lead {
-      margin: 0;
+    p.lede {
+      margin: 0 0 24px;
       color: var(--muted);
-      max-width: 70ch;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      margin-top: 18px;
-    }
-
-    @media (min-width: 860px) {
-      .grid { grid-template-columns: 1fr 1fr; }
     }
 
     .example {
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
       border: 1px solid var(--border);
+      background: var(--bg);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 14px;
+      padding: 14px 14px 10px;
+      margin: 16px 0;
     }
 
     .example h2 {
-      font-size: 1.05rem;
       margin: 0 0 10px;
-      color: var(--text);
-      font-weight: 650;
+      font-size: 1.05rem;
+      color: color-mix(in oklab, CanvasText 86%, Canvas);
     }
 
-    /* Shared widget styling */
-    .widget {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: clip;
-      background: rgba(18, 26, 51, .55);
-    }
-
-    .widget .toggle {
-      width: 100%;
+    /* Widget */
+    .toggle {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 12px 12px;
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      border: 0;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: color-mix(in oklab, Canvas 88%, CanvasText);
+      color: CanvasText;
       cursor: pointer;
+      user-select: none;
       text-align: left;
       font: inherit;
     }
 
-    .widget .toggle:focus-visible {
-      outline: none;
-      box-shadow: var(--focus);
-      position: relative;
-      z-index: 1;
+    .toggle:focus-visible {
+      outline: 3px solid color-mix(in oklab, var(--accent) 40%, transparent);
+      outline-offset: 2px;
     }
 
-    .widget .toggle .label {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-
-    .widget .toggle .title {
+    .toggle .label {
       font-weight: 650;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
-    .widget .toggle .subtitle {
-      font-size: .9rem;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .chev {
+    .toggle .chev {
       width: 18px;
       height: 18px;
-      flex: 0 0 auto;
-      transition: transform 180ms ease;
-      opacity: .95;
+      flex: none;
+      transition: transform 160ms ease;
+      opacity: 0.85;
     }
 
-    /* Controlled content container must have class "details" */
+    .example[data-open="true"] .toggle .chev {
+      transform: rotate(180deg);
+    }
+
     .details {
-      padding: 12px 12px 14px;
-      border-top: 1px solid var(--border);
-      color: var(--text);
-    }
-
-    .details p {
-      margin: 0 0 10px;
-      color: var(--muted);
-    }
-
-    .details ul {
-      margin: 0;
-      padding-left: 18px;
-      color: var(--muted);
-    }
-
-    .details code {
-      color: #d7e2ff;
-      background: rgba(122,162,255,.12);
-      border: 1px solid rgba(122,162,255,.22);
-      padding: 1px 6px;
-      border-radius: 999px;
-      font-size: .92em;
-    }
-
-    /* JS-controlled collapse animation */
-    .details[data-collapsible="true"] {
-      padding-top: 0;
-      padding-bottom: 0;
-      border-top: 0;
       overflow: hidden;
       max-height: 0;
       opacity: 0;
-      transition: max-height 220ms ease, opacity 160ms ease;
+      transform: translateY(-2px);
+      transition: max-height 220ms ease, opacity 160ms ease, transform 160ms ease;
+      will-change: max-height;
     }
 
-    .widget[data-open="true"] .details[data-collapsible="true"] {
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-      padding-bottom: 14px;
+    .example[data-open="true"] .details {
       opacity: 1;
+      transform: translateY(0);
     }
 
-    .widget[data-open="true"] .chev { transform: rotate(180deg); }
-
-    /* Native <details> styling */
-    details.native {
+    .details .content {
+      padding: 10px 12px 12px;
       border: 1px solid var(--border);
-      border-radius: 12px;
-      background: rgba(18, 26, 51, .55);
-      overflow: clip;
+      border-top: 0;
+      border-radius: 0 0 10px 10px;
+      background: color-mix(in oklab, Canvas 94%, CanvasText);
+      color: color-mix(in oklab, CanvasText 90%, Canvas);
     }
 
-    details.native > summary {
-      list-style: none;
-      cursor: pointer;
-      padding: 12px 12px;
-      background: rgba(255,255,255,.04);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      user-select: none;
+    .details .content p {
+      margin: 0 0 10px;
     }
-
-    details.native > summary::-webkit-details-marker { display: none; }
-
-    details.native > summary:focus-visible {
-      outline: none;
-      box-shadow: var(--focus);
-      position: relative;
-      z-index: 1;
-    }
-
-    details.native[open] .chev { transform: rotate(180deg); }
-
-    /* Ensure the controlled content container has class "details" even in native example */
-    details.native > .details {
-      border-top: 1px solid var(--border);
-      padding: 12px 12px 14px;
+    .details .content p:last-child {
+      margin-bottom: 0;
     }
 
     .hint {
       margin-top: 10px;
-      font-size: .92rem;
       color: var(--muted);
+      font-size: 0.95rem;
     }
 
-    .kbd {
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px dashed var(--border);
+      border-radius: 999px;
+      background: color-mix(in oklab, Canvas 92%, CanvasText);
+      font-size: 0.95rem;
+    }
+
+    kbd {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: .92em;
+      font-size: 0.9em;
       padding: 2px 6px;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 1px solid var(--border);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
+      background: color-mix(in oklab, Canvas 96%, CanvasText);
     }
   </style>
 </head>
 <body>
   <main>
-    <header>
-      <h1>Expand/Collapse Widget</h1>
-      <p class="lead">Two examples: a JavaScript-controlled widget and a native <span class="kbd">&lt;details&gt;</span> widget. In both cases, the controlled content container uses the <code>details</code> class, and each widget is wrapped in a <code>div.example</code>.</p>
-    </header>
+    <h1>Expand/Collapse Widget</h1>
+    <p class="lede">Each widget is wrapped in a <code>div.example</code>. The controlled content container uses the <code>details</code> class.</p>
 
-    <section class="grid" aria-label="Expand/collapse examples">
-      <div class="example">
-        <h2>Example 1: Button + controlled panel (ARIA)</h2>
+    <div class="example" data-open="false">
+      <h2>Example 1: Simple section</h2>
+      <button class="toggle" type="button" aria-expanded="false" aria-controls="details-1">
+        <span class="label">What is this widget?</span>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6.7 9.2a1 1 0 0 1 1.4 0L12 13.1l3.9-3.9a1 1 0 1 1 1.4 1.4l-4.6 4.6a1 1 0 0 1-1.4 0L6.7 10.6a1 1 0 0 1 0-1.4z" fill="currentColor"/>
+        </svg>
+      </button>
 
-        <div class="widget" data-open="false">
-          <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-1" id="toggle-1">
-            <span class="label">
-              <span class="title">Shipping &amp; returns</span>
-              <span class="subtitle">Click to view policy details</span>
-            </span>
-            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.1l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.28Z"/>
-            </svg>
-          </button>
+      <div id="details-1" class="details" role="region" aria-label="What is this widget?">
+        <div class="content">
+          <p>This is a basic expand/collapse component controlled by a button.</p>
+          <p>It animates height, updates <code>aria-expanded</code>, and can be toggled with mouse, touch, or keyboard.</p>
+          <div class="hint">Tip: Press <kbd>Tab</kbd> to focus the button, then press <kbd>Enter</kbd> or <kbd>Space</kbd>.</div>
+        </div>
+      </div>
+    </div>
 
-          <div class="details" id="panel-1" role="region" aria-labelledby="toggle-1" data-collapsible="true">
-            <p>
-              Orders ship within 1–2 business days. Returns are accepted within 30 days of delivery.
-              Keep your receipt and original packaging.
-            </p>
-            <ul>
-              <li>Free standard shipping over $50</li>
-              <li>Return label provided for eligible items</li>
-              <li>Refunds processed in 3–5 business days</li>
-            </ul>
+    <div class="example" data-open="true">
+      <h2>Example 2: Starts expanded</h2>
+      <button class="toggle" type="button" aria-expanded="true" aria-controls="details-2">
+        <span class="label">Show me some extra info</span>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6.7 9.2a1 1 0 0 1 1.4 0L12 13.1l3.9-3.9a1 1 0 1 1 1.4 1.4l-4.6 4.6a1 1 0 0 1-1.4 0L6.7 10.6a1 1 0 0 1 0-1.4z" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <div id="details-2" class="details" role="region" aria-label="Show me some extra info">
+        <div class="content">
+          <p>Because this one starts open, the script measures and sets its height on load.</p>
+          <div class="row">
+            <span class="pill"><strong>Status:</strong> Open</span>
+            <span class="pill"><strong>ARIA:</strong> <code>aria-expanded="true"</code></span>
+            <span class="pill"><strong>Class:</strong> <code>details</code></span>
           </div>
         </div>
-
-        <div class="hint">Keyboard: focus the button and press <span class="kbd">Enter</span> or <span class="kbd">Space</span>.</div>
       </div>
+    </div>
 
-      <div class="example">
-        <h2>Example 2: Native &lt;details&gt; + summary</h2>
+    <div class="example" data-open="false">
+      <h2>Example 3: Nested content</h2>
+      <button class="toggle" type="button" aria-expanded="false" aria-controls="details-3">
+        <span class="label">Read the FAQ</span>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6.7 9.2a1 1 0 0 1 1.4 0L12 13.1l3.9-3.9a1 1 0 1 1 1.4 1.4l-4.6 4.6a1 1 0 0 1-1.4 0L6.7 10.6a1 1 0 0 1 0-1.4z" fill="currentColor"/>
+        </svg>
+      </button>
 
-        <details class="native">
-          <summary>
-            <span class="label">
-              <span class="title">FAQ</span>
-              <span class="subtitle">Native disclosure element</span>
-            </span>
-            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path fill="currentColor" d="M12 15.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 13.1l5.3-5.3a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.28Z"/>
-            </svg>
-          </summary>
-
-          <div class="details">
-            <p><strong>Q:</strong> Does this work without JavaScript?</p>
-            <p><strong>A:</strong> Yes—this example uses the browser’s built-in expand/collapse behavior.</p>
-            <p><strong>Tip:</strong> You can style the controlled content via the shared <code>details</code> class.</p>
-          </div>
-        </details>
-
-        <div class="hint">Keyboard: focus the summary and press <span class="kbd">Enter</span>.</div>
+      <div id="details-3" class="details" role="region" aria-label="Read the FAQ">
+        <div class="content">
+          <p><strong>Q:</strong> Can the content include lists?</p>
+          <p><strong>A:</strong> Yes. Any markup can go inside the <code>details</code> container.</p>
+          <ul>
+            <li>Lists</li>
+            <li>Links</li>
+            <li>Forms</li>
+          </ul>
+        </div>
       </div>
-    </section>
+    </div>
   </main>
 
   <script>
     (function () {
-      const widgets = document.querySelectorAll('.widget');
-
-      function setOpen(widget, open) {
-        widget.dataset.open = open ? 'true' : 'false';
-        const btn = widget.querySelector('.toggle');
-        const panel = widget.querySelector('.details');
-
-        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-
-        // Animate max-height based on content height
-        if (panel && panel.dataset.collapsible === 'true') {
-          if (open) {
-            panel.style.maxHeight = panel.scrollHeight + 'px';
-            // After transition, remove explicit maxHeight so it can grow with content
-            window.setTimeout(() => {
-              if (widget.dataset.open === 'true') panel.style.maxHeight = 'none';
-            }, 240);
-          } else {
-            // If it was 'none', set to current height first so it can animate closed
-            if (getComputedStyle(panel).maxHeight === 'none') {
-              panel.style.maxHeight = panel.scrollHeight + 'px';
-              // Force reflow
-              panel.offsetHeight;
-            }
-            panel.style.maxHeight = '0px';
-          }
-        }
+      function setCollapsed(detailsEl) {
+        detailsEl.style.maxHeight = "0px";
       }
 
-      widgets.forEach(widget => {
-        const btn = widget.querySelector('.toggle');
-        const panel = widget.querySelector('.details');
+      function setExpanded(detailsEl) {
+        // Temporarily set to 'auto' via scrollHeight for smooth animation.
+        detailsEl.style.maxHeight = detailsEl.scrollHeight + "px";
+      }
 
-        if (!btn || !panel) return;
+      function syncExample(exampleEl, open) {
+        const btn = exampleEl.querySelector(".toggle");
+        const detailsEl = exampleEl.querySelector(".details");
+        if (!btn || !detailsEl) return;
 
-        // Initialize collapsed state
-        panel.dataset.collapsible = 'true';
-        panel.style.maxHeight = '0px';
-        setOpen(widget, false);
+        exampleEl.dataset.open = open ? "true" : "false";
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
 
-        btn.addEventListener('click', () => {
-          const isOpen = widget.dataset.open === 'true';
-          setOpen(widget, !isOpen);
+        if (open) setExpanded(detailsEl);
+        else setCollapsed(detailsEl);
+      }
+
+      function init(exampleEl) {
+        const btn = exampleEl.querySelector(".toggle");
+        const detailsEl = exampleEl.querySelector(".details");
+        if (!btn || !detailsEl) return;
+
+        // Initialize based on data-open.
+        const open = exampleEl.dataset.open === "true";
+        syncExample(exampleEl, open);
+
+        btn.addEventListener("click", function () {
+          const next = exampleEl.dataset.open !== "true";
+          syncExample(exampleEl, next);
         });
 
-        // Keep height correct on resize when open
-        window.addEventListener('resize', () => {
-          if (widget.dataset.open === 'true' && panel.dataset.collapsible === 'true') {
-            panel.style.maxHeight = panel.scrollHeight + 'px';
-            window.setTimeout(() => {
-              if (widget.dataset.open === 'true') panel.style.maxHeight = 'none';
-            }, 240);
-          }
+        // If content changes size while open, keep max-height in sync.
+        const ro = new ResizeObserver(() => {
+          if (exampleEl.dataset.open === "true") setExpanded(detailsEl);
         });
+        ro.observe(detailsEl);
+      }
+
+      document.querySelectorAll(".example").forEach(init);
+
+      // Re-measure on viewport changes for open panels.
+      window.addEventListener("resize", () => {
+        document.querySelectorAll('.example[data-open="true"] .details').forEach(setExpanded);
       });
     })();
   </script>

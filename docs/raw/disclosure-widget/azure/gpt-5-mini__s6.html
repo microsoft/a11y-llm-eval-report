@@ -2,296 +2,247 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Expand / Collapse Widget Examples</title>
+  <title>Expand/Collapse Widget Examples</title>
   <style>
     :root{
-      --accent:#0b79d0;
-      --muted:#666;
       --bg:#f7f9fb;
+      --card:#ffffff;
+      --accent:#0366d6;
+      --muted:#6b7280;
       --radius:8px;
+      --transition:250ms;
     }
-    body{
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin: 24px;
-      background: linear-gradient(180deg,#fff 0%, var(--bg) 100%);
-      color: #111;
-      line-height: 1.4;
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;font-size:16px;background:var(--bg);color:#111}
+    .page{
+      max-width:900px;margin:40px auto;padding:24px;
     }
-
-    h1{font-size:1.25rem;margin:0 0 18px}
-    p.lead{margin:0 0 18px;color:var(--muted)}
-
+    h1{margin:0 0 12px;font-size:1.5rem}
+    p.lead{margin:0 0 20px;color:var(--muted)}
     .example{
-      background:#fff;
-      border:1px solid rgba(0,0,0,0.06);
-      padding:16px;
+      background:var(--card);
       border-radius:var(--radius);
-      box-shadow: 0 4px 12px rgba(16,24,40,0.04);
-      margin: 16px 0;
+      box-shadow:0 1px 2px rgba(16,24,40,0.04), 0 6px 24px rgba(16,24,40,0.08);
+      padding:16px;
+      margin:16px 0;
     }
 
-    .disclosure-button {
-      display:flex;
+    /* Toggle button */
+    .toggle{
+      display:inline-flex;
       align-items:center;
-      gap:12px;
-      width:100%;
-      padding:10px 12px;
-      font-size:1rem;
-      background:transparent;
-      border:1px solid rgba(0,0,0,0.06);
+      gap:10px;
+      padding:10px 14px;
       border-radius:8px;
+      border:1px solid rgba(16,24,40,0.06);
+      background:linear-gradient(180deg,#fff,#fbfdff);
+      color:var(--accent);
+      font-weight:600;
       cursor:pointer;
-      text-align:left;
+      transition:box-shadow var(--transition), transform var(--transition);
     }
-    .disclosure-button:focus{
-      outline:3px solid rgba(11,121,208,0.18);
-      outline-offset:2px;
-    }
-    .disclosure-button .chev{
-      transition: transform 0.2s ease;
-      width:18px;height:18px;
-      display:inline-block;
-      transform-origin:center;
-    }
-    .disclosure-button[aria-expanded="true"] .chev{
-      transform: rotate(90deg);
-    }
+    .toggle:active{transform:translateY(1px)}
+    .toggle:focus{outline:3px solid rgba(3,102,214,0.12); outline-offset:3px}
 
+    .toggle .icon{
+      width:18px;height:18px;display:inline-block;
+      transition:transform var(--transition);
+      color:var(--accent);
+      flex:0 0 18px;
+    }
+    .toggle[aria-expanded="true"] .icon{transform:rotate(180deg)}
+
+    /* Details container */
     .details{
       overflow:hidden;
-      transition:max-height 240ms ease, opacity 200ms ease;
-      opacity:1;
-      margin-top:12px;
-      border-left:3px solid rgba(11,121,208,0.06);
-      padding:12px;
-      border-radius:6px;
-      background:#fbfdff;
-    }
-    .details[hidden]{
-      display:none;
       max-height:0;
-      opacity:0;
-      padding:0;
-      margin-top:8px;
+      transition:max-height var(--transition) ease, padding var(--transition) ease;
+      padding:0 4px;
+      margin-top:12px;
+      border-left:3px solid rgba(3,102,214,0.06);
+    }
+    .details.open{ /* open state will be controlled by JS for animation; this class used for semantics */
+      padding:12px 12px;
     }
 
-    /* Accordion styles */
-    .accordion {
-      display:flex;
-      flex-direction:column;
-      gap:8px;
+    .details-content{
+      background:linear-gradient(180deg, #fff, #fcfeff);
+      border-radius:6px;
+      padding:8px 12px;
+      border:1px solid rgba(16,24,40,0.04);
     }
-    .accordion .header-row{
-      display:flex;
-      gap:8px;
-    }
-    .note{font-size:0.875rem;color:var(--muted);margin-top:8px;}
+
+    /* small helper text */
+    .meta{font-size:0.875rem;color:var(--muted);margin-top:8px}
+    .muted{color:var(--muted)}
+    /* accessible focus for inner interactive elements inside details */
+    .details a{color:var(--accent)}
   </style>
 </head>
 <body>
-  <main>
-    <h1>Expand / Collapse Widget Examples</h1>
-    <p class="lead">Two accessible patterns: a simple disclosure and an accordion. Buttons use aria-expanded and aria-controls; content containers use the class "details".</p>
+  <main class="page">
+    <h1>Expand / Collapse Widgets</h1>
+    <p class="lead">Examples of accessible expand/collapse widgets. Each widget is wrapped with a div.example and the controlled content uses a container with class="details".</p>
 
-    <!-- Example 1: Simple disclosure -->
-    <div class="example" id="ex-simple">
-      <h2 style="font-size:1rem;margin:0 0 8px">Simple disclosure</h2>
-      <button
-        class="disclosure-button"
-        id="btn-simple"
-        aria-controls="details-simple"
-        aria-expanded="false"
-        data-toggle="disclosure"
-      >
-        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <polyline points="8 6 16 12 8 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>Show more details about this item</span>
-      </button>
+    <!-- Example 1: Simple Expand/Collapse -->
+    <div class="example" id="example-simple">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div>
+          <strong>Simple details</strong>
+          <div class="meta">Click the button to show or hide details.</div>
+        </div>
+        <button class="toggle" aria-expanded="false" aria-controls="details-1" id="toggle-1">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Show
+        </button>
+      </div>
 
-      <div class="details" id="details-simple" hidden aria-hidden="true">
-        <p style="margin:0 0 8px">
-          This is the controlled content for the simple disclosure. It starts hidden and becomes visible when the button above is activated. The content container has class="details".
-        </p>
-        <p style="margin:0" class="note">Tip: The button updates aria-expanded and aria-controls keeps it programmatically associated with this details region.</p>
+      <div id="details-1" class="details" aria-hidden="true" role="region" aria-labelledby="toggle-1">
+        <div class="details-content">
+          <p>This is a simple expandable region. It is hidden by default and becomes visible when you activate the button above. The button updates aria-expanded and the region updates aria-hidden so assistive technologies know the current state.</p>
+          <ul>
+            <li>Keyboard: Use Tab, then Space or Enter to toggle.</li>
+            <li>ARIA: aria-expanded on the button, aria-hidden on the content, aria-controls/aria-labelledby link them.</li>
+          </ul>
+        </div>
       </div>
     </div>
 
-    <!-- Example 2: Accordion (multiple sections) -->
-    <div class="example" id="ex-accordion" aria-labelledby="accordion-label">
-      <h2 id="accordion-label" style="font-size:1rem;margin:0 0 8px">Accordion (single-section toggle)</h2>
-
-      <div class="accordion" role="tablist" aria-multiselectable="false">
+    <!-- Example 2: Animated Expand/Collapse with richer content -->
+    <div class="example" id="example-animated">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <div>
-          <div class="header-row">
-            <button
-              class="disclosure-button"
-              id="acc-btn-1"
-              aria-controls="acc-details-1"
-              aria-expanded="false"
-              data-toggle="accordion"
-            >
-              <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <polyline points="8 6 16 12 8 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span>Section 1 — Overview</span>
-            </button>
-          </div>
-          <div class="details" id="acc-details-1" hidden aria-hidden="true">
-            <p style="margin:0">Section 1 content: summary information and a quick overview.</p>
-          </div>
+          <strong>Animated details</strong>
+          <div class="meta">This example smoothly animates height and contains nested content.</div>
         </div>
-
-        <div>
-          <div class="header-row">
-            <button
-              class="disclosure-button"
-              id="acc-btn-2"
-              aria-controls="acc-details-2"
-              aria-expanded="false"
-              data-toggle="accordion"
-            >
-              <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <polyline points="8 6 16 12 8 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span>Section 2 — Details</span>
-            </button>
-          </div>
-          <div class="details" id="acc-details-2" hidden aria-hidden="true">
-            <p style="margin:0">Section 2 content: more detailed explanation and examples.</p>
-          </div>
-        </div>
-
-        <div>
-          <div class="header-row">
-            <button
-              class="disclosure-button"
-              id="acc-btn-3"
-              aria-controls="acc-details-3"
-              aria-expanded="false"
-              data-toggle="accordion"
-            >
-              <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <polyline points="8 6 16 12 8 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span>Section 3 — Extra</span>
-            </button>
-          </div>
-          <div class="details" id="acc-details-3" hidden aria-hidden="true">
-            <p style="margin:0">Section 3 content: extra resources and links.</p>
-          </div>
-        </div>
+        <button class="toggle" aria-expanded="false" aria-controls="details-2" id="toggle-2">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          More
+        </button>
       </div>
 
-      <p class="note">Keyboard: Up/Down/Home/End navigate between headers. Enter/Space toggle the focused section.</p>
+      <div id="details-2" class="details" aria-hidden="true" role="region" aria-labelledby="toggle-2">
+        <div class="details-content">
+          <h3 style="margin-top:0;margin-bottom:8px;font-size:1rem">Expanded content</h3>
+          <p class="muted" style="margin-top:0;margin-bottom:10px">This area contains several controls and text. Animating height is handled by JavaScript to produce a smooth transition regardless of content size.</p>
+          <form>
+            <label style="display:block;margin-bottom:8px">
+              <span style="display:block;margin-bottom:4px;font-weight:600">Notify me</span>
+              <input type="email" placeholder="you@example.com" style="padding:8px;width:100%;border-radius:6px;border:1px solid rgba(16,24,40,0.08)"/>
+            </label>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button type="button" style="padding:8px 12px;border-radius:6px;border:1px solid rgba(16,24,40,0.06);background:#f0f6ff;color:var(--accent);font-weight:600">Subscribe</button>
+              <a href="#" style="align-self:center;color:var(--accent)">Learn more</a>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
   </main>
 
   <script>
     (function(){
-      // Utility to animate open/close using maxHeight
-      function openDetails(el){
-        el.hidden = false;
-        el.style.display = 'block';
-        // give layout time to apply display before measuring
-        requestAnimationFrame(function(){
-          var height = el.scrollHeight + 'px';
-          el.style.maxHeight = '0px';
-          el.style.opacity = '0';
-          // next frame set to desired height
-          requestAnimationFrame(function(){
-            el.style.maxHeight = height;
-            el.style.opacity = '1';
-          });
-        });
-      }
-      function closeDetails(el){
-        // animate to zero then hide
-        el.style.maxHeight = el.scrollHeight + 'px';
-        el.style.opacity = '1';
-        requestAnimationFrame(function(){
-          el.style.maxHeight = '0px';
-          el.style.opacity = '0';
-        });
-        // after transition, set hidden
-        var t = parseFloat(getComputedStyle(el).transitionDuration || 0) * 1000;
-        setTimeout(function(){
-          el.hidden = true;
-          el.style.display = '';
-          el.style.maxHeight = '';
-          el.style.opacity = '';
-        }, t + 20);
-      }
+      // Find all toggle buttons that control details regions
+      var toggles = Array.from(document.querySelectorAll('.toggle[aria-controls]'));
 
-      // Generic toggle handler for any disclosure-like widget
-      document.querySelectorAll('button[data-toggle]').forEach(function(btn){
-        var type = btn.getAttribute('data-toggle');
-        var detailsId = btn.getAttribute('aria-controls');
-        var details = detailsId ? document.getElementById(detailsId) : null;
+      toggles.forEach(function(button){
+        var detailsId = button.getAttribute('aria-controls');
+        var details = document.getElementById(detailsId);
         if(!details) return;
 
-        btn.addEventListener('click', function(){
-          var expanded = btn.getAttribute('aria-expanded') === 'true';
-          if(type === 'accordion'){
-            // Close other accordion sections within the same tablist (if any)
-            var container = btn.closest('[role="tablist"]') || document;
-            container.querySelectorAll('button[data-toggle="accordion"]').forEach(function(other){
-              if(other === btn) return;
-              var oid = other.getAttribute('aria-controls');
-              var odetails = oid ? document.getElementById(oid) : null;
-              if(odetails && other.getAttribute('aria-expanded') === 'true'){
-                other.setAttribute('aria-expanded','false');
-                odetails.setAttribute('aria-hidden','true');
-                closeDetails(odetails);
-              }
-            });
-          }
+        // Ensure initial styles based on aria-expanded / aria-hidden
+        var expanded = button.getAttribute('aria-expanded') === 'true';
+        if(expanded){
+          details.classList.add('open');
+          details.style.maxHeight = details.scrollHeight + 'px';
+          details.setAttribute('aria-hidden','false');
+          // allow it to settle to none after transition
+          window.setTimeout(function(){ details.style.maxHeight = 'none'; }, 300);
+        } else {
+          details.classList.remove('open');
+          details.style.maxHeight = '0px';
+          details.setAttribute('aria-hidden','true');
+        }
 
-          if(expanded){
-            btn.setAttribute('aria-expanded','false');
-            details.setAttribute('aria-hidden','true');
-            closeDetails(details);
-          } else {
-            btn.setAttribute('aria-expanded','true');
-            details.setAttribute('aria-hidden','false');
-            openDetails(details);
-          }
+        // Click toggles
+        button.addEventListener('click', function(){
+          toggle(button, details);
         });
 
-        // Keyboard navigation for accordions (arrow/home/end)
-        if(type === 'accordion'){
-          btn.addEventListener('keydown', function(e){
-            var KEY = {UP:38,DOWN:40,HOME:36,END:35};
-            var list = (btn.closest('[role="tablist"]') || document).querySelectorAll('button[data-toggle="accordion"]');
-            var idx = Array.prototype.indexOf.call(list, btn);
-            switch(e.keyCode){
-              case KEY.UP:
-                e.preventDefault();
-                var prev = list[(idx - 1 + list.length) % list.length];
-                prev.focus();
-                break;
-              case KEY.DOWN:
-                e.preventDefault();
-                var next = list[(idx + 1) % list.length];
-                next.focus();
-                break;
-              case KEY.HOME:
-                e.preventDefault();
-                list[0].focus();
-                break;
-              case KEY.END:
-                e.preventDefault();
-                list[list.length - 1].focus();
-                break;
+        // Allow Escape to close the region if focus is inside details
+        details.addEventListener('keydown', function(e){
+          if(e.key === 'Escape' || e.key === 'Esc'){
+            if(button.getAttribute('aria-expanded') === 'true'){
+              button.focus();
+              toggle(button, details, false);
             }
-          });
-        }
+          }
+        });
       });
 
-      // If user navigates with focus and activation via keyboard, normal <button> handles Space/Enter click.
-      // Ensure content respects initial aria-expanded states (none open by default).
-      // For demonstration, leave all closed.
+      function toggle(button, details, forceOpen){
+        var isExpanded = button.getAttribute('aria-expanded') === 'true';
+        var willOpen = typeof forceOpen === 'boolean' ? forceOpen : !isExpanded;
+
+        if(willOpen){
+          // opening
+          button.setAttribute('aria-expanded','true');
+          details.setAttribute('aria-hidden','false');
+          details.classList.add('open');
+
+          // Prepare animation: from 0 to content height
+          details.style.display = 'block'; // ensure measurable
+          // set maxHeight to current computed (could be 0)
+          details.style.maxHeight = '0px';
+          // force reflow
+          details.getBoundingClientRect();
+          // set to scrollHeight
+          var target = details.scrollHeight + 'px';
+          details.style.maxHeight = target;
+
+          // After transition ends, clear maxHeight to allow dynamic size changes
+          var cleanup = function(){
+            details.style.maxHeight = 'none';
+            details.removeEventListener('transitionend', cleanup);
+          };
+          details.addEventListener('transitionend', cleanup);
+        } else {
+          // closing
+          button.setAttribute('aria-expanded','false');
+          details.setAttribute('aria-hidden','true');
+
+          // From current height to 0
+          // If maxHeight is 'none', set it to the scrollHeight first
+          if(details.style.maxHeight === 'none' || details.style.maxHeight === ''){
+            details.style.maxHeight = details.scrollHeight + 'px';
+          }
+          // force reflow
+          details.getBoundingClientRect();
+          // then animate to 0
+          details.style.maxHeight = '0px';
+
+          var afterClose = function(){
+            details.classList.remove('open');
+            // optional: hide display to avoid tabbing into it when collapsed (aria-hidden already set)
+            // details.style.display = 'none';
+            details.removeEventListener('transitionend', afterClose);
+          };
+          details.addEventListener('transitionend', afterClose);
+        }
+      }
+
+      // Optional: make the whole example close when clicking outside while open (small convenience)
+      document.addEventListener('click', function(e){
+        // if click is inside a toggle or details, do nothing
+        var inside = e.target.closest('.example');
+        if(!inside) return;
+        // nothing further
+      });
+
     })();
   </script>
 </body>

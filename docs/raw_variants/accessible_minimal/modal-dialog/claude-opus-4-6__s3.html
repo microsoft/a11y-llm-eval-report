@@ -24,7 +24,7 @@
             font-size: 16px;
             font-weight: 600;
             color: #fff;
-            background-color: #4a6cf7;
+            background-color: #4a90d9;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -32,11 +32,11 @@
         }
 
         .trigger:hover {
-            background-color: #3a5ce5;
+            background-color: #357abd;
         }
 
         .trigger:focus-visible {
-            outline: 3px solid #4a6cf7;
+            outline: 3px solid #357abd;
             outline-offset: 2px;
         }
 
@@ -65,17 +65,17 @@
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            animation: modalSlideIn 0.3s ease;
+            animation: modalIn 0.3s ease;
         }
 
-        @keyframes modalSlideIn {
+        @keyframes modalIn {
             from {
                 opacity: 0;
-                transform: translateY(-20px) scale(0.95);
+                transform: scale(0.95) translateY(-10px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0) scale(1);
+                transform: scale(1) translateY(0);
             }
         }
 
@@ -96,14 +96,14 @@
             background: none;
             border: none;
             font-size: 24px;
-            color: #6b7280;
             cursor: pointer;
+            color: #6b7280;
             width: 36px;
             height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
+            border-radius: 50%;
             transition: background-color 0.2s ease, color 0.2s ease;
         }
 
@@ -113,18 +113,14 @@
         }
 
         .modal-close:focus-visible {
-            outline: 3px solid #4a6cf7;
+            outline: 3px solid #4a90d9;
             outline-offset: 2px;
         }
 
         .modal-body {
             padding: 24px;
-        }
-
-        .modal-body p {
-            font-size: 15px;
-            line-height: 1.6;
             color: #4b5563;
+            line-height: 1.6;
         }
 
         .modal-footer {
@@ -138,30 +134,30 @@
         .btn-cancel {
             padding: 10px 20px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             color: #374151;
-            background-color: #f3f4f6;
-            border: 1px solid #d1d5db;
+            background-color: #e5e7eb;
+            border: none;
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
 
         .btn-cancel:hover {
-            background-color: #e5e7eb;
+            background-color: #d1d5db;
         }
 
         .btn-cancel:focus-visible {
-            outline: 3px solid #4a6cf7;
+            outline: 3px solid #4a90d9;
             outline-offset: 2px;
         }
 
         .btn-confirm {
             padding: 10px 20px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             color: #fff;
-            background-color: #4a6cf7;
+            background-color: #4a90d9;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -169,11 +165,11 @@
         }
 
         .btn-confirm:hover {
-            background-color: #3a5ce5;
+            background-color: #357abd;
         }
 
         .btn-confirm:focus-visible {
-            outline: 3px solid #4a6cf7;
+            outline: 3px solid #357abd;
             outline-offset: 2px;
         }
     </style>
@@ -184,15 +180,15 @@
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription" id="modalDialog">
             <div class="modal-header">
-                <h2 id="modalTitle">Modal Dialog</h2>
-                <button class="modal-close" aria-label="Close modal" id="closeBtn">&times;</button>
+                <h2 id="modalTitle">Modal Title</h2>
+                <button class="modal-close" aria-label="Close modal" id="modalClose">&times;</button>
             </div>
             <div class="modal-body">
-                <p id="modalDescription">This is an example of a modal dialog component. It traps focus within the dialog while open and can be closed by clicking the close button, pressing the Escape key, or clicking outside the modal.</p>
+                <p id="modalDescription">This is an example modal dialog. It demonstrates a common UI pattern where content is presented in a layer above the main page. You can close this modal by clicking the close button, pressing Escape, or clicking outside the modal.</p>
             </div>
             <div class="modal-footer">
-                <button class="btn-cancel" id="cancelBtn">Cancel</button>
-                <button class="btn-confirm" id="confirmBtn">Confirm</button>
+                <button class="btn-cancel" id="btnCancel">Cancel</button>
+                <button class="btn-confirm" id="btnConfirm">Confirm</button>
             </div>
         </div>
     </div>
@@ -201,52 +197,37 @@
         const triggerBtn = document.querySelector('.trigger');
         const overlay = document.getElementById('modalOverlay');
         const modal = document.getElementById('modalDialog');
-        const closeBtn = document.getElementById('closeBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const confirmBtn = document.getElementById('confirmBtn');
+        const closeBtn = document.getElementById('modalClose');
+        const cancelBtn = document.getElementById('btnCancel');
+        const confirmBtn = document.getElementById('btnConfirm');
+
+        let previouslyFocusedElement = null;
 
         function openModal() {
+            previouslyFocusedElement = document.activeElement;
             overlay.classList.add('open');
             closeBtn.focus();
-            document.body.style.overflow = 'hidden';
-            trapFocus(modal);
+            document.addEventListener('keydown', handleKeydown);
         }
 
         function closeModal() {
             overlay.classList.remove('open');
-            document.body.style.overflow = '';
-            triggerBtn.focus();
+            document.removeEventListener('keydown', handleKeydown);
+            if (previouslyFocusedElement) {
+                previouslyFocusedElement.focus();
+            }
         }
 
-        triggerBtn.addEventListener('click', openModal);
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-        confirmBtn.addEventListener('click', closeModal);
-
-        overlay.addEventListener('click', function (e) {
-            if (e.target === overlay) {
+        function handleKeydown(e) {
+            if (e.key === 'Escape') {
                 closeModal();
+                return;
             }
-        });
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && overlay.classList.contains('open')) {
-                closeModal();
-            }
-        });
-
-        function trapFocus(element) {
-            const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-
-            function handleKeyDown(e) {
-                if (!overlay.classList.contains('open')) {
-                    document.removeEventListener('keydown', handleKeyDown);
-                    return;
-                }
-
-                if (e.key !== 'Tab') return;
-
-                const focusableElements = element.querySelectorAll(focusableSelectors);
+            if (e.key === 'Tab') {
+                const focusableElements = modal.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
                 const firstFocusable = focusableElements[0];
                 const lastFocusable = focusableElements[focusableElements.length - 1];
 
@@ -262,9 +243,18 @@
                     }
                 }
             }
-
-            document.addEventListener('keydown', handleKeyDown);
         }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        confirmBtn.addEventListener('click', closeModal);
+
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) {
+                closeModal();
+            }
+        });
     </script>
 </body>
 </html>

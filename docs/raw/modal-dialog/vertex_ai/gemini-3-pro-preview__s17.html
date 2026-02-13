@@ -10,19 +10,19 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
             background-color: #f4f4f9;
+            margin: 0;
         }
 
-        /* Trigger Button Styling */
+        /* The Button to open the modal */
         .trigger {
             padding: 12px 24px;
-            font-size: 16px;
             background-color: #007bff;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
             transition: background-color 0.2s;
         }
 
@@ -30,101 +30,164 @@
             background-color: #0056b3;
         }
 
-        /* Modal Background (Overlay) */
-        .modal {
+        /* The Modal Overlay (background) */
+        .modal-overlay {
+            display: none; /* Hidden by default */
             position: fixed;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
+            backdrop-filter: blur(2px);
             opacity: 0;
-            visibility: hidden;
-            transform: scale(1.1);
-            transition: visibility 0s linear 0.25s, opacity 0.25s 0s, transform 0.25s;
-            z-index: 1000;
+            transition: opacity 0.3s ease;
         }
 
-        /* Modal Content Box */
+        /* The Modal Content (box) */
         .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             background-color: white;
-            padding: 24px;
-            width: 400px;
-            max-width: 90%;
+            margin: 10% auto;
+            padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
         }
 
-        /* Close Button (X) */
-        .close-button {
-            float: right;
-            width: 24px;
-            line-height: 24px;
-            text-align: center;
+        /* Active State for Modal */
+        .modal-overlay.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .modal-overlay.open .modal-content {
+            transform: translateY(0);
+        }
+
+        /* Close Button */
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
-            border-radius: 4px;
-            background-color: #eee;
+            line-height: 1;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        .modal-header h2 {
+            margin-top: 0;
             color: #333;
         }
 
-        .close-button:hover {
-            background-color: #ddd;
+        .modal-footer {
+            margin-top: 20px;
+            text-align: right;
         }
 
-        /* State to show the modal */
-        .show-modal {
-            opacity: 1;
-            visibility: visible;
-            transform: scale(1.0);
-            transition: visibility 0s linear 0s, opacity 0.25s 0s, transform 0.25s;
+        .action-btn {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        
+        .action-btn.primary {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
         }
 
-        h2 {
-            margin-top: 0;
-        }
     </style>
 </head>
 <body>
 
     <!-- Trigger Button -->
-    <button class="trigger">Open Modal</button>
+    <button class="trigger" id="openModalBtn">Open Modal</button>
 
-    <!-- Modal Structure -->
-    <div class="modal">
+    <!-- Modal Markup -->
+    <div id="myModal" class="modal-overlay">
         <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2>Modal Title</h2>
-            <p>This is a simple modal dialog component. It is hidden by default and triggered by the button.</p>
-            <p>You can close it by clicking the "X" or clicking anywhere outside this box.</p>
+            <span class="close-btn">&times;</span>
+            
+            <div class="modal-header">
+                <h2>Confirmation</h2>
+            </div>
+            
+            <div class="modal-body">
+                <p>This is a modal dialog component. It sits on top of the page content. Are you sure you want to proceed with this action?</p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="action-btn cancel-btn">Cancel</button>
+                <button class="action-btn primary">Confirm</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Select DOM elements
-        const modal = document.querySelector(".modal");
-        const trigger = document.querySelector(".trigger");
-        const closeButton = document.querySelector(".close-button");
+        // Get DOM Elements
+        const modal = document.getElementById("myModal");
+        const btn = document.getElementById("openModalBtn");
+        const closeSpan = document.querySelector(".close-btn");
+        const cancelBtn = document.querySelector(".cancel-btn");
 
-        // Function to toggle the modal visibility
-        function toggleModal() {
-            modal.classList.toggle("show-modal");
+        // Function to open modal
+        function openModal() {
+            modal.style.display = "block";
+            // Slight delay to allow CSS transition to work on display:block
+            setTimeout(() => {
+                modal.classList.add("open");
+            }, 10);
         }
 
-        // Function to close modal if clicking outside the content area
-        function windowOnClick(event) {
-            if (event.target === modal) {
-                toggleModal();
-            }
+        // Function to close modal
+        function closeModal() {
+            modal.classList.remove("open");
+            // Wait for transition to finish before hiding
+            setTimeout(() => {
+                modal.style.display = "none";
+            }, 300);
         }
 
         // Event Listeners
-        trigger.addEventListener("click", toggleModal);
-        closeButton.addEventListener("click", toggleModal);
-        window.addEventListener("click", windowOnClick);
+        
+        // Open on trigger click
+        btn.addEventListener("click", openModal);
+
+        // Close on 'x' click
+        closeSpan.addEventListener("click", closeModal);
+
+        // Close on 'Cancel' button click
+        cancelBtn.addEventListener("click", closeModal);
+
+        // Close when clicking outside the modal content area
+        window.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Close on Escape key press
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && modal.classList.contains("open")) {
+                closeModal();
+            }
+        });
     </script>
 
 </body>
