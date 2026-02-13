@@ -1,0 +1,186 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessible Modal Example</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --overlay: rgba(0,0,0,0.6);
+    --accent: #0a66c2;
+  }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    margin: 0;
+    padding: 2rem;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.5;
+  }
+  .trigger, button {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 2px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  .trigger:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 3px solid #ffbf47;
+    outline-offset: 2px;
+  }
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-backdrop[data-open="true"] {
+    display: flex;
+  }
+  .modal {
+    background: var(--bg);
+    color: var(--fg);
+    max-width: 32rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border: 1px solid #ccc;
+  }
+  .modal header, .modal footer {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #ddd;
+  }
+  .modal header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal .content {
+    padding: 1rem 1.25rem;
+  }
+  .modal footer {
+    border-top: 1px solid #ddd;
+    border-bottom: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  .secondary {
+    background: transparent;
+    color: var(--accent);
+  }
+  .close {
+    background: transparent;
+    color: var(--fg);
+    border: 2px solid transparent;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .modal-backdrop[data-open="true"] .modal {
+      animation: pop 150ms ease-out;
+    }
+    @keyframes pop {
+      from { transform: scale(0.98); opacity: 0.8; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Modal Dialog Example</h1>
+  <p>This example demonstrates an accessible modal dialog component.</p>
+  <button class="trigger" id="openModal" type="button">Open dialog</button>
+</main>
+
+<div class="modal-backdrop" id="modalBackdrop" data-open="false" aria-hidden="true">
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+    <header>
+      <h2 id="dialogTitle">Subscribe to updates</h2>
+      <button type="button" class="close" id="closeModal" aria-label="Close dialog">×</button>
+    </header>
+    <div class="content">
+      <p id="dialogDesc">Get product updates and tips delivered monthly. You can unsubscribe at any time.</p>
+      <form>
+        <label for="email">Email address</label><br>
+        <input id="email" name="email" type="email" required autocomplete="email" style="width:100%;max-width:26rem;margin-top:0.25rem;padding:0.5rem;border-radius:0.4rem;border:1px solid #aaa;">
+      </form>
+    </div>
+    <footer>
+      <button type="button" class="secondary" id="cancelBtn">Cancel</button>
+      <button type="button" id="confirmBtn">Subscribe</button>
+    </footer>
+  </section>
+</div>
+
+<script>
+  const openBtn = document.getElementById('openModal');
+  const backdrop = document.getElementById('modalBackdrop');
+  const closeBtn = document.getElementById('closeModal');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const dialog = backdrop.querySelector('.modal');
+  let lastFocused = null;
+
+  function openModal() {
+    lastFocused = document.activeElement;
+    backdrop.setAttribute('data-open', 'true');
+    backdrop.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    const focusable = getFocusableElements();
+    (focusable[0] || closeBtn).focus();
+    document.addEventListener('keydown', onKeyDown);
+  }
+
+  function closeModal() {
+    backdrop.setAttribute('data-open', 'false');
+    backdrop.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', onKeyDown);
+    if (lastFocused) lastFocused.focus();
+  }
+
+  function getFocusableElements() {
+    return Array.from(dialog.querySelectorAll('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+      .filter(el => !el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'));
+  }
+
+  function onKeyDown(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeModal();
+    }
+    if (e.key === 'Tab') {
+      const focusable = getFocusableElements();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  confirmBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeModal();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Expand/Collapse Widget Example</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+        }
+
+        h1 {
+            margin-bottom: 2rem;
+        }
+
+        .example {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Button Styling */
+        .toggle-btn {
+            appearance: none;
+            background: #f4f4f4;
+            border: none;
+            border-bottom: 1px solid transparent;
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 5px 5px 0 0;
+            color: #222;
+        }
+
+        /* Focus styles for keyboard navigation */
+        .toggle-btn:focus-visible {
+            outline: 3px solid #0056b3;
+            outline-offset: -3px;
+            background-color: #e9ecef;
+        }
+
+        .toggle-btn:hover {
+            background-color: #e9ecef;
+        }
+
+        .toggle-btn[aria-expanded="false"] {
+            border-bottom: none;
+            border-radius: 5px;
+        }
+
+        .toggle-btn[aria-expanded="true"] {
+            border-bottom: 1px solid #ccc;
+            background-color: #e0e0e0;
+        }
+
+        /* Chevron Icon */
+        .icon {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            transition: transform 0.2s ease-in-out;
+            fill: currentColor;
+        }
+
+        .toggle-btn[aria-expanded="true"] .icon {
+            transform: rotate(180deg);
+        }
+
+        /* Content Area Styling */
+        .details {
+            padding: 1rem;
+            display: none; /* Hidden by default */
+            background-color: #fff;
+            border-radius: 0 0 5px 5px;
+        }
+
+        /* Visible state class managed by JS */
+        .details.is-open {
+            display: block;
+        }
+
+        /* High contrast mode support */
+        @media (forced-colors: active) {
+            .toggle-btn {
+                border: 2px solid ButtonText;
+            }
+            .toggle-btn:focus-visible {
+                outline: 2px solid Highlight;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <h1>Accessible Expand/Collapse Widgets</h1>
+        <p>This implementation uses ARIA attributes to ensure screen reader compatibility and supports full keyboard navigation.</p>
+
+        <!-- Example 1 -->
+        <div class="example">
+            <h3>
+                <button type="button" aria-expanded="false" class="toggle-btn" aria-controls="content-1" id="accordion-btn-1">
+                    <span>Section 1: Shipping Information</span>
+                    <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
+                    </svg>
+                </button>
+            </h3>
+            <div id="content-1" class="details" role="region" aria-labelledby="accordion-btn-1">
+                <p>Standard shipping takes 3-5 business days. Express shipping is available for an additional fee and guarantees delivery within 2 business days.</p>
+                <p>International shipping options vary by destination.</p>
+            </div>
+        </div>
+
+        <!-- Example 2 -->
+        <div class="example">
+            <h3>
+                <button type="button" aria-expanded="false" class="toggle-btn" aria-controls="content-2" id="accordion-btn-2">
+                    <span>Section 2: Return Policy</span>
+                    <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
+                    </svg>
+                </button>
+            </h3>
+            <div id="content-2" class="details" role="region" aria-labelledby="accordion-btn-2">
+                <p>Items can be returned within 30 days of receipt. Products must be in original condition with tags attached.</p>
+                <a href="#">Download Return Form</a>
+            </div>
+        </div>
+
+        <!-- Example 3 (Open by default demonstration) -->
+        <div class="example">
+            <h3>
+                <button type="button" aria-expanded="true" class="toggle-btn" aria-controls="content-3" id="accordion-btn-3">
+                    <span>Section 3: Contact Support (Open by default)</span>
+                    <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
+                    </svg>
+                </button>
+            </h3>
+            <div id="content-3" class="details is-open" role="region" aria-labelledby="accordion-btn-3">
+                <p>Our support team is available 24/7 via email or phone.</p>
+                <ul>
+                    <li>Email: support@example.com</li>
+                    <li>Phone: 1-800-555-0123</li>
+                </ul>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        /**
+         * Accessible Expand/Collapse Logic
+         * - Toggles aria-expanded state on buttons.
+         * - Toggles visibility class on content panels.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const triggers = document.querySelectorAll('.toggle-btn');
+
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+                    const contentId = trigger.getAttribute('aria-controls');
+                    const content = document.getElementById(contentId);
+
+                    if (!content) return;
+
+                    // Toggle Button State
+                    trigger.setAttribute('aria-expanded', !isExpanded);
+
+                    // Toggle Content Visibility
+                    if (isExpanded) {
+                        content.classList.remove('is-open');
+                    } else {
+                        content.classList.add('is-open');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

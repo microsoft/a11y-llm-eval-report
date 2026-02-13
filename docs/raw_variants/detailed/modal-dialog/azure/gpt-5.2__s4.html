@@ -1,0 +1,486 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Example modal dialog - Components - Demo</title>
+  <style>
+    :root{
+      --color-bg: #ffffff;
+      --color-surface: #ffffff;
+      --color-text: #111827;
+      --color-muted-text: #374151;
+      --color-link: #1d4ed8;
+      --color-link-visited: #6d28d9;
+      --color-border: #1f2937;
+      --color-focus: #1d4ed8;
+      --color-danger: #b91c1c;
+      --color-overlay: #111827;
+      --radius: 12px;
+      --shadow: 0 18px 60px rgba(0,0,0,0.35);
+      --space-1: 0.5rem;
+      --space-2: 0.75rem;
+      --space-3: 1rem;
+      --space-4: 1.25rem;
+      --space-5: 1.5rem;
+      --maxw: 72rem;
+      --text-size: 1rem;
+      --line: 1.5;
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      font-size: var(--text-size);
+      line-height: var(--line);
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    a { color: var(--color-link); }
+    a:visited { color: var(--color-link-visited); }
+    a:hover { text-decoration: none; }
+    a:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    header, nav, main, footer { padding: var(--space-4); }
+    header { border-bottom: 2px solid var(--color-border); }
+    nav { border-bottom: 1px solid var(--color-border); }
+    .wrap { max-width: var(--maxw); margin: 0 auto; }
+
+    .nav-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .muted { color: var(--color-muted-text); }
+
+    .btn {
+      appearance: none;
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      padding: 0.7rem 1rem;
+      border-radius: 0.75rem;
+      font: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      max-width: 100%;
+    }
+    .btn:hover { background: #f3f4f6; }
+    .btn:active { background: #e5e7eb; }
+    .btn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
+    .btn-primary {
+      background: var(--color-link);
+      border-color: var(--color-link);
+      color: #ffffff;
+    }
+    .btn-primary:hover { background: #1e40af; border-color: #1e40af; }
+    .btn-primary:active { background: #1e3a8a; border-color: #1e3a8a; }
+
+    .btn-danger {
+      background: var(--color-danger);
+      border-color: var(--color-danger);
+      color: #ffffff;
+    }
+    .btn-danger:hover { background: #991b1b; border-color: #991b1b; }
+    .btn-danger:active { background: #7f1d1d; border-color: #7f1d1d; }
+
+    .stack { display: grid; gap: var(--space-3); }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    /* Modal */
+    dialog {
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 0;
+      width: min(42rem, calc(100vw - 2rem));
+      box-shadow: var(--shadow);
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+    dialog::backdrop {
+      background: rgba(17, 24, 39, 0.65);
+    }
+
+    .modal {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      max-height: min(80vh, 40rem);
+    }
+    .modal__header,
+    .modal__body,
+    .modal__footer {
+      padding: var(--space-4);
+    }
+    .modal__header {
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .modal__title {
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.3;
+    }
+    .modal__body {
+      overflow: auto;
+      min-height: 0;
+    }
+    .modal__footer {
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .icon-btn {
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--color-text);
+      padding: 0.35rem;
+      border-radius: 0.6rem;
+      cursor: pointer;
+      flex: none;
+    }
+    .icon-btn:hover { background: #f3f4f6; }
+    .icon-btn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+    .icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      display: block;
+      fill: currentColor;
+      stroke: currentColor;
+    }
+
+    .card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: var(--space-4);
+      background: var(--color-surface);
+      overflow-wrap: anywhere;
+    }
+
+    @media (forced-colors: active) {
+      dialog {
+        border: 2px solid ButtonBorder;
+        box-shadow: none;
+      }
+      dialog::backdrop { background: CanvasText; }
+      .btn, .icon-btn { border: 2px solid ButtonBorder; }
+      .btn-primary, .btn-danger { forced-color-adjust: auto; }
+      .modal__header, .modal__footer { border-color: ButtonBorder; }
+      .card { border-color: ButtonBorder; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+    <div class="wrap">
+      <div class="stack" style="gap:0.5rem">
+        <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:baseline; justify-content:space-between;">
+          <div>
+            <strong>Demo</strong>
+            <div class="muted">Modal dialog component example</div>
+          </div>
+          <div class="muted">Keyboard: Tab, Shift+Tab, Enter/Space, Escape</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav aria-label="Primary">
+    <div class="wrap">
+      <ul class="nav-list">
+        <li><a href="#example">Example</a></li>
+        <li><a href="#notes">Notes</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="maincontent" tabindex="-1">
+    <div class="wrap stack">
+      <section id="example" class="stack" aria-labelledby="page-title">
+        <h1 id="page-title">Example modal dialog</h1>
+        <p class="muted">
+          The dialog is closed by default. Activate the button to open it. Focus moves into the dialog and returns to the trigger when it closes.
+        </p>
+
+        <div class="card stack">
+          <div class="actions">
+            <button type="button" class="btn btn-primary trigger" id="openModalBtn">
+              Open dialog
+            </button>
+            <a href="#notes">Jump to notes</a>
+          </div>
+          <p class="muted" style="margin:0">
+            Tip: Press <kbd>Escape</kbd> to close the dialog. Use Tab to move between controls.
+          </p>
+        </div>
+
+        <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+          <div class="modal">
+            <div class="modal__header">
+              <div>
+                <h2 class="modal__title" id="dialogTitle">Share feedback</h2>
+                <p class="muted" id="dialogDesc" style="margin:0.25rem 0 0">
+                  This is an example dialog with a form. Fields marked with <span aria-hidden="true">*</span> are required.
+                </p>
+              </div>
+              <button type="button" class="icon-btn" id="closeXBtn">
+                <span class="sr-only">Close dialog</span>
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M18 6L6 18M6 6l12 12" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="modal__body">
+              <form id="feedbackForm" class="stack" novalidate>
+                <div class="stack" style="gap:0.4rem">
+                  <label for="nameInput">Name <span aria-hidden="true">*</span></label>
+                  <input
+                    id="nameInput"
+                    name="name"
+                    type="text"
+                    autocomplete="name"
+                    required
+                    aria-required="true"
+                    class="card"
+                    style="padding:0.75rem; border-width:2px;"
+                  />
+                  <div id="nameHelp" class="muted">Enter your name as you would like it shown.</div>
+                  <div id="nameError" class="muted" style="color:var(--color-danger);" hidden></div>
+                </div>
+
+                <div class="stack" style="gap:0.4rem">
+                  <label for="messageInput">Message <span aria-hidden="true">*</span></label>
+                  <textarea
+                    id="messageInput"
+                    name="message"
+                    rows="4"
+                    required
+                    aria-required="true"
+                    class="card"
+                    style="padding:0.75rem; border-width:2px; resize:vertical;"
+                  ></textarea>
+                  <div id="messageHelp" class="muted">Share what worked well and what could be improved.</div>
+                  <div id="messageError" class="muted" style="color:var(--color-danger);" hidden></div>
+                </div>
+
+                <fieldset class="card" style="border-width:2px;">
+                  <legend>How should we contact you?</legend>
+                  <div class="stack" style="gap:0.5rem; margin-top:0.5rem">
+                    <label>
+                      <input type="radio" name="contact" value="email" checked />
+                      Email
+                    </label>
+                    <label>
+                      <input type="radio" name="contact" value="phone" />
+                      Phone
+                    </label>
+                    <label>
+                      <input type="radio" name="contact" value="no-contact" />
+                      Do not contact me
+                    </label>
+                  </div>
+                </fieldset>
+              </form>
+            </div>
+
+            <div class="modal__footer">
+              <button type="button" class="btn" id="cancelBtn">Cancel</button>
+              <button type="submit" class="btn btn-primary" form="feedbackForm" id="submitBtn">Send</button>
+            </div>
+          </div>
+        </dialog>
+      </section>
+
+      <section id="notes" class="stack" aria-labelledby="notes-title">
+        <h2 id="notes-title">Notes</h2>
+        <ul class="stack" style="gap:0.5rem; padding-left:1.25rem; margin:0">
+          <li>Uses the native <code>&lt;dialog&gt;</code> element for semantics and focus trapping.</li>
+          <li>Escape closes the dialog. Focus returns to the open button.</li>
+          <li>Form errors are shown with text (not color alone) and focus moves to the first invalid field.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap muted">
+      Demo page footer
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const openBtn = document.getElementById('openModalBtn');
+      const dialog = document.getElementById('exampleDialog');
+      const closeXBtn = document.getElementById('closeXBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const form = document.getElementById('feedbackForm');
+
+      const nameInput = document.getElementById('nameInput');
+      const messageInput = document.getElementById('messageInput');
+
+      const nameHelp = document.getElementById('nameHelp');
+      const messageHelp = document.getElementById('messageHelp');
+
+      const nameError = document.getElementById('nameError');
+      const messageError = document.getElementById('messageError');
+
+      let lastActiveElement = null;
+
+      function setFieldError(field, helpEl, errEl, message) {
+        errEl.textContent = message;
+        errEl.hidden = false;
+        field.setAttribute('aria-invalid', 'true');
+
+        const describedBy = [helpEl.id, errEl.id].join(' ');
+        field.setAttribute('aria-describedby', describedBy);
+
+        field.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-danger').trim() || '#b91c1c';
+      }
+
+      function clearFieldError(field, helpEl, errEl) {
+        errEl.textContent = '';
+        errEl.hidden = true;
+        field.removeAttribute('aria-invalid');
+        field.setAttribute('aria-describedby', helpEl.id);
+        field.style.borderColor = '';
+      }
+
+      function validateForm() {
+        let firstInvalid = null;
+
+        const nameVal = nameInput.value.trim();
+        if (!nameVal) {
+          setFieldError(nameInput, nameHelp, nameError, 'Enter your name.');
+          firstInvalid = firstInvalid || nameInput;
+        } else {
+          clearFieldError(nameInput, nameHelp, nameError);
+        }
+
+        const msgVal = messageInput.value.trim();
+        if (!msgVal) {
+          setFieldError(messageInput, messageHelp, messageError, 'Enter a message.');
+          firstInvalid = firstInvalid || messageInput;
+        } else {
+          clearFieldError(messageInput, messageHelp, messageError);
+        }
+
+        return { valid: !firstInvalid, firstInvalid };
+      }
+
+      function openDialog() {
+        lastActiveElement = document.activeElement;
+
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute('open', '');
+        }
+
+        window.requestAnimationFrame(() => {
+          nameInput.focus();
+        });
+      }
+
+      function closeDialog() {
+        if (dialog.open) dialog.close();
+
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          window.requestAnimationFrame(() => lastActiveElement.focus());
+        } else {
+          window.requestAnimationFrame(() => openBtn.focus());
+        }
+      }
+
+      // Closed by default (no "open" attribute).
+      openBtn.addEventListener('click', openDialog);
+
+      closeXBtn.addEventListener('click', closeDialog);
+      cancelBtn.addEventListener('click', closeDialog);
+
+      // Dialog "cancel" event fires for Escape in showModal().
+      dialog.addEventListener('cancel', (e) => {
+        e.preventDefault();
+        closeDialog();
+      });
+
+      dialog.addEventListener('close', () => {
+        // If closed by clicking the backdrop (browser behavior varies), ensure focus return.
+        if (document.activeElement === document.body) {
+          window.requestAnimationFrame(() => openBtn.focus());
+        }
+      });
+
+      // Prevent click on dialog content from acting like a backdrop click.
+      dialog.addEventListener('click', (e) => {
+        const rect = dialog.getBoundingClientRect();
+        const clickedInDialog =
+          e.clientX >= rect.left && e.clientX <= rect.right &&
+          e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+        // If user clicks outside the dialog, close it (polite, common pattern).
+        if (!clickedInDialog) closeDialog();
+      });
+
+      // Live-clear errors as the person types.
+      nameInput.setAttribute('aria-describedby', nameHelp.id);
+      messageInput.setAttribute('aria-describedby', messageHelp.id);
+
+      nameInput.addEventListener('input', () => {
+        if (nameInput.hasAttribute('aria-invalid')) {
+          if (nameInput.value.trim()) clearFieldError(nameInput, nameHelp, nameError);
+        }
+      });
+
+      messageInput.addEventListener('input', () => {
+        if (messageInput.hasAttribute('aria-invalid')) {
+          if (messageInput.value.trim()) clearFieldError(messageInput, messageHelp, messageError);
+        }
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const { valid, firstInvalid } = validateForm();
+        if (!valid) {
+          firstInvalid.focus();
+          return;
+        }
+
+        closeDialog();
+      });
+    })();
+  </script>
+</body>
+</html>

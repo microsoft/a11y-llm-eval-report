@@ -1,0 +1,303 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expand/Collapse Widget Example - Accessibility Demo</title>
+    <style>
+        :root {
+            /* Color Palette Tokens */
+            --color-bg: #ffffff;
+            --color-text: #222222;
+            --color-muted-text: #555555;
+            --color-link: #005a9c;
+            --color-border: #767676;
+            --color-focus: #005a9c;
+            --color-focus-outline: #ffffff;
+            --color-surface: #f4f4f4;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg: #1a1a1a;
+                --color-text: #f0f0f0;
+                --color-muted-text: #cccccc;
+                --color-link: #78a9ff;
+                --color-border: #888888;
+                --color-focus: #78a9ff;
+                --color-focus-outline: #000000;
+                --color-surface: #2d2d2d;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+        }
+
+        /* Skip Link */
+        .sr-only:not(:focus):not(:active) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        .skip-link {
+            background: var(--color-link);
+            color: #ffffff;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            text-decoration: none;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 48rem; /* approx 768px */
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        header, main, footer {
+            padding: 1.5rem 0;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Widget Styles */
+        .example {
+            border: 1px solid var(--color-border);
+            border-radius: 0.25rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: var(--color-surface);
+        }
+
+        /* Native Details/Summary Styling */
+        details.example {
+            padding: 0; /* Reset padding for details element to let summary handle spacing */
+        }
+        
+        details.example > summary {
+            cursor: pointer;
+            font-weight: bold;
+            padding: 1rem;
+            list-style: none; /* Hide default triangle in some browsers */
+            position: relative;
+        }
+
+        /* Custom marker for native details */
+        details.example > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.example > summary::after {
+            content: "▼";
+            position: absolute;
+            right: 1rem;
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+        
+        details.example[open] > summary::after {
+            transform: rotate(180deg);
+        }
+
+        details.example > .details-content {
+            padding: 0 1rem 1rem 1rem;
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* Custom ARIA Widget Styling */
+        .accordion-trigger {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font: inherit;
+            font-weight: bold;
+            padding: 0;
+            width: 100%;
+            text-align: left;
+        }
+
+        .accordion-trigger svg {
+            fill: currentColor;
+            height: 1em;
+            width: 1em;
+            transition: transform 0.2s;
+        }
+
+        .accordion-trigger[aria-expanded="true"] svg {
+            transform: rotate(180deg);
+        }
+
+        .details {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--color-border);
+        }
+        
+        /* Utility utility for hidden content */
+        .is-hidden {
+            display: none;
+        }
+
+        /* Focus Management */
+        *:focus-visible {
+            outline: 3px solid var(--color-focus);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 4px var(--color-focus-outline);
+        }
+
+        /* Forced Colors Mode */
+        @media (forced-colors: active) {
+            .accordion-trigger:focus-visible,
+            details.example > summary:focus-visible {
+                outline: 2px solid CanvasText;
+                outline-offset: 2px;
+            }
+            
+            .example {
+                border: 1px solid ButtonBorder;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="container">
+        <a href="#maincontent" class="skip-link sr-only">Skip to main content</a>
+        <nav aria-label="Main">
+            <!-- Navigation would go here -->
+             <span>Acme Widgets</span>
+        </nav>
+    </header>
+
+    <main id="maincontent" class="container" tabindex="-1">
+        <h1>Expand/Collapse Widgets</h1>
+        <p>This page demonstrates accessible patterns for showing and hiding content.</p>
+
+        <!-- Pattern 1: Native HTML Details/Summary -->
+        <section>
+            <h2>Pattern 1: Native HTML Elements</h2>
+            <p>Using the native <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements. This is the preferred method for simple show/hide functionality as it handles accessibility semantics and keyboard interaction automatically.</p>
+            
+            <details class="example">
+                <summary>
+                    Shipping Information
+                </summary>
+                <div class="details-content">
+                    <p>Standard shipping takes 3-5 business days. Expedited shipping is available at checkout for an additional fee.</p>
+                    <a href="#" style="color: var(--color-link)">View full shipping policy</a>
+                </div>
+            </details>
+        </section>
+
+        <!-- Pattern 2: ARIA-based Controlled Component -->
+        <section>
+            <h2>Pattern 2: Custom ARIA Widget</h2>
+            <p>Using <code>button</code> with <code>aria-expanded</code> and <code>aria-controls</code>. This pattern is necessary when you need more control over styling, animation, or state management than the native element provides.</p>
+
+            <div class="example">
+                <h3>
+                    <button type="button" 
+                            class="accordion-trigger" 
+                            aria-expanded="false" 
+                            aria-controls="sect1-content" 
+                            id="sect1-button">
+                        <span>Return Policy</span>
+                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                        </svg>
+                    </button>
+                </h3>
+                <div id="sect1-content" 
+                     class="details is-hidden" 
+                     role="region" 
+                     aria-labelledby="sect1-button">
+                    <p>You may return items within 30 days of purchase. Items must be in original condition with tags attached.</p>
+                </div>
+            </div>
+
+            <div class="example">
+                <h3>
+                    <button type="button" 
+                            class="accordion-trigger" 
+                            aria-expanded="false" 
+                            aria-controls="sect2-content" 
+                            id="sect2-button">
+                        <span>Warranty Details</span>
+                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                        </svg>
+                    </button>
+                </h3>
+                <div id="sect2-content" 
+                     class="details is-hidden" 
+                     role="region" 
+                     aria-labelledby="sect2-button">
+                    <p>All electronics come with a 1-year limited warranty covering manufacturer defects.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="container">
+        <p>&copy; 2023 Accessible Examples.</p>
+    </footer>
+
+    <script>
+        /**
+         * Simple script to handle ARIA-based expand/collapse.
+         * Note: Native <details> requires no JavaScript.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const triggers = document.querySelectorAll('.accordion-trigger');
+
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+                    const controlsId = trigger.getAttribute('aria-controls');
+                    const content = document.getElementById(controlsId);
+
+                    if (!content) return;
+
+                    // Toggle State
+                    trigger.setAttribute('aria-expanded', !isExpanded);
+                    
+                    // Toggle Visibility
+                    if (isExpanded) {
+                        content.classList.add('is-hidden');
+                    } else {
+                        content.classList.remove('is-hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

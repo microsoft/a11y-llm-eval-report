@@ -5,350 +5,322 @@
   <title>Accessible Modal Example</title>
   <style>
     :root {
-      --overlay-bg: rgba(0,0,0,0.6);
+      --overlay-bg: rgba(0,0,0,0.5);
       --modal-bg: #fff;
       --radius: 8px;
-      --max-width: 640px;
-      --gap: 1rem;
-      --transition: 180ms ease;
+      --max-width: 520px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.2);
+      --transition: 180ms cubic-bezier(.2,.8,.2,1);
     }
 
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin: 0;
       line-height: 1.4;
-      color: #111;
+      margin: 0;
+      padding: 24px;
+      background: #f7f8fb;
+      color: #111827;
     }
 
-    main[aria-hidden="true"] {
-      filter: blur(2px) saturate(.9);
-      pointer-events: none;
-      user-select: none;
+    /* Simple page layout */
+    header {
+      margin-bottom: 18px;
     }
-
-    .page {
-      padding: 2rem;
-      max-width: 900px;
+    main {
+      max-width: 760px;
       margin: 0 auto;
     }
 
     .trigger {
-      background: #0366d6;
+      display: inline-block;
+      background: #2563eb;
       color: white;
-      border: none;
-      padding: .6rem .9rem;
+      border: 0;
+      padding: 10px 16px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 15px;
     }
-
     .trigger:focus {
-      outline: 3px solid rgba(3,102,214,.25);
+      outline: 3px solid rgba(37,99,235,0.25);
       outline-offset: 2px;
     }
 
-    /* Modal baseline (hidden by default with [hidden]) */
-    .modal {
+    /* Overlay + modal */
+    .modal-overlay {
       position: fixed;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: var(--overlay-bg);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition);
       z-index: 1000;
     }
-
-    .modal[hidden] {
-      display: none;
+    .modal-overlay[aria-hidden="false"] {
+      opacity: 1;
+      pointer-events: auto;
     }
 
-    .modal__overlay {
-      position: absolute;
-      inset: 0;
-      background: var(--overlay-bg);
-    }
-
-    .modal__dialog {
-      position: relative;
-      z-index: 1;
+    .modal {
       background: var(--modal-bg);
-      max-width: var(--max-width);
-      width: calc(100% - 2rem);
       border-radius: var(--radius);
-      box-shadow: 0 10px 30px rgba(2,6,23,.4);
-      padding: 1.25rem;
-      box-sizing: border-box;
+      box-shadow: var(--shadow);
+      max-width: var(--max-width);
+      width: calc(100% - 40px);
+      transform: translateY(8px) scale(.99);
+      opacity: 0;
+      transition: transform var(--transition), opacity var(--transition);
+      max-height: calc(100vh - 80px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-overlay[aria-hidden="false"] .modal {
+      transform: translateY(0) scale(1);
+      opacity: 1;
     }
 
-    .modal__header {
+    .modal-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid #eef2ff;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: var(--gap);
-      margin-bottom: .5rem;
+      gap: 12px;
     }
-
-    .modal__title {
+    .modal-title {
       margin: 0;
-      font-size: 1.125rem;
+      font-size: 18px;
+      font-weight: 600;
     }
-
-    .modal__close {
-      border: none;
-      background: transparent;
-      padding: .25rem .5rem;
-      font-size: 1rem;
-      cursor: pointer;
-      color: #333;
+    .modal-body {
+      padding: 16px 18px;
+      overflow: auto;
+      font-size: 15px;
+      color: #374151;
     }
-
-    .modal__close:focus {
-      outline: 3px solid rgba(3,102,214,.25);
-      outline-offset: 2px;
-      border-radius: 4px;
-    }
-
-    .modal__body {
-      margin-top: .5rem;
-      font-size: .98rem;
-    }
-
-    .modal__actions {
+    .modal-footer {
+      padding: 12px 18px;
+      border-top: 1px solid #f1f5f9;
       display: flex;
-      gap: .5rem;
       justify-content: flex-end;
-      margin-top: 1rem;
+      gap: 8px;
+      background: linear-gradient(to top, rgba(0,0,0,0.01), transparent);
     }
 
     .btn {
-      padding: .5rem .75rem;
+      padding: 8px 12px;
       border-radius: 6px;
-      border: 1px solid #d1d5db;
-      background: #fff;
-      cursor: pointer;
-    }
-
-    .btn.primary {
-      background: #0366d6;
-      color: white;
-      border-color: transparent;
-    }
-
-    /* small helpers */
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-      white-space: nowrap;
       border: 0;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn.secondary {
+      background: #e6e9f3;
+      color: #111827;
+    }
+    .btn.primary {
+      background: #10b981;
+      color: white;
+    }
+
+    .close {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      padding: 6px;
+      line-height: 1;
+      cursor: pointer;
+      color: #6b7280;
+      border-radius: 6px;
+    }
+    .close:focus {
+      outline: 3px solid rgba(99,102,241,0.18);
+      outline-offset: 2px;
+    }
+
+    /* Prevent focus outline for mouse users */
+    :focus:not(:focus-visible) {
+      outline: none;
+    }
+
+    /* Reduce motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      .modal, .modal-overlay { transition: none; }
     }
   </style>
 </head>
 <body>
-  <main id="page" class="page">
-    <h1>Page content</h1>
-    <p>This demonstrates an accessible modal dialog. The button below has class="trigger" and opens the modal. The dialog is closed by default.</p>
+  <header>
+    <h1>Example Modal</h1>
+    <p>This is a simple accessible modal example. The open button has class="trigger".</p>
+  </header>
 
-    <p>
-      <button class="trigger" data-target="#exampleModal">Open modal</button>
-    </p>
-
-    <p>Some other interactive elements to test focus management:</p>
-    <p><a href="#">A sample link</a> — <button>Another button</button></p>
+  <main id="page-content">
+    <section>
+      <p>Some page content here. Click the button to open the dialog.</p>
+      <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="example-dialog">Open Modal</button>
+    </section>
   </main>
 
-  <div id="exampleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true" hidden>
-    <div class="modal__overlay" data-action="overlay"></div>
-
-    <div class="modal__dialog" role="document">
-      <div class="modal__header">
-        <h2 id="modalTitle" class="modal__title">Example Modal</h2>
-        <button type="button" class="modal__close" aria-label="Close dialog">&times;</button>
+  <!-- Modal overlay (hidden by default) -->
+  <div class="modal-overlay" id="modal-overlay" role="presentation" aria-hidden="true" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-desc">
+      <div class="modal-header">
+        <h2 id="dialog-title" class="modal-title">Sample Dialog</h2>
+        <button class="close" type="button" aria-label="Close dialog" data-close>&times;</button>
       </div>
-
-      <div class="modal__body">
-        <p>This modal is closed by default. It traps focus while open, closes on Escape, clicking outside the dialog, or hitting the close button, and returns focus to the opener.</p>
-
-        <form>
-          <label>
-            Name
-            <input type="text" name="name" />
-          </label>
-          <div class="modal__actions">
-            <button type="button" class="btn">Cancel</button>
-            <button type="submit" class="btn primary">Save</button>
-          </div>
-        </form>
+      <div class="modal-body">
+        <p id="dialog-desc">This dialog demonstrates focus management, keyboard support, and accessible markup. Press Escape to close. Focus is trapped inside while the dialog is open.</p>
+        <p>Try tabbing through the controls. The "Save" button simulates a primary action.</p>
+        <label>
+          Name: <input type="text" placeholder="Your name" />
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" type="button" data-close>Cancel</button>
+        <button class="btn primary" type="button">Save</button>
       </div>
     </div>
   </div>
 
   <script>
     (function () {
+      const overlay = document.getElementById('modal-overlay');
+      const dialog = overlay.querySelector('.modal');
       const triggers = Array.from(document.querySelectorAll('.trigger'));
-      const page = document.getElementById('page');
-      let openModal = null;
-      let lastFocusedTrigger = null;
+      const closeElements = Array.from(overlay.querySelectorAll('[data-close]'));
+      const pageContent = document.getElementById('page-content');
 
-      function getFocusableElements(container) {
-        if (!container) return [];
-        const selector = [
-          'a[href]:not([tabindex^="-"])',
-          'area[href]',
-          'input:not([disabled]):not([tabindex^="-"])',
-          'select:not([disabled]):not([tabindex^="-"])',
-          'textarea:not([disabled]):not([tabindex^="-"])',
-          'button:not([disabled]):not([tabindex^="-"])',
-          'iframe',
-          'object',
-          'embed',
-          '[contenteditable]',
-          '[tabindex]:not([tabindex^="-"])'
-        ].join(',');
-        return Array.from(container.querySelectorAll(selector)).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement);
+      let lastFocused = null;
+      let activeTrigger = null;
+
+      // Focusable elements selector
+      const FOCUSABLE_SELECTORS = [
+        'a[href]:not([tabindex^="-"])',
+        'area[href]',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        'button:not([disabled])',
+        'iframe',
+        'object',
+        'embed',
+        '[contenteditable]',
+        '[tabindex]:not([tabindex^="-"])'
+      ].join(',');
+
+      function getFocusable(container) {
+        return Array.from(container.querySelectorAll(FOCUSABLE_SELECTORS)).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length);
       }
 
-      function open(modal, triggerEl) {
-        if (!modal) return;
-        lastFocusedTrigger = triggerEl || document.activeElement;
-        openModal = modal;
+      function openModal(trigger) {
+        activeTrigger = trigger || null;
+        lastFocused = document.activeElement;
+        overlay.removeAttribute('hidden');
+        overlay.setAttribute('aria-hidden', 'false');
+        // set inert/aria-hidden on page content so screen readers ignore it - we use aria-hidden here
+        if (pageContent) pageContent.setAttribute('aria-hidden', 'true');
 
-        modal.hidden = false;
-        modal.setAttribute('aria-hidden', 'false');
+        // prevent body from scrolling while modal is open
+        document.documentElement.style.scrollBehavior = 'auto';
         document.body.style.overflow = 'hidden';
-        if (page) page.setAttribute('aria-hidden', 'true');
 
-        // Focus first focusable element inside modal or the close button
-        const focusables = getFocusableElements(modal);
-        const first = focusables.length ? focusables[0] : modal.querySelector('.modal__close') || modal;
-        (first || modal).focus();
+        // focus first focusable element inside dialog or the dialog itself
+        const focusable = getFocusable(dialog);
+        if (focusable.length) {
+          focusable[0].focus();
+        } else {
+          // fallback
+          dialog.setAttribute('tabindex', '-1');
+          dialog.focus();
+        }
 
-        // attach handlers
-        modal.addEventListener('keydown', handleKeyDown);
-        modal.addEventListener('click', handleOverlayClick);
-        const closeBtn = modal.querySelector('.modal__close');
-        if (closeBtn) closeBtn.addEventListener('click', closeOnClick);
-        // ensure focus trap accessible even if focus moves to document
-        setTimeout(() => {
-          // keep focus inside: add focusin listener on document
-          document.addEventListener('focusin', keepFocusInside);
-        }, 0);
+        // attach listeners
+        document.addEventListener('keydown', onKeyDown, true);
+        overlay.addEventListener('click', onBackdropClick);
       }
 
-      function close(modal) {
-        if (!modal) return;
-        modal.hidden = true;
-        modal.setAttribute('aria-hidden', 'true');
+      function closeModal() {
+        overlay.setAttribute('hidden', '');
+        overlay.setAttribute('aria-hidden', 'true');
+        if (pageContent) pageContent.removeAttribute('aria-hidden');
         document.body.style.overflow = '';
-        if (page) page.removeAttribute('aria-hidden');
+        // remove tabindex fallback if present
+        if (dialog.hasAttribute('tabindex')) dialog.removeAttribute('tabindex');
 
-        modal.removeEventListener('keydown', handleKeyDown);
-        modal.removeEventListener('click', handleOverlayClick);
-        const closeBtn = modal.querySelector('.modal__close');
-        if (closeBtn) closeBtn.removeEventListener('click', closeOnClick);
-        document.removeEventListener('focusin', keepFocusInside);
+        // remove listeners
+        document.removeEventListener('keydown', onKeyDown, true);
+        overlay.removeEventListener('click', onBackdropClick);
 
-        openModal = null;
         // restore focus
-        if (lastFocusedTrigger && typeof lastFocusedTrigger.focus === 'function') {
-          lastFocusedTrigger.focus();
-          lastFocusedTrigger = null;
+        const returnFocusTo = activeTrigger || lastFocused;
+        if (returnFocusTo && typeof returnFocusTo.focus === 'function') {
+          returnFocusTo.focus();
+        }
+        activeTrigger = null;
+        lastFocused = null;
+      }
+
+      function onBackdropClick(event) {
+        // Close only when clicking the overlay (not the dialog content)
+        if (event.target === overlay) {
+          closeModal();
         }
       }
 
-      function handleKeyDown(e) {
-        if (!openModal) return;
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          close(openModal);
+      function onKeyDown(event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+          event.preventDefault();
+          closeModal();
           return;
         }
-        if (e.key === 'Tab') {
-          // focus trap
-          const focusables = getFocusableElements(openModal);
-          if (focusables.length === 0) {
-            e.preventDefault();
+
+        if (event.key === 'Tab') {
+          // Trap focus inside the dialog
+          const focusable = getFocusable(dialog);
+          if (focusable.length === 0) {
+            event.preventDefault();
             return;
           }
-          const first = focusables[0];
-          const last = focusables[focusables.length - 1];
-          const focused = document.activeElement;
-          if (e.shiftKey) {
-            if (focused === first || focused === openModal) {
-              e.preventDefault();
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          const active = document.activeElement;
+
+          if (event.shiftKey) {
+            // backwards
+            if (active === first || active === dialog) {
               last.focus();
+              event.preventDefault();
             }
           } else {
-            if (focused === last) {
-              e.preventDefault();
+            // forwards
+            if (active === last) {
               first.focus();
+              event.preventDefault();
             }
           }
         }
-      }
-
-      function handleOverlayClick(e) {
-        if (e.target === e.currentTarget || e.target.classList.contains('modal__overlay') || e.target.getAttribute('data-action') === 'overlay') {
-          close(openModal);
-        }
-      }
-
-      function closeOnClick(e) {
-        close(openModal);
-      }
-
-      function keepFocusInside(e) {
-        if (!openModal) return;
-        if (openModal.contains(e.target)) return;
-        // If focus moves outside, bring it back to first focusable
-        const focusables = getFocusableElements(openModal);
-        const target = focusables.length ? focusables[0] : openModal;
-        target.focus();
       }
 
       // Wire triggers
       triggers.forEach(btn => {
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
-          const selector = btn.getAttribute('data-target') || btn.getAttribute('aria-controls') || btn.dataset.target;
-          let modal = null;
-          if (selector) {
-            modal = document.querySelector(selector);
-          } else {
-            // fallback: first modal in document
-            modal = document.querySelector('.modal');
-          }
-          if (!modal) return;
-          open(modal, btn);
+        btn.addEventListener('click', (e) => {
+          openModal(btn);
         });
       });
 
-      // Close any modal via Escape at document level as a safety (when modal has no focus)
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && openModal) {
-          close(openModal);
-        }
+      // Wire close elements
+      closeElements.forEach(el => {
+        el.addEventListener('click', () => closeModal());
       });
 
-      // Close when clicking a "Cancel" button inside that has type="button" in modal actions
-      document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.modal__actions .btn');
-        if (!btn) return;
-        const modal = e.target.closest('.modal');
-        if (!modal) return;
-        // If Cancel (non-primary) then close; if primary (submit) don't close here
-        if (!btn.classList.contains('primary')) {
-          e.preventDefault();
-          close(modal);
-        }
-      });
-
-      // Ensure modal dialog itself is focusable
-      document.querySelectorAll('.modal').forEach(m => {
-        if (!m.hasAttribute('tabindex')) m.setAttribute('tabindex', '-1');
+      // Close on window resize or orientation change if desired (optional)
+      window.addEventListener('resize', () => {
+        // no-op for now; kept for extension points
       });
     })();
   </script>

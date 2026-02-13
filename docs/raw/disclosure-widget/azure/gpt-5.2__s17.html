@@ -1,0 +1,354 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #111a2e;
+      --text: #e8eefc;
+      --muted: #a8b3cf;
+      --border: rgba(255, 255, 255, 0.14);
+      --accent: #7aa2ff;
+      --focus: #b7c9ff;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+      --radius: 14px;
+      --pad: 16px;
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(122, 162, 255, 0.25), transparent 50%),
+                  radial-gradient(900px 600px at 80% 20%, rgba(67, 214, 173, 0.18), transparent 45%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    header {
+      max-width: 980px;
+      margin: 34px auto 10px;
+      padding: 0 18px;
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: clamp(22px, 2.5vw, 30px);
+      letter-spacing: 0.2px;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 18px auto 46px;
+      padding: 0 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .example .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: var(--pad);
+      background: rgba(17, 26, 46, 0.6);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .example .title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .example .title strong {
+      font-size: 15px;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .example .title span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+
+    .toggle:hover {
+      border-color: rgba(255,255,255,0.26);
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid rgba(183, 201, 255, 0.35);
+      outline-offset: 2px;
+      border-color: rgba(183, 201, 255, 0.65);
+    }
+
+    .chev {
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid var(--text);
+      border-bottom: 2px solid var(--text);
+      transform: rotate(45deg);
+      transition: transform 180ms ease;
+      margin-left: 2px;
+    }
+
+    .details {
+      padding: 0 var(--pad);
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 220ms ease, opacity 180ms ease;
+    }
+
+    .details .content {
+      padding: var(--pad) 0 calc(var(--pad) + 4px);
+      color: var(--text);
+    }
+
+    .details p {
+      margin: 0 0 10px;
+      color: var(--muted);
+    }
+
+    .details ul {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .details code {
+      color: var(--focus);
+      background: rgba(183, 201, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 7px;
+      border: 1px solid rgba(183, 201, 255, 0.18);
+    }
+
+    .example[data-open="true"] .details {
+      opacity: 1;
+    }
+
+    .example[data-open="true"] .toggle {
+      border-color: rgba(122, 162, 255, 0.6);
+      background: rgba(122, 162, 255, 0.12);
+    }
+
+    .example[data-open="true"] .chev {
+      transform: rotate(225deg);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 8px 10px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    footer {
+      max-width: 980px;
+      margin: 0 auto 30px;
+      padding: 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .details, .chev { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widget Demo</h1>
+    <p>Each widget is wrapped in a <code>div.example</code>. The controlled content lives inside a <code>div.details</code>.</p>
+  </header>
+
+  <main>
+    <div class="example" data-open="false">
+      <div class="bar">
+        <div class="title">
+          <strong>Account settings</strong>
+          <span>Click to reveal the controlled content</span>
+        </div>
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="details-1">
+          <span class="label">Expand</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <div class="details" id="details-1" role="region" aria-label="Account settings details">
+        <div class="content">
+          <p>This section is controlled by the button above. It uses <code>aria-expanded</code> and <code>aria-controls</code>.</p>
+          <div class="row">
+            <span class="pill">Email notifications</span>
+            <span class="pill">Two-factor auth</span>
+            <span class="pill">Sessions</span>
+            <span class="pill">Privacy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example" data-open="true">
+      <div class="bar">
+        <div class="title">
+          <strong>FAQ</strong>
+          <span>Starts expanded; supports keyboard interaction</span>
+        </div>
+        <button class="toggle" type="button" aria-expanded="true" aria-controls="details-2">
+          <span class="label">Collapse</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <div class="details" id="details-2" role="region" aria-label="FAQ details">
+        <div class="content">
+          <p><strong>Q:</strong> How is the expand/collapse animated?</p>
+          <p><strong>A:</strong> JavaScript measures the content height and sets <code>max-height</code> on <code>.details</code>.</p>
+          <ul>
+            <li>Space/Enter on the button toggles it.</li>
+            <li><code>prefers-reduced-motion</code> disables transitions.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Tip: Resize the window or change text size—open panels will recompute their height.
+  </footer>
+
+  <script>
+    (function () {
+      function setPanelHeight(example, open) {
+        const details = example.querySelector('.details');
+        if (!details) return;
+
+        if (open) {
+          details.style.maxHeight = 'none';
+          const h = details.scrollHeight;
+          details.style.maxHeight = '0px';
+          details.offsetHeight; // force reflow
+          details.style.maxHeight = h + 'px';
+        } else {
+          const h = details.scrollHeight;
+          details.style.maxHeight = h + 'px';
+          details.offsetHeight; // force reflow
+          details.style.maxHeight = '0px';
+        }
+      }
+
+      function updateButton(example, open) {
+        const btn = example.querySelector('.toggle');
+        if (!btn) return;
+        btn.setAttribute('aria-expanded', String(open));
+        const label = btn.querySelector('.label');
+        if (label) label.textContent = open ? 'Collapse' : 'Expand';
+      }
+
+      function syncExample(example) {
+        const open = example.getAttribute('data-open') === 'true';
+        updateButton(example, open);
+        if (open) {
+          const details = example.querySelector('.details');
+          if (details) {
+            details.style.maxHeight = 'none';
+            const h = details.scrollHeight;
+            details.style.maxHeight = h + 'px';
+            details.style.opacity = '1';
+          }
+        } else {
+          const details = example.querySelector('.details');
+          if (details) {
+            details.style.maxHeight = '0px';
+            details.style.opacity = '0';
+          }
+        }
+      }
+
+      document.querySelectorAll('.example').forEach((example) => {
+        syncExample(example);
+
+        const btn = example.querySelector('.toggle');
+        if (!btn) return;
+
+        btn.addEventListener('click', () => {
+          const isOpen = example.getAttribute('data-open') === 'true';
+          const next = !isOpen;
+          example.setAttribute('data-open', String(next));
+          updateButton(example, next);
+          setPanelHeight(example, next);
+
+          const details = example.querySelector('.details');
+          if (details) details.style.opacity = next ? '1' : '0';
+        });
+
+        const details = example.querySelector('.details');
+        if (details) {
+          details.addEventListener('transitionend', (e) => {
+            if (e.propertyName !== 'max-height') return;
+            const open = example.getAttribute('data-open') === 'true';
+            if (open) details.style.maxHeight = 'none';
+          });
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        document.querySelectorAll('.example[data-open="true"]').forEach((example) => {
+          const details = example.querySelector('.details');
+          if (!details) return;
+          details.style.maxHeight = 'none';
+          const h = details.scrollHeight;
+          details.style.maxHeight = h + 'px';
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

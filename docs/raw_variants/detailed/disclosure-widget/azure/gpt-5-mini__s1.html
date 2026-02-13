@@ -1,0 +1,446 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/collapse examples - Patterns - Accessible Widgets</title>
+
+  <style>
+    /*
+      Design tokens (use these tokens throughout; avoid scattered colors).
+      Tokens chosen for strong contrast and readability.
+    */
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f8f9fa;
+      --color-text: #0b1117; /* very dark for high contrast */
+      --color-muted-text: #334155; /* still meets contrast for small text */
+      --color-border: #d1d5db;
+      --color-link: #0b6efd;
+      --color-focus: #004085; /* strong blue for focus */
+      --color-danger: #b32525;
+      --color-success: #0b7530;
+      --radius: 8px;
+      --space: 16px;
+      --max-width: 900px;
+      --shadow: 0 1px 2px rgba(11,17,23,0.05);
+    }
+
+    /* Basic page layout */
+    html,body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--color-bg);
+      color: var(--color-text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.4;
+    }
+
+    header, nav, main, footer {
+      padding-left: var(--space);
+      padding-right: var(--space);
+    }
+
+    .site-wrap {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding-top: 24px;
+      padding-bottom: 48px;
+    }
+
+    /* Skip link (first focusable element) */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      border: 0;
+      white-space: nowrap;
+    }
+    /* Make skip link visible when focused */
+    .sr-only:focus, .sr-only:active {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0 0 16px 0;
+      padding: 8px 12px;
+      background: var(--color-surface);
+      color: var(--color-text);
+      border-radius: 6px;
+      box-shadow: var(--shadow);
+      clip: auto;
+      clip-path: none;
+      white-space: normal;
+    }
+
+    header {
+      margin-bottom: 12px;
+    }
+
+    nav ul {
+      display: flex;
+      gap: 12px;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 18px 0;
+    }
+    nav a {
+      color: var(--color-link);
+      text-decoration: none;
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+    nav a:focus {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    main h1 {
+      font-size: 1.5rem;
+      margin: 0 0 12px 0;
+    }
+    p.lead {
+      margin: 0 0 20px 0;
+      color: var(--color-muted-text);
+    }
+
+    /* Example wrapper */
+    .example {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin: 12px 0;
+      box-shadow: var(--shadow);
+      min-width: 0; /* allow children to shrink on narrow viewports */
+    }
+
+    /* Expander button */
+    .expander {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: none;
+      border: 2px solid transparent;
+      padding: 10px 12px;
+      font-size: 1rem;
+      color: var(--color-text);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background .12s ease, border-color .12s ease;
+    }
+    .expander:hover {
+      background: rgba(11,17,23,0.03);
+    }
+    .expander:active {
+      background: rgba(11,17,23,0.06);
+    }
+    /* Visible focus ring meeting contrast */
+    .expander:focus {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 3px;
+      border-color: transparent;
+    }
+
+    /* Icon */
+    .expander svg {
+      width: 1rem;
+      height: 1rem;
+      flex: 0 0 1rem;
+      transition: transform .2s ease;
+      color: var(--color-muted-text); /* uses currentColor in svg */
+    }
+    /* When expanded rotate icon */
+    .expander[aria-expanded="true"] svg {
+      transform: rotate(180deg);
+      color: var(--color-link);
+    }
+
+    /* The controlled content container (must have class "details") */
+    .details {
+      margin-top: 12px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      box-shadow: none;
+      color: var(--color-text);
+      font-size: 0.98rem;
+    }
+
+    /* Make sure text and long tokens wrap */
+    .details, .example {
+      word-wrap: break-word;
+      overflow-wrap: anywhere; /* handles long strings/URLs */
+    }
+
+    /* Example: multiple controls inside details */
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .btn {
+      background: var(--color-link);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+    }
+    .btn:focus {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 3px;
+    }
+
+    /* Responsive behavior: ensure single column at small widths */
+    @media (max-width: 420px) {
+      .controls { flex-direction: column; }
+      nav ul { flex-direction: column; gap: 8px; }
+      .site-wrap { padding-left: 12px; padding-right: 12px; }
+    }
+
+    /* Forced colors mode support: prefer system color keywords */
+    @media (forced-colors: active) {
+      .expander:focus {
+        outline: 3px solid Highlight;
+        outline-offset: 2px;
+        border-color: ButtonBorder;
+      }
+      .btn:focus {
+        outline: 3px solid Highlight;
+        outline-offset: 2px;
+      }
+      .details {
+        border-color: ButtonBorder;
+        background: Canvas;
+        color: CanvasText;
+      }
+      nav a {
+        color: LinkText;
+      }
+    }
+
+    /* Small helper for visually indicating required/important text without color-only cues */
+    .note {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .badge {
+      background: var(--color-success);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <a href="#maincontent" class="sr-only">Skip to main content</a>
+
+  <header class="site-wrap" role="banner" aria-label="Header">
+    <div style="display:flex;align-items:center;gap:12px;justify-content:space-between">
+      <div>
+        <strong>Accessible Widgets</strong>
+        <div style="font-size:.85rem;color:var(--color-muted-text)">Expand / collapse examples</div>
+      </div>
+      <div style="font-size:.85rem;color:var(--color-muted-text)">Demo</div>
+    </div>
+  </header>
+
+  <nav class="site-wrap" aria-label="Primary navigation">
+    <ul>
+      <li><a href="#examples" id="nav-examples">Examples</a></li>
+      <li><a href="#usage" id="nav-usage">Usage</a></li>
+    </ul>
+  </nav>
+
+  <main id="maincontent" tabindex="-1" class="site-wrap" role="main" aria-labelledby="main-title">
+    <h1 id="main-title">Expand / Collapse widget examples</h1>
+    <p class="lead">Two accessible patterns for expand/collapse content. Each widget is wrapped with a div.example and the controlled panel uses a container with the class "details". Use the keyboard (Tab and Enter/Space) to operate. Press Escape to close an open panel.</p>
+
+    <!-- Example 1: Simple toggle -->
+    <section aria-labelledby="ex1-title">
+      <h2 id="ex1-title" style="font-size:1.05rem;margin-top:0">Simple toggle</h2>
+
+      <div class="example" aria-labelledby="ex1-title">
+        <button id="expander1"
+                class="expander"
+                aria-expanded="false"
+                aria-controls="panel1">
+          <span>Show more details</span>
+          <!-- Decorative icon; uses currentColor -->
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <div id="panel1"
+             class="details"
+             hidden
+             role="region"
+             aria-labelledby="expander1">
+          <p style="margin-top:0">This content is shown when you activate the "Show more details" button. It is implemented as a controlled region with the class <code>details</code>. The toggle button has <code>aria-expanded</code> and <code>aria-controls</code> attributes so assistive technologies know the relationship and state.</p>
+          <p style="margin-bottom:0;color:var(--color-muted-text)">Tip: You can close this panel with the Escape key while focus is on the toggle button.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Example 2: Expandable region with interactive content -->
+    <section aria-labelledby="ex2-title" style="margin-top:18px;">
+      <h2 id="ex2-title" style="font-size:1.05rem;margin-top:0">Interactive panel</h2>
+
+      <div class="example" aria-labelledby="ex2-title">
+        <button id="expander2"
+                class="expander"
+                aria-expanded="false"
+                aria-controls="panel2">
+          <span>Manage settings</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <div id="panel2"
+             class="details"
+             hidden
+             role="region"
+             aria-labelledby="expander2">
+          <p style="margin-top:0">This panel contains interactive controls. All controls have visible labels and remain keyboard operable at narrow viewports.</p>
+
+          <form aria-labelledby="expander2" onsubmit="return false;">
+            <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+              <label for="displayName">Display name</label>
+              <input id="displayName" name="displayName" type="text" style="padding:8px;border:1px solid var(--color-border);border-radius:6px;font:inherit" placeholder="Your display name" />
+
+              <div class="controls" aria-hidden="false">
+                <button class="btn" type="button">Save</button>
+                <button class="btn" type="button" style="background:var(--color-danger)">Reset</button>
+                <button class="btn" type="button" style="background:var(--color-border);color:var(--color-text)">Cancel</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <hr style="margin:20px 0;border:none;border-top:1px solid var(--color-border)" />
+
+    <section id="usage" aria-labelledby="usage-title">
+      <h2 id="usage-title" style="font-size:1.05rem;margin-top:0">Notes on keyboard and accessibility</h2>
+      <ul style="color:var(--color-muted-text)">
+        <li>Buttons use native semantics; they are keyboard operable and include <code>aria-expanded</code> and <code>aria-controls</code>.</li>
+        <li>Panels have the class <code>details</code>, are hidden with the <code>hidden</code> attribute when collapsed, and are exposed as regions with <code>role="region"</code> and <code>aria-labelledby</code> for context.</li>
+        <li>Escape closes an open panel when focus is on a toggle button.</li>
+        <li>All interactive elements have visible labels and visible focus indicators. Color is not the only cue for state.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-wrap" role="contentinfo" style="color:var(--color-muted-text)">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+      <div>© Accessible Widgets Demo</div>
+      <div class="note"><span class="badge" aria-hidden="true">AA</span><span>WCAG 2.2 Level AA mindful demo</span></div>
+    </div>
+  </footer>
+
+  <script>
+    // Utility to toggle a panel. Uses hidden attribute and aria-expanded.
+    (function () {
+      'use strict';
+
+      // Find all expander buttons that have aria-controls
+      const expanders = Array.from(document.querySelectorAll('.expander[aria-controls]'));
+
+      expanders.forEach(button => {
+        const panelId = button.getAttribute('aria-controls');
+        const panel = document.getElementById(panelId);
+
+        // Defensive checks
+        if (!panel) return;
+
+        // Ensure the panel has the "details" class per requirements
+        if (!panel.classList.contains('details')) {
+          console.warn('Panel', panelId, 'does not have class "details" as required.');
+        }
+
+        // When activated (click or Space/Enter), toggle
+        button.addEventListener('click', () => {
+          toggle(button, panel);
+        });
+
+        // Support Escape: when focus is on the button, Escape will close the panel if open
+        button.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' || e.key === 'Esc') {
+            if (button.getAttribute('aria-expanded') === 'true') {
+              e.stopPropagation();
+              e.preventDefault();
+              close(button, panel);
+            }
+          }
+        });
+
+        // When focus moves away, do nothing (we don't auto-close). This keeps keyboard predictable.
+
+        // Ensure initial state reflects DOM (if hidden attribute present)
+        const initExpanded = panel.hasAttribute('hidden') ? 'false' : 'true';
+        button.setAttribute('aria-expanded', initExpanded);
+      });
+
+      function toggle(button, panel) {
+        const expanded = button.getAttribute('aria-expanded') === 'true';
+        if (expanded) {
+          close(button, panel);
+        } else {
+          open(button, panel);
+        }
+      }
+
+      function open(button, panel) {
+        panel.removeAttribute('hidden'); // reveals panel to assistive tech and prevents focus
+        button.setAttribute('aria-expanded', 'true');
+
+        // If the panel contains an element that should be focused first, do that.
+        // We prefer not to move focus automatically; but if there are form fields,
+        // focusing the first focusable field can help keyboard users.
+        const firstFocusable = panel.querySelector('input,button,select,textarea,a[href],[tabindex]:not([tabindex="-1"])');
+        if (firstFocusable) {
+          // Do not steal focus if the button has just been activated by a keyboard press
+          // (many patterns keep focus on the button). This demo keeps focus on the button
+          // to make Escape behavior reliable. Comment out the line below to auto-focus first control.
+          // firstFocusable.focus();
+        }
+      }
+
+      function close(button, panel) {
+        panel.setAttribute('hidden', '');
+        button.setAttribute('aria-expanded', 'false');
+        // return focus to the button (should already be on button when Escape used)
+        button.focus();
+      }
+
+      // Ensure no static content is tabbable: double-check and warn
+      Array.from(document.querySelectorAll('[tabindex]')).forEach(el => {
+        const ti = el.getAttribute('tabindex');
+        if (ti !== null && ti !== '-1' && el.getAttribute('role') === null && !el.matches('a,button,input,select,textarea')) {
+          // Allow some form controls; otherwise prefer not to create additional tabbable elements.
+          // This is just a development-time notice.
+          // console.info('Check tabindex on', el);
+        }
+      });
+
+      // Accessibility hint: allow Enter/Space via button native behavior (already handled by browser)
+      // The code above handles Escape to close.
+
+    })();
+  </script>
+</body>
+</html>

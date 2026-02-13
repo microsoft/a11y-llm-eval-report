@@ -1,0 +1,299 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expand/Collapse Widgets - Accessibility Examples</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Tokenized Color Palette - Ensures contrast and consistency */
+            --color-bg: #ffffff;
+            --color-bg-muted: #f8f9fa;
+            --color-bg-accent: #e9ecef;
+            --color-text: #212529;
+            --color-text-muted: #495057;
+            --color-link: #0d6efd;
+            --color-link-hover: #0a58ca;
+            --color-border: #dee2e6;
+            --color-focus: #0d6efd;
+            --color-danger: #dc3545;
+            --color-success: #198754;
+
+            /* Spacing Tokens */
+            --space-xs: 0.5rem;
+            --space-sm: 0.75rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+
+            /* Border Tokens */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.375rem;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: var(--space-md);
+            max-width: 80ch;
+            margin: 0 auto;
+        }
+
+        /* Utility Classes */
+        .sr-only:not(:focus):not(:active) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        /* Layout & Structure */
+        header,
+        nav,
+        main,
+        footer {
+            margin-bottom: var(--space-xl);
+        }
+
+        h1 {
+            font-size: 2rem;
+            line-height: 1.2;
+            margin-top: var(--space-xl);
+            margin-bottom: var(--space-md);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-md);
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            margin-top: var(--space-md);
+            margin-bottom: var(--space-sm);
+        }
+
+        p {
+            margin-bottom: var(--space-md);
+        }
+
+        a {
+            color: var(--color-link);
+            text-decoration: underline;
+        }
+        a:hover,
+        a:focus {
+            color: var(--color-link-hover);
+        }
+
+        /* Example Container */
+        .example {
+            background-color: var(--color-bg-muted);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            margin-bottom: var(--space-lg);
+            min-width: 0; /* Allows reflow for children */
+        }
+
+        /* Expand/Collapse Widget Base Styles */
+        .expand-button {
+            background-color: var(--color-bg-accent);
+            color: var(--color-text);
+            border: 2px solid transparent; /* For forced-colors mode */
+            border-radius: var(--radius-sm);
+            padding: var(--space-sm) var(--space-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            text-align: left;
+            width: 100%;
+            max-width: 100%; /* Ensures reflow */
+        }
+
+        .expand-button:hover {
+            background-color: var(--color-border);
+        }
+
+        .expand-button:focus {
+            outline: 3px solid transparent; /* For forced-colors mode */
+            box-shadow: 0 0 0 3px var(--color-focus);
+        }
+
+        .expand-button svg {
+            width: 1em;
+            height: 1em;
+            fill: currentColor; /* Adapts to forced-colors */
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .expand-button[aria-expanded="true"] svg {
+            transform: rotate(180deg);
+        }
+
+        .expand-button[aria-expanded="false"] .expanded-text,
+        .expand-button[aria-expanded="true"] .collapsed-text {
+            display: none;
+        }
+
+        /* Details Content Container */
+        .details {
+            border-left: 4px solid var(--color-link);
+            margin-top: var(--space-md);
+            padding: var(--space-md);
+            background-color: var(--color-bg);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            overflow-wrap: anywhere; /* Handles long strings in reflow */
+        }
+
+        .details p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Forced Colors Support */
+        @media (forced-colors: active) {
+            .expand-button {
+                border-color: ButtonBorder;
+            }
+            .expand-button:focus {
+                outline: 2px solid Highlight;
+                box-shadow: none;
+            }
+            .details {
+                border-left-color: LinkText;
+            }
+        }
+
+        /* Reflow Support */
+        @media (max-width: 320px) {
+            .example,
+            .expand-button {
+                padding: var(--space-sm);
+            }
+            .details {
+                margin-top: var(--space-sm);
+                padding: var(--space-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="#maincontent" class="sr-only">Skip to main content</a>
+        <h1>Accessible Expand/Collapse Widgets</h1>
+        <p>This page demonstrates accessible patterns for expand/collapse interactions.</p>
+    </header>
+
+    <nav>
+        <h2 class="sr-only">Page Navigation</h2>
+        <ul>
+            <li><a href="#example1">Example 1: Simple Disclosure</a></li>
+            <li><a href="#example2">Example 2: Section with Long Text</a></li>
+        </ul>
+    </nav>
+
+    <main id="maincontent" tabindex="-1">
+        <h2>Examples</h2>
+
+        <section id="example1" class="example">
+            <h3>Product Details</h3>
+            <button
+                class="expand-button"
+                type="button"
+                aria-expanded="false"
+                aria-controls="details-product-1">
+                <span class="collapsed-text">Show</span>
+                <span class="expanded-text">Hide</span>
+                warranty information
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 10l5 5 5-5z"/>
+                </svg>
+            </button>
+            <div
+                id="details-product-1"
+                class="details"
+                hidden>
+                <p>This product comes with a standard 24-month manufacturer's warranty covering defects in materials and workmanship. The warranty does not cover damage caused by accidents, misuse, or unauthorized modifications. Please retain your proof of purchase.</p>
+            </div>
+        </section>
+
+        <section id="example2" class="example">
+            <h3>Frequently Asked Question</h3>
+            <button
+                class="expand-button"
+                type="button"
+                aria-expanded="false"
+                aria-controls="details-faq-1">
+                <span class="collapsed-text">View</span>
+                <span class="expanded-text">Hide</span>
+                answer to: How do I reset my password?
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 10l5 5 5-5z"/>
+                </svg>
+            </button>
+            <div
+                id="details-faq-1"
+                class="details"
+                hidden>
+                <p>To reset your password, visit the login page and click the "Forgot password?" link. You will be prompted to enter the email address associated with your account. A password reset link will be sent to that email. Click the link in the email to create a new password. For security, the link expires after 24 hours. If you do not receive the email, please check your spam folder.</p>
+                <p>If you continue to experience issues, please <a href="/contact">contact our support team</a> for assistance.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p><small>These examples are designed to meet <a href="https://www.w3.org/TR/WCAG22/" rel="noopener">WCAG 2.2 Level AA</a> guidelines. Manual testing is recommended.</small></p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const buttons = document.querySelectorAll('.expand-button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const expanded = this.getAttribute('aria-expanded') === 'true';
+                    const targetId = this.getAttribute('aria-controls');
+                    const target = document.getElementById(targetId);
+
+                    this.setAttribute('aria-expanded', !expanded);
+                    if (target) {
+                        target.hidden = expanded;
+                    }
+
+                    // Move focus into the newly revealed content for keyboard and screen reader users
+                    if (!expanded && target) {
+                        // Set a tabindex to make content focusable, then focus it
+                        target.setAttribute('tabindex', '-1');
+                        target.focus();
+                    }
+                });
+
+                // Optional: Close on Escape key when content is focused (good practice)
+                const targetId = button.getAttribute('aria-controls');
+                const target = document.getElementById(targetId);
+                if (target) {
+                    target.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
+                            button.click();
+                            button.focus();
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

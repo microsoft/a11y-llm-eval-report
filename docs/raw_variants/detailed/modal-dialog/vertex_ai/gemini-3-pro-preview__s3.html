@@ -1,0 +1,372 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Modal Dialog Example - Component Library</title>
+    <style>
+        /* Design Tokens */
+        :root {
+            --color-bg: #ffffff;
+            --color-text: #222222;
+            --color-muted-text: #555555;
+            --color-border: #767676; /* Meets 3:1 contrast against white */
+            --color-primary: #005a9c; /* Meets 4.5:1 contrast against white */
+            --color-primary-dark: #003d6b;
+            --color-overlay: rgba(0, 0, 0, 0.65);
+            --color-focus: #005a9c;
+            --space-unit: 1rem;
+        }
+
+        /* Base Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Skip Link */
+        .sr-only:not(:focus):not(:active) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        .skip-link {
+            background: var(--color-primary);
+            color: #fff;
+            font-weight: 700;
+            left: 50%;
+            padding: 0.5rem 1rem;
+            position: absolute;
+            top: 0;
+            transform: translateY(-100%) translateX(-50%);
+            transition: transform 0.2s;
+            z-index: 2000;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0) translateX(-50%);
+            outline: 3px solid #000;
+            outline-offset: 2px;
+        }
+
+        /* Layout */
+        header, main, footer {
+            padding: var(--space-unit);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Button Styles */
+        button {
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 2px solid transparent;
+        }
+
+        .trigger {
+            background-color: var(--color-primary);
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .trigger:hover {
+            background-color: var(--color-primary-dark);
+        }
+
+        .trigger:focus-visible {
+            box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px var(--color-focus);
+            outline: none;
+        }
+
+        .btn-close {
+            background: transparent;
+            border: 2px solid var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-close:hover {
+            background-color: #f0f0f0;
+        }
+
+        .btn-close:focus-visible {
+            box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px var(--color-focus);
+            outline: none;
+        }
+
+        /* Modal Styles */
+        /* The backdrop */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--color-overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        /* State: Open */
+        .modal-overlay[aria-hidden="false"] {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Prevent scrolling on body when modal is open */
+        body.has-modal-open {
+            overflow: hidden;
+        }
+
+        /* The dialog box */
+        .modal-content {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            margin: var(--space-unit);
+            padding: 1.5rem;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.2s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay[aria-hidden="false"] .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+            color: var(--color-muted-text);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        /* Forced Colors Mode Support */
+        @media (forced-colors: active) {
+            .trigger, .btn-close {
+                border: 2px solid ButtonText;
+            }
+            .modal-content {
+                border: 2px solid CanvasText;
+            }
+            .skip-link:focus {
+                outline: 2px solid CanvasText;
+            }
+            .trigger:focus-visible, .btn-close:focus-visible {
+                outline: 2px solid CanvasText;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#maincontent" class="skip-link">Skip to main content</a>
+        <div style="font-weight: bold; font-size: 1.25rem;">Site Logo</div>
+    </header>
+
+    <main id="maincontent" tabindex="-1">
+        <h1>Dashboard Settings</h1>
+        
+        <p>Manage your account preferences and data settings below.</p>
+        
+        <section>
+            <h2>Data Retention</h2>
+            <p>Your current data retention policy is set to <strong>30 days</strong>.</p>
+            
+            <!-- Trigger Button -->
+            <button type="button" class="trigger" id="modal-trigger-1" aria-haspopup="dialog" aria-expanded="false" aria-controls="modal-1">
+                Edit Retention Policy
+            </button>
+        </section>
+
+        <!-- Dummy content to ensure scroll and verify overlay behavior -->
+        <p style="margin-top: 2rem;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Accessible Examples Co.</p>
+    </footer>
+
+    <!-- Modal Structure -->
+    <!-- 
+      - role="dialog": Identifies this as a dialog window.
+      - aria-modal="true": Tells AT that windows beneath are inert.
+      - aria-labelledby: Points to the visible title.
+      - aria-describedby: Points to the main description.
+      - aria-hidden="true": Hidden by default.
+    -->
+    <div 
+        id="modal-1" 
+        class="modal-overlay" 
+        aria-hidden="true"
+        tabindex="-1"
+    >
+        <div 
+            class="modal-content" 
+            role="dialog" 
+            aria-modal="true" 
+            aria-labelledby="modal-title-1" 
+            aria-describedby="modal-desc-1"
+        >
+            <div class="modal-header">
+                <h2 id="modal-title-1" class="modal-title">Edit Retention Policy</h2>
+            </div>
+            
+            <div id="modal-desc-1" class="modal-body">
+                <p>Choose how long your data is stored before automatic deletion. Changes apply immediately.</p>
+                
+                <form id="retention-form">
+                    <label for="retention-days" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        Retention period (days)
+                    </label>
+                    <select id="retention-days" name="retention-days" style="padding: 0.5rem; width: 100%; font-size: 1rem; margin-bottom: 1rem;">
+                        <option value="30">30 Days</option>
+                        <option value="60">60 Days</option>
+                        <option value="90">90 Days</option>
+                        <option value="365">1 Year</option>
+                    </select>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-close" id="modal-cancel">Cancel</button>
+                <button type="button" class="trigger" onclick="alert('Saved!');">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const openButton = document.getElementById('modal-trigger-1');
+            const modalOverlay = document.getElementById('modal-1');
+            const closeButton = document.getElementById('modal-cancel');
+            const modalContent = modalOverlay.querySelector('.modal-content');
+
+            // Elements to manage focus
+            // A robust implementation would query all focusable elements dynamically
+            const focusableElementsSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+            
+            let previousActiveElement;
+
+            function openModal() {
+                // 1. Store the element that had focus before opening
+                previousActiveElement = document.activeElement;
+
+                // 2. Show the modal
+                modalOverlay.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('has-modal-open');
+                openButton.setAttribute('aria-expanded', 'true');
+
+                // 3. Move focus into the modal
+                // Ideally focus the first interactive element or the container itself if no inputs exist
+                const firstFocusable = modalContent.querySelectorAll(focusableElementsSelector)[0];
+                if (firstFocusable) {
+                    firstFocusable.focus();
+                } else {
+                    // Fallback if no interactive content
+                    modalContent.setAttribute('tabindex', '-1');
+                    modalContent.focus();
+                }
+
+                // Add event listener for trapping focus and closing
+                modalOverlay.addEventListener('keydown', handleKeyDown);
+                // Close on click outside (optional but expected)
+                modalOverlay.addEventListener('click', handleBackdropClick);
+            }
+
+            function closeModal() {
+                // 1. Hide the modal
+                modalOverlay.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('has-modal-open');
+                openButton.setAttribute('aria-expanded', 'false');
+
+                // 2. Restore focus to the trigger
+                if (previousActiveElement) {
+                    previousActiveElement.focus();
+                }
+
+                // Cleanup listeners
+                modalOverlay.removeEventListener('keydown', handleKeyDown);
+                modalOverlay.removeEventListener('click', handleBackdropClick);
+            }
+
+            function handleKeyDown(e) {
+                const isTabPressed = e.key === 'Tab' || e.keyCode === 9;
+                const isEscPressed = e.key === 'Escape' || e.keyCode === 27;
+
+                if (isEscPressed) {
+                    closeModal();
+                    return;
+                }
+
+                if (!isTabPressed) {
+                    return;
+                }
+
+                // Focus Trap Logic
+                const focusableContent = modalContent.querySelectorAll(focusableElementsSelector);
+                const firstFocusableElement = focusableContent[0];
+                const lastFocusableElement = focusableContent[focusableContent.length - 1];
+
+                if (e.shiftKey) { // if shift key pressed for shift + tab combination
+                    if (document.activeElement === firstFocusableElement) {
+                        lastFocusableElement.focus();
+                        e.preventDefault();
+                    }
+                } else { // if tab key is pressed
+                    if (document.activeElement === lastFocusableElement) {
+                        firstFocusableElement.focus();
+                        e.preventDefault();
+                    }
+                }
+            }
+
+            function handleBackdropClick(e) {
+                // Only close if clicking the overlay itself, not the content inside
+                if (e.target === modalOverlay) {
+                    closeModal();
+                }
+            }
+
+            // Bind events
+            openButton.addEventListener('click', openModal);
+            closeButton.addEventListener('click', closeModal);
+        });
+    </script>
+</body>
+</html>

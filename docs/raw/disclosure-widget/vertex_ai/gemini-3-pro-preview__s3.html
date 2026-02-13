@@ -1,0 +1,208 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expand/Collapse Widget Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            line-height: 1.5;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .example {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        /* Method 1: Using pure CSS (Checkbox Hack) */
+        input[type="checkbox"].toggle {
+            display: none;
+        }
+
+        .lbl-toggle {
+            display: block;
+            font-weight: bold;
+            padding: 1rem;
+            cursor: pointer;
+            background: #fff;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lbl-toggle:hover {
+            background: #f9f9f9;
+            color: #0056b3;
+        }
+
+        .lbl-toggle::after {
+            content: '+';
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+
+        .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #fafafa;
+            border-top: 1px solid transparent;
+        }
+
+        .details-inner {
+            padding: 1rem;
+        }
+
+        /* Checkbox logic */
+        input[type="checkbox"].toggle:checked + .lbl-toggle::after {
+            transform: rotate(45deg);
+        }
+
+        input[type="checkbox"].toggle:checked + .lbl-toggle + .details {
+            max-height: 500px; /* Arbitrary large height */
+            border-top: 1px solid #eee;
+            transition: max-height 0.3s ease-in;
+        }
+
+
+        /* Method 2: Native HTML5 <details> and <summary> */
+        details.native-details {
+            width: 100%;
+        }
+
+        summary {
+            padding: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            list-style: none; /* Hide default triangle */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: '▼';
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+        }
+
+        details.native-details[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        details.native-details[open] summary {
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Reusing the .details class inside native implementation for consistency */
+        .native-content {
+            padding: 1rem;
+            background: #fafafa;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Expand/Collapse Examples</h1>
+
+    <!-- Example 1: CSS-Only Checkbox Hack -->
+    <div class="example">
+        <input type="checkbox" id="toggle1" class="toggle">
+        <label for="toggle1" class="lbl-toggle">CSS-Only Approach</label>
+        <div class="details">
+            <div class="details-inner">
+                <p>This widget works entirely without JavaScript. It uses a hidden checkbox input and the sibling selector to control the visibility of this container.</p>
+                <p>It is robust and works even if JS is disabled.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Example 2: Native HTML5 Elements -->
+    <div class="example">
+        <details class="native-details">
+            <summary>Native HTML5 Elements</summary>
+            <div class="details native-content">
+                <p>This widget uses the semantic <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> tags.</p>
+                <p>This is the most accessible and semantic way to create expand/collapse widgets in modern browsers.</p>
+            </div>
+        </details>
+    </div>
+
+    <!-- Example 3: JavaScript Approach -->
+    <div class="example">
+        <button type="button" class="lbl-toggle js-toggle" aria-expanded="false" style="width:100%; border:none; text-align:left; font-size:1rem; font-family:inherit;">
+            JavaScript Approach
+        </button>
+        <div class="details js-details">
+            <div class="details-inner">
+                <p>This implementation uses Vanilla JavaScript to toggle classes and handle ARIA attributes for accessibility.</p>
+                <p>It calculates the exact height needed for the animation.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Logic for Example 3
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.querySelector('.js-toggle');
+            const content = document.querySelector('.js-details');
+
+            if (btn && content) {
+                btn.addEventListener('click', () => {
+                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+                    
+                    // Toggle ARIA
+                    btn.setAttribute('aria-expanded', !isExpanded);
+                    
+                    // Toggle Rotation Style for the '+' icon (pseudo element handling usually requires class toggle)
+                    btn.classList.toggle('active');
+
+                    if (!isExpanded) {
+                        // Expand
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        content.style.borderTop = "1px solid #eee";
+                        
+                        // Rotate icon manually via style since we reused the CSS class which depends on checkboxes
+                        // Just adding a transform via JS for this demo
+                        const styleSheet = document.styleSheets[0];
+                        btn.style.setProperty('--icon-rotation', '45deg'); 
+                    } else {
+                        // Collapse
+                        content.style.maxHeight = null;
+                        content.style.borderTop = "1px solid transparent";
+                    }
+                });
+
+                // Add specific style for JS button icon rotation
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    .js-toggle.active::after { transform: rotate(45deg); }
+                `;
+                document.head.appendChild(style);
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,321 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessible Modal Dialog Example</title>
+  <style>
+    :root{
+      color-scheme: light dark;
+      --bg: #ffffff;
+      --fg: #111827;
+      --muted: #4b5563;
+      --border: #cbd5e1;
+      --shadow: 0 20px 60px rgba(0,0,0,.25);
+      --focus: #1d4ed8;
+      --overlay: rgba(0,0,0,.55);
+      --btn: #1d4ed8;
+      --btnText: #ffffff;
+      --btnHover: #1e40af;
+      --btnSecondary: #f3f4f6;
+      --btnSecondaryText: #111827;
+      --btnSecondaryHover: #e5e7eb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root{
+        --bg: #0b1220;
+        --fg: #e5e7eb;
+        --muted: #cbd5e1;
+        --border: #334155;
+        --shadow: 0 20px 60px rgba(0,0,0,.5);
+        --overlay: rgba(0,0,0,.65);
+        --btn: #60a5fa;
+        --btnText: #0b1220;
+        --btnHover: #93c5fd;
+        --btnSecondary: #111827;
+        --btnSecondaryText: #e5e7eb;
+        --btnSecondaryHover: #1f2937;
+      }
+    }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+    }
+
+    main{
+      max-width: 70ch;
+      padding: 2rem 1rem 4rem;
+      margin: 0 auto;
+    }
+
+    h1{
+      font-size: 1.75rem;
+      margin: 0 0 0.75rem;
+    }
+    p{
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    .button-row{
+      display:flex;
+      gap:.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    button{
+      font: inherit;
+      border-radius: .6rem;
+      border: 1px solid transparent;
+      padding: .65rem 1rem;
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    a:focus-visible{
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .trigger{
+      background: var(--btn);
+      color: var(--btnText);
+    }
+    .trigger:hover{ background: var(--btnHover); }
+
+    .secondary{
+      background: var(--btnSecondary);
+      color: var(--btnSecondaryText);
+      border-color: var(--border);
+    }
+    .secondary:hover{ background: var(--btnSecondaryHover); }
+
+    /* Dialog styling */
+    dialog{
+      width: min(36rem, calc(100% - 2rem));
+      border: 1px solid var(--border);
+      border-radius: 0.9rem;
+      padding: 0;
+      box-shadow: var(--shadow);
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    dialog::backdrop{
+      background: var(--overlay);
+    }
+
+    .dialog-header{
+      display:flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dialog-title{
+      margin: 0;
+      font-size: 1.125rem;
+    }
+
+    .icon-button{
+      background: transparent;
+      border: 1px solid transparent;
+      color: inherit;
+      padding: .4rem;
+      border-radius: .5rem;
+      line-height: 0;
+    }
+    .icon-button:hover{
+      border-color: var(--border);
+      background: color-mix(in srgb, var(--bg) 70%, var(--fg) 6%);
+    }
+
+    .dialog-body{
+      padding: 1rem;
+    }
+
+    .dialog-body p{
+      color: var(--fg);
+      margin: 0 0 0.75rem;
+    }
+
+    .dialog-footer{
+      display:flex;
+      justify-content: flex-end;
+      gap: .75rem;
+      padding: 0.75rem 1rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .sr-only{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal dialog example</h1>
+    <p>
+      Activate the “Open modal dialog” button to open a modal. It traps focus while open and can be closed with the Close button or the Escape key.
+    </p>
+
+    <div class="button-row">
+      <button type="button" class="trigger" id="openDialog">
+        Open modal dialog
+      </button>
+      <button type="button" class="secondary" id="dummyAction">
+        Another action
+      </button>
+    </div>
+
+    <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="dialogTitle">Confirm changes</h2>
+        <button type="button" class="icon-button" id="closeX" aria-label="Close dialog">
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <p id="dialogDesc">
+          This is a sample modal dialog. Keyboard focus moves into the dialog when it opens, and returns to the trigger when it closes.
+        </p>
+        <p>
+          Try using <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move through the controls.
+        </p>
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="secondary" id="cancelBtn">Cancel</button>
+        <button type="button" class="trigger" id="confirmBtn">Confirm</button>
+      </div>
+    </dialog>
+  </main>
+
+  <script>
+    (function () {
+      const dialog = document.getElementById('exampleDialog');
+      const openBtn = document.getElementById('openDialog');
+      const closeX = document.getElementById('closeX');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const confirmBtn = document.getElementById('confirmBtn');
+
+      let lastActiveElement = null;
+
+      function getFocusableElements(container) {
+        const selectors = [
+          'a[href]',
+          'area[href]',
+          'button:not([disabled])',
+          'input:not([disabled]):not([type="hidden"])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          '[tabindex]:not([tabindex="-1"])',
+          '[contenteditable="true"]'
+        ];
+        return Array.from(container.querySelectorAll(selectors.join(',')))
+          .filter(el => !el.hasAttribute('inert') && !el.closest('[inert]'));
+      }
+
+      function trapTabKey(e) {
+        if (e.key !== 'Tab') return;
+
+        const focusables = getFocusableElements(dialog);
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+
+      function openDialog() {
+        lastActiveElement = document.activeElement;
+
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute('open', '');
+        }
+
+        const focusables = getFocusableElements(dialog);
+        (focusables[0] || dialog).focus?.();
+
+        dialog.addEventListener('keydown', trapTabKey);
+      }
+
+      function closeDialog(returnFocus = true) {
+        dialog.removeEventListener('keydown', trapTabKey);
+
+        if (typeof dialog.close === 'function') {
+          dialog.close();
+        } else {
+          dialog.removeAttribute('open');
+        }
+
+        if (returnFocus && lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        }
+      }
+
+      openBtn.addEventListener('click', openDialog);
+
+      closeX.addEventListener('click', () => closeDialog(true));
+      cancelBtn.addEventListener('click', () => closeDialog(true));
+
+      confirmBtn.addEventListener('click', () => {
+        closeDialog(true);
+        // Example: do something after confirmation.
+        const live = document.getElementById('confirmationLive');
+        if (live) live.textContent = 'Changes confirmed.';
+      });
+
+      // Close behavior for native <dialog>:
+      dialog.addEventListener('cancel', (e) => {
+        // Keep default close behavior but ensure focus returns to opener.
+        e.preventDefault();
+        closeDialog(true);
+      });
+
+      dialog.addEventListener('close', () => {
+        // If closed by non-script means, restore focus.
+        if (document.activeElement === document.body) {
+          if (lastActiveElement && typeof lastActiveElement.focus === 'function') lastActiveElement.focus();
+        }
+      });
+
+      // Optional live region for demo feedback (kept outside dialog for screen readers).
+      const live = document.createElement('p');
+      live.id = 'confirmationLive';
+      live.className = 'sr-only';
+      live.setAttribute('role', 'status');
+      live.setAttribute('aria-live', 'polite');
+      document.body.appendChild(live);
+    })();
+  </script>
+</body>
+</html>

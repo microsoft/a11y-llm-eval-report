@@ -1,0 +1,358 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121a33;
+      --text: #e9eefc;
+      --muted: #aeb8d6;
+      --border: rgba(255,255,255,0.12);
+      --accent: #7aa7ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 14px;
+      --gap: 14px;
+      --focus: 0 0 0 3px rgba(122,167,255,0.35);
+      --speed: 180ms;
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% 0%, #1a2a66 0%, transparent 60%),
+                  radial-gradient(900px 500px at 90% 10%, #2a1c5f 0%, transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      padding: 28px;
+    }
+
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      margin: 0 0 14px 0;
+      letter-spacing: 0.2px;
+    }
+
+    p.lead {
+      margin: 0 0 22px 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      align-items: start;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    .example header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 14px 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      gap: 10px;
+    }
+
+    .example header .title {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .example header .title strong {
+      font-weight: 650;
+      font-size: 0.98rem;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .example header .title span {
+      font-size: 0.85rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      letter-spacing: 0.1px;
+      transition: transform var(--speed) ease, background var(--speed) ease, border-color var(--speed) ease;
+    }
+
+    .toggle:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.22);
+      transform: translateY(-1px);
+    }
+
+    .toggle:active {
+      transform: translateY(0);
+    }
+
+    .toggle:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    .chev {
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid var(--text);
+      border-bottom: 2px solid var(--text);
+      transform: rotate(45deg);
+      transition: transform var(--speed) ease;
+      opacity: 0.9;
+      margin-top: -2px;
+    }
+
+    .example[data-open="true"] .chev {
+      transform: rotate(-135deg);
+      margin-top: 2px;
+    }
+
+    .details {
+      padding: 14px;
+    }
+
+    /* Animated collapse using grid trick */
+    .details[data-collapsible] {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 240ms ease;
+      padding: 0 14px;
+    }
+
+    .details[data-collapsible] > .inner {
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .example[data-open="true"] .details[data-collapsible] {
+      grid-template-rows: 1fr;
+      padding: 14px;
+    }
+
+    .inner > *:first-child { margin-top: 0; }
+    .inner > *:last-child { margin-bottom: 0; }
+
+    .details p {
+      margin: 10px 0;
+      color: rgba(233,238,252,0.92);
+      line-height: 1.5;
+    }
+
+    .details ul {
+      margin: 10px 0 0 18px;
+      color: rgba(233,238,252,0.9);
+    }
+
+    .chiprow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(122,167,255,0.10);
+      color: rgba(233,238,252,0.95);
+      white-space: nowrap;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .mini {
+      font-size: 0.85rem;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .mini:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.78rem;
+      padding: 2px 6px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.25);
+      color: rgba(233,238,252,0.95);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget Examples</h1>
+    <p class="lead">Each widget is wrapped in a <span class="kbd">div.example</span>, and the controlled content container uses <span class="kbd">.details</span>. Use mouse or keyboard (<span class="kbd">Tab</span> then <span class="kbd">Enter</span>/<span class="kbd">Space</span>) to toggle.</p>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example" data-open="false">
+        <header>
+          <div class="title">
+            <strong>JavaScript-controlled panel</strong>
+            <span>Button toggles a .details region</span>
+          </div>
+          <button class="toggle" type="button" aria-expanded="false">
+            <span class="chev" aria-hidden="true"></span>
+            <span class="label">Expand</span>
+          </button>
+        </header>
+
+        <div class="details" data-collapsible aria-hidden="true">
+          <div class="inner">
+            <p>This is the controlled content. It expands and collapses with a small animation.</p>
+            <ul>
+              <li>Uses <span class="kbd">aria-expanded</span> on the button</li>
+              <li>Updates <span class="kbd">aria-hidden</span> on the <span class="kbd">.details</span> container</li>
+              <li>Animates with a grid-row technique</li>
+            </ul>
+            <div class="chiprow" aria-label="Tags">
+              <span class="chip">Accessible</span>
+              <span class="chip">Animated</span>
+              <span class="chip">No dependencies</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example" data-open="true">
+        <header>
+          <div class="title">
+            <strong>Start open</strong>
+            <span>Same widget, initially expanded</span>
+          </div>
+          <button class="toggle" type="button" aria-expanded="true">
+            <span class="chev" aria-hidden="true"></span>
+            <span class="label">Collapse</span>
+          </button>
+        </header>
+
+        <div class="details" data-collapsible aria-hidden="false">
+          <div class="inner">
+            <p>You can start a widget open by setting <span class="kbd">data-open="true"</span> and matching ARIA states.</p>
+            <p>Try toggling it, then use the buttons below to programmatically open/close.</p>
+            <div class="row">
+              <button class="mini" type="button" data-action="open">Open</button>
+              <button class="mini" type="button" data-action="close">Close</button>
+              <button class="mini" type="button" data-action="toggle">Toggle</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="example">
+        <header>
+          <div class="title">
+            <strong>Native <span class="kbd">&lt;details&gt;</span> element</strong>
+            <span>Included as a reference pattern</span>
+          </div>
+        </header>
+
+        <div class="details">
+          <details>
+            <summary class="toggle" style="display:inline-flex; margin: 8px 0 0 0;">
+              <span class="chev" aria-hidden="true" style="transform: rotate(45deg);"></span>
+              <span>Toggle native details</span>
+            </summary>
+            <div class="inner" style="padding: 12px 0 0 0;">
+              <p>This panel uses the browser’s built-in <span class="kbd">&lt;details&gt;</span> behavior.</p>
+              <p>It still satisfies the requirement that the controlled content container has a <span class="kbd">details</span> class (this outer container).</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      function setOpen(exampleEl, open) {
+        exampleEl.dataset.open = open ? "true" : "false";
+
+        const btn = exampleEl.querySelector("button.toggle");
+        if (btn) {
+          btn.setAttribute("aria-expanded", open ? "true" : "false");
+          const label = btn.querySelector(".label");
+          if (label) label.textContent = open ? "Collapse" : "Expand";
+        }
+
+        const panel = exampleEl.querySelector(".details[data-collapsible]");
+        if (panel) panel.setAttribute("aria-hidden", open ? "false" : "true");
+      }
+
+      document.querySelectorAll(".example").forEach(exampleEl => {
+        const btn = exampleEl.querySelector("button.toggle");
+        const collapsible = exampleEl.querySelector(".details[data-collapsible]");
+        if (btn && collapsible) {
+          // Ensure initial state is coherent
+          const initialOpen = exampleEl.dataset.open === "true";
+          setOpen(exampleEl, initialOpen);
+
+          btn.addEventListener("click", () => {
+            const open = exampleEl.dataset.open === "true";
+            setOpen(exampleEl, !open);
+          });
+        }
+
+        // Optional programmatic controls (only present in one card)
+        exampleEl.querySelectorAll("[data-action]").forEach(control => {
+          control.addEventListener("click", () => {
+            const action = control.getAttribute("data-action");
+            const open = exampleEl.dataset.open === "true";
+            if (action === "open") setOpen(exampleEl, true);
+            if (action === "close") setOpen(exampleEl, false);
+            if (action === "toggle") setOpen(exampleEl, !open);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

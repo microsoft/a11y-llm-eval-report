@@ -1,0 +1,213 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --backdrop: rgba(0, 0, 0, 0.55);
+      --surface: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      --radius: 12px;
+      --focus: #2563eb;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 48px 16px;
+      color: var(--text);
+      background: #f9fafb;
+    }
+
+    .trigger {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #111827;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .trigger:hover { filter: brightness(1.05); }
+    .trigger:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, 0.35);
+      outline-offset: 2px;
+    }
+
+    dialog {
+      border: none;
+      padding: 0;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      max-width: min(560px, calc(100vw - 32px));
+      width: 100%;
+      color: var(--text);
+    }
+
+    dialog::backdrop {
+      background: var(--backdrop);
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .modal__header,
+    .modal__footer {
+      padding: 16px 18px;
+      background: #fff;
+    }
+
+    .modal__header {
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .modal__title {
+      margin: 0;
+      font-size: 1.05rem;
+      line-height: 1.2;
+    }
+
+    .modal__body {
+      padding: 16px 18px;
+      color: var(--text);
+    }
+
+    .modal__body p {
+      margin: 0 0 10px 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .icon-button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .icon-button:hover { background: #f3f4f6; }
+    .icon-button:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, 0.35);
+      outline-offset: 2px;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover { background: #f3f4f6; }
+    .btn.primary {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+    .btn.primary:hover { filter: brightness(1.05); }
+    .btn:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, 0.35);
+      outline-offset: 2px;
+    }
+
+    .modal__footer {
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Optional: subtle open animation */
+    @media (prefers-reduced-motion: no-preference) {
+      dialog[open] .modal {
+        animation: pop 140ms ease-out;
+      }
+      @keyframes pop {
+        from { transform: translateY(6px) scale(0.98); opacity: 0.6; }
+        to   { transform: translateY(0) scale(1); opacity: 1; }
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 style="margin:0 0 12px 0;">Modal Dialog Example</h1>
+    <p style="margin:0 0 18px 0; color:#6b7280; max-width: 68ch;">
+      The modal is closed by default. Click the button with the <code>trigger</code> class to open it.
+    </p>
+
+    <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="example-modal">
+      Open modal
+    </button>
+
+    <dialog id="example-modal" aria-labelledby="modal-title">
+      <div class="modal">
+        <div class="modal__header">
+          <h2 class="modal__title" id="modal-title">Example modal dialog</h2>
+          <button class="icon-button" type="button" data-close aria-label="Close dialog">×</button>
+        </div>
+
+        <div class="modal__body">
+          <p>This is an example modal using the native <code>&lt;dialog&gt;</code> element.</p>
+          <p>Press <strong>Esc</strong> to close, click the close button, or click outside the dialog.</p>
+        </div>
+
+        <div class="modal__footer">
+          <button class="btn" type="button" data-close>Cancel</button>
+          <button class="btn primary" type="button" data-close>Confirm</button>
+        </div>
+      </div>
+    </dialog>
+  </main>
+
+  <script>
+    (function () {
+      const trigger = document.querySelector('.trigger');
+      const dialog = document.getElementById('example-modal');
+
+      if (!trigger || !dialog) return;
+
+      trigger.addEventListener('click', () => {
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+      });
+
+      dialog.addEventListener('click', (e) => {
+        // Close when clicking on the backdrop area (outside the dialog content)
+        const rect = dialog.getBoundingClientRect();
+        const inDialog =
+          e.clientX >= rect.left && e.clientX <= rect.right &&
+          e.clientY >= rect.top  && e.clientY <= rect.bottom;
+
+        if (!inDialog) dialog.close('backdrop');
+      });
+
+      dialog.querySelectorAll('[data-close]').forEach((btn) => {
+        btn.addEventListener('click', () => dialog.close('button'));
+      });
+    })();
+  </script>
+</body>
+</html>

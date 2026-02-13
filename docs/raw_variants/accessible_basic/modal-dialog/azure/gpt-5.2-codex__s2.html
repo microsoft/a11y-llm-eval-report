@@ -1,0 +1,151 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessible Modal Dialog Example</title>
+<style>
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    margin: 0;
+    padding: 2rem;
+    color: #1b1b1b;
+    background: #f7f7fb;
+  }
+  .trigger {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #0b5fff;
+    background: #0b5fff;
+    color: #fff;
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+  .trigger:focus-visible,
+  .dialog button:focus-visible,
+  .dialog a:focus-visible {
+    outline: 3px solid #ffbf47;
+    outline-offset: 2px;
+  }
+  .dialog::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+  }
+  .dialog {
+    max-width: 32rem;
+    width: 90%;
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0;
+  }
+  .dialog-content {
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 0.75rem;
+  }
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+  }
+  .dialog-footer {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+  }
+  .button-secondary {
+    background: #ffffff;
+    color: #0b5fff;
+    border: 2px solid #0b5fff;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+  .button-primary {
+    background: #0b5fff;
+    color: #ffffff;
+    border: 2px solid #0b5fff;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Modal Dialog Example</h1>
+  <p>This is an accessible modal dialog. It is closed by default.</p>
+  <button type="button" class="trigger" id="openDialog">Open dialog</button>
+
+  <dialog class="dialog" id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2 id="dialogTitle">Example dialog</h2>
+        <button type="button" class="button-secondary" id="closeIcon" aria-label="Close dialog">Close</button>
+      </div>
+      <p id="dialogDesc">This dialog traps focus while open and returns focus to the trigger when closed.</p>
+      <div class="dialog-footer">
+        <button type="button" class="button-secondary" id="cancelButton">Cancel</button>
+        <button type="button" class="button-primary" id="confirmButton">Confirm</button>
+      </div>
+    </div>
+  </dialog>
+</main>
+
+<script>
+  const dialog = document.getElementById('exampleDialog');
+  const openBtn = document.getElementById('openDialog');
+  const closeIcon = document.getElementById('closeIcon');
+  const cancelBtn = document.getElementById('cancelButton');
+  const confirmBtn = document.getElementById('confirmButton');
+
+  let lastFocusedElement = null;
+
+  function openDialog() {
+    lastFocusedElement = document.activeElement;
+    dialog.showModal();
+    const focusable = getFocusableElements(dialog);
+    if (focusable.length) focusable[0].focus();
+  }
+
+  function closeDialog() {
+    dialog.close();
+    if (lastFocusedElement) lastFocusedElement.focus();
+  }
+
+  function getFocusableElements(container) {
+    return Array.from(
+      container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+    ).filter(el => !el.hasAttribute('disabled'));
+  }
+
+  openBtn.addEventListener('click', openDialog);
+  closeIcon.addEventListener('click', closeDialog);
+  cancelBtn.addEventListener('click', closeDialog);
+  confirmBtn.addEventListener('click', closeDialog);
+
+  dialog.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    closeDialog();
+  });
+
+  dialog.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const focusable = getFocusableElements(dialog);
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+</script>
+</body>
+</html>

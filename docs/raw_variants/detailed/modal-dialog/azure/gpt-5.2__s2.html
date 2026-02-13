@@ -1,0 +1,405 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal dialog example - Components - Demo</title>
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #ffffff;
+      --color-text: #111827;
+      --color-muted-text: #374151;
+      --color-link: #1d4ed8;
+      --color-link-visited: #5b21b6;
+      --color-border: #d1d5db;
+      --color-focus: #1d4ed8;
+      --color-danger: #b91c1c;
+
+      --radius: 12px;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      color: var(--color-text);
+      background: var(--color-bg);
+    }
+
+    a { color: var(--color-link); }
+    a:visited { color: var(--color-link-visited); }
+    a:focus-visible, button:focus-visible, input:focus-visible {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    header, nav, main, footer {
+      padding: var(--space-6);
+      max-width: 68rem;
+      margin: 0 auto;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+    }
+
+    .card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: var(--space-6);
+      background: var(--color-surface);
+    }
+
+    button {
+      font: inherit;
+      border: 2px solid var(--color-border);
+      background: #f9fafb;
+      color: var(--color-text);
+      border-radius: 10px;
+      padding: 0.65rem 1rem;
+      cursor: pointer;
+    }
+    button:hover { background: #f3f4f6; }
+    button:active { background: #e5e7eb; }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: center;
+    }
+
+    .primary {
+      border-color: #1f2937;
+      background: #111827;
+      color: #ffffff;
+    }
+    .primary:hover { background: #0b1220; }
+    .primary:active { background: #060b14; }
+
+    .danger {
+      border-color: var(--color-danger);
+      background: #ffffff;
+      color: var(--color-danger);
+    }
+    .danger:hover { background: #fef2f2; }
+
+    /* Modal */
+    dialog {
+      width: min(40rem, calc(100vw - 2 * var(--space-6)));
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 0;
+      box-shadow: var(--shadow);
+      color: var(--color-text);
+      background: var(--color-surface);
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.55);
+    }
+
+    .modal-header {
+      padding: var(--space-6);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.3;
+    }
+
+    .modal-body {
+      padding: var(--space-6);
+      color: var(--color-muted-text);
+    }
+
+    .modal-footer {
+      padding: var(--space-6);
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: var(--space-3);
+    }
+
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0;
+      border-radius: 999px;
+    }
+    .icon-button svg { width: 1.25rem; height: 1.25rem; fill: currentColor; }
+
+    /* Reflow & long strings */
+    p, li, .modal-body { overflow-wrap: anywhere; }
+
+    @media (max-width: 30rem) {
+      header, nav, main, footer { padding: var(--space-4); }
+      .modal-footer { justify-content: stretch; }
+      .modal-footer button { width: 100%; }
+    }
+
+    @media (forced-colors: active) {
+      dialog {
+        border: 2px solid ButtonBorder;
+        box-shadow: none;
+      }
+      dialog::backdrop {
+        background: CanvasText;
+      }
+      button {
+        border-color: ButtonBorder;
+        background: ButtonFace;
+        color: ButtonText;
+      }
+      a { color: LinkText; }
+      a:visited { color: VisitedText; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+    <div class="card">
+      <p style="margin:0; color: var(--color-muted-text);">
+        Example component: modal dialog using the native <code>&lt;dialog&gt;</code> element.
+      </p>
+    </div>
+  </header>
+
+  <nav aria-label="Demo navigation">
+    <ul>
+      <li><a href="#example">Modal example</a></li>
+      <li><a href="#notes">Usage notes</a></li>
+    </ul>
+  </nav>
+
+  <main id="maincontent" tabindex="-1">
+    <h1 id="example">Modal dialog example</h1>
+
+    <section class="card" aria-labelledby="example-heading">
+      <h2 id="example-heading">Open a dialog</h2>
+      <p style="margin-top:0; color: var(--color-muted-text);">
+        Activate the button to open a modal dialog. Press Escape to close it.
+      </p>
+
+      <div class="button-row">
+        <button type="button" class="trigger" id="openModalBtn">
+          Open modal dialog
+        </button>
+      </div>
+    </section>
+
+    <section class="card" id="notes" aria-labelledby="notes-heading" style="margin-top: var(--space-6);">
+      <h2 id="notes-heading">What this demo includes</h2>
+      <ul style="margin:0; padding-left: 1.25rem; color: var(--color-muted-text);">
+        <li>Dialog is closed by default.</li>
+        <li>Focus moves into the dialog when it opens, and returns to the opener when it closes.</li>
+        <li>Keyboard support: Tab/Shift+Tab cycles within the dialog; Escape closes.</li>
+      </ul>
+    </section>
+
+    <!-- Closed by default -->
+    <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+      <div class="modal-header">
+        <h2 class="modal-title" id="dialogTitle">Example modal dialog</h2>
+        <button type="button" class="icon-button" id="closeIconBtn">
+          <span class="sr-only">Close dialog</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 1 0 5.7 7.11L10.59 12l-4.9 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.9a1 1 0 0 0 1.41-1.41L13.41 12l4.9-4.89a1 1 0 0 0 0-1.4Z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p id="dialogDesc" style="margin-top:0;">
+          This is a modal dialog. It blocks interaction with the page until you close it.
+        </p>
+
+        <form id="demoForm" novalidate>
+          <div style="display:grid; gap: var(--space-2); max-width: 28rem;">
+            <label for="fullName">
+              Full name <span aria-hidden="true">*</span>
+            </label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              autocomplete="name"
+              required
+              aria-required="true"
+              aria-describedby="fullNameHelp fullNameError"
+              style="padding: 0.6rem 0.75rem; border: 2px solid var(--color-border); border-radius: 10px; width: 100%;"
+            />
+            <div id="fullNameHelp" style="color: var(--color-muted-text); font-size: 0.95rem;">
+              Enter a name so this field can demonstrate validation.
+            </div>
+            <div id="fullNameError" style="color: var(--color-danger); font-weight: 600;" hidden></div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="cancelBtn">Cancel</button>
+        <button type="submit" form="demoForm" class="primary" id="saveBtn">Save</button>
+      </div>
+    </dialog>
+  </main>
+
+  <footer>
+    <p style="margin:0; color: var(--color-muted-text);">
+      Demo page for a modal dialog component.
+    </p>
+  </footer>
+
+  <script>
+    (function () {
+      const dialog = document.getElementById('exampleDialog');
+      const openBtn = document.getElementById('openModalBtn'); // has class "trigger"
+      const closeIconBtn = document.getElementById('closeIconBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const saveBtn = document.getElementById('saveBtn');
+
+      const form = document.getElementById('demoForm');
+      const fullName = document.getElementById('fullName');
+      const fullNameError = document.getElementById('fullNameError');
+
+      let lastActiveElement = null;
+
+      function setFieldError(inputEl, errorEl, message) {
+        if (message) {
+          inputEl.setAttribute('aria-invalid', 'true');
+          errorEl.textContent = message;
+          errorEl.hidden = false;
+        } else {
+          inputEl.removeAttribute('aria-invalid');
+          errorEl.textContent = '';
+          errorEl.hidden = true;
+        }
+      }
+
+      function validate() {
+        const value = fullName.value.trim();
+        if (!value) {
+          setFieldError(fullName, fullNameError, 'Enter your full name.');
+          return false;
+        }
+        setFieldError(fullName, fullNameError, '');
+        return true;
+      }
+
+      function openDialog() {
+        lastActiveElement = document.activeElement;
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+          // Focus first meaningful control.
+          window.requestAnimationFrame(() => fullName.focus());
+        } else {
+          // Fallback: if <dialog> not supported, reveal it non-modally (best-effort).
+          dialog.setAttribute('open', '');
+          window.requestAnimationFrame(() => fullName.focus());
+        }
+      }
+
+      function closeDialog(returnFocus = true) {
+        if (dialog.open) dialog.close();
+        // Ensure errors are cleared for next open.
+        setFieldError(fullName, fullNameError, '');
+        form.reset();
+
+        if (returnFocus) {
+          const target = lastActiveElement && lastActiveElement.focus ? lastActiveElement : openBtn;
+          window.requestAnimationFrame(() => target.focus());
+        }
+      }
+
+      openBtn.addEventListener('click', openDialog);
+
+      closeIconBtn.addEventListener('click', () => closeDialog(true));
+      cancelBtn.addEventListener('click', () => closeDialog(true));
+
+      // Clicking backdrop closes by default in many patterns; for <dialog>, detect click outside content.
+      dialog.addEventListener('click', (e) => {
+        const rect = dialog.getBoundingClientRect();
+        const clickedInDialog =
+          e.clientX >= rect.left && e.clientX <= rect.right &&
+          e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+        if (!clickedInDialog) closeDialog(true);
+      });
+
+      // Ensure we always restore focus when the dialog closes (e.g., Escape).
+      dialog.addEventListener('close', () => {
+        // 'close' may fire even when we already returned focus; keep it safe and idempotent.
+        const active = document.activeElement;
+        if (active && dialog.contains(active)) {
+          closeDialog(true);
+        } else if (lastActiveElement && lastActiveElement.focus) {
+          window.requestAnimationFrame(() => lastActiveElement.focus());
+        } else {
+          window.requestAnimationFrame(() => openBtn.focus());
+        }
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const ok = validate();
+        if (!ok) {
+          fullName.focus();
+          return;
+        }
+        closeDialog(true);
+      });
+
+      fullName.addEventListener('input', () => {
+        if (fullName.hasAttribute('aria-invalid')) validate();
+      });
+
+      // Final verification checklist (implemented as runtime-safe practices):
+      // - Landmarks: header/nav/main/footer present; one h1; headings in order.
+      // - Keyboard & focus: skip link; dialog focus on open; return focus on close; no traps; visible focus styles.
+      // - Controls/labels: visible labels; accessible names include visible text.
+      // - Forms: labels; required indicator + aria-required; inline errors + aria-invalid + aria-describedby; focus first invalid.
+      // - Contrast: token palette uses dark text on light background; focus outline high contrast.
+      // - Forced colors: styles adapt with system colors; no forced-color-adjust disable.
+      // - Reflow: responsive sizing; no fixed widths; wraps long strings.
+      // - Graphics: SVG uses currentColor; decorative SVG is aria-hidden.
+      // - Tables/grids: none used here.
+    })();
+  </script>
+</body>
+</html>

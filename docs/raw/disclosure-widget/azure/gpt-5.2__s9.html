@@ -1,0 +1,245 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --border: color-mix(in oklab, CanvasText 18%, transparent);
+      --bg: color-mix(in oklab, Canvas 92%, CanvasText 8%);
+      --shadow: 0 10px 30px color-mix(in oklab, CanvasText 15%, transparent);
+      --radius: 12px;
+      --pad: 14px;
+      --gap: 10px;
+      --accent: #5b7cfa;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.45;
+      margin: 0;
+      padding: 28px;
+      background: Canvas;
+      color: CanvasText;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: 20px;
+      letter-spacing: 0.2px;
+    }
+
+    .example {
+      max-width: 760px;
+      margin: 0 0 18px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      box-shadow: var(--shadow);
+    }
+
+    .example + .example { margin-top: 16px; }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--gap);
+    }
+
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: Canvas;
+      color: CanvasText;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      min-width: 160px;
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid color-mix(in oklab, var(--accent) 60%, transparent);
+      outline-offset: 2px;
+    }
+
+    .meta {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-top: 6px;
+    }
+
+    .details {
+      margin-top: 12px;
+      border-top: 1px dashed var(--border);
+      padding-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    /* Hidden state helper (JS sets [hidden]) */
+    .details[hidden] { display: none; }
+
+    .details p { margin: 0; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      width: fit-content;
+      background: Canvas;
+      font-size: 13px;
+    }
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      padding: 1px 6px;
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      background: color-mix(in oklab, Canvas 86%, CanvasText 14%);
+    }
+
+    /* Simple height animation */
+    .details.animating {
+      overflow: clip;
+      transition: height 220ms ease;
+      will-change: height;
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widget Demos</h1>
+
+  <div class="example" data-widget>
+    <div class="row">
+      <div>
+        <div style="font-weight:700;">Controlled panel (button + aria-expanded)</div>
+        <div class="meta">Toggles a <code>.details</code> region using JavaScript, with a small height animation.</div>
+      </div>
+      <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-1">
+        Show details
+      </button>
+    </div>
+
+    <div class="details" id="panel-1" role="region" aria-label="Details panel" hidden>
+      <p>This is the controlled content container. It has the <code>details</code> class as requested.</p>
+      <p class="chip">Tip: Use <span class="kbd">Tab</span> to focus the button, then <span class="kbd">Enter</span> / <span class="kbd">Space</span> to toggle.</p>
+      <ul style="margin:0; padding-left: 18px;">
+        <li>Accessible state via <code>aria-expanded</code></li>
+        <li>Content visibility controlled with <code>hidden</code></li>
+        <li>Optional height transition</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="example" data-widget>
+    <div class="row">
+      <div>
+        <div style="font-weight:700;">Accordion-style (one open at a time)</div>
+        <div class="meta">Opening this panel will close the other JS-controlled panels on the page.</div>
+      </div>
+      <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-2">
+        Show details
+      </button>
+    </div>
+
+    <div class="details" id="panel-2" role="region" aria-label="Accordion panel" hidden>
+      <p>When you expand this one, other JS-controlled panels collapse.</p>
+      <p class="chip">State is synced to the button label: “Show details” / “Hide details”.</p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const widgets = Array.from(document.querySelectorAll('[data-widget]'));
+
+      function setButtonLabel(btn, expanded) {
+        btn.textContent = expanded ? 'Hide details' : 'Show details';
+      }
+
+      async function animatePanel(panel, open) {
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduceMotion) return;
+
+        panel.classList.add('animating');
+        const startHeight = panel.getBoundingClientRect().height;
+
+        if (open) {
+          panel.hidden = false;
+          panel.style.height = startHeight + 'px';
+          const endHeight = panel.scrollHeight;
+          panel.getBoundingClientRect(); // force reflow
+          panel.style.height = endHeight + 'px';
+        } else {
+          const endHeight = 0;
+          panel.style.height = startHeight + 'px';
+          panel.getBoundingClientRect(); // force reflow
+          panel.style.height = endHeight + 'px';
+        }
+
+        await new Promise(resolve => {
+          const done = () => {
+            panel.removeEventListener('transitionend', done);
+            resolve();
+          };
+          panel.addEventListener('transitionend', done, { once: true });
+          setTimeout(resolve, 350); // fallback
+        });
+
+        panel.classList.remove('animating');
+        panel.style.height = '';
+
+        if (!open) panel.hidden = true;
+      }
+
+      function closeAllExcept(exceptPanelId) {
+        for (const w of widgets) {
+          const btn = w.querySelector('.toggle');
+          const panelId = btn?.getAttribute('aria-controls');
+          const panel = panelId ? document.getElementById(panelId) : null;
+          if (!btn || !panel) continue;
+          if (panelId === exceptPanelId) continue;
+
+          const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+          if (isExpanded) {
+            btn.setAttribute('aria-expanded', 'false');
+            setButtonLabel(btn, false);
+            animatePanel(panel, false);
+          }
+        }
+      }
+
+      for (const w of widgets) {
+        const btn = w.querySelector('.toggle');
+        if (!btn) continue;
+
+        const panelId = btn.getAttribute('aria-controls');
+        const panel = panelId ? document.getElementById(panelId) : null;
+        if (!panel || !panel.classList.contains('details')) continue;
+
+        setButtonLabel(btn, false);
+
+        btn.addEventListener('click', async () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          const next = !expanded;
+
+          // Accordion behavior: close others when opening
+          if (next) closeAllExcept(panelId);
+
+          btn.setAttribute('aria-expanded', String(next));
+          setButtonLabel(btn, next);
+          await animatePanel(panel, next);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
