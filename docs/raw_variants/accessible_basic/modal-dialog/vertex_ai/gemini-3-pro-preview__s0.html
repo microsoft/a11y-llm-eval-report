@@ -1,0 +1,243 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Modal Dialog Example</title>
+    <style>
+        :root {
+            --primary-color: #005a9c;
+            --text-color: #222;
+            --bg-color: #fff;
+            --modal-backdrop: rgba(0, 0, 0, 0.6);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            color: var(--text-color);
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Trigger Button Styling */
+        .trigger {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: 2px solid var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .trigger:hover {
+            background-color: #00447c;
+            border-color: #00447c;
+        }
+
+        .trigger:focus-visible {
+            outline: 3px solid #000;
+            outline-offset: 2px;
+        }
+
+        /* Dialog Styling */
+        dialog {
+            border: none;
+            border-radius: 8px;
+            padding: 0;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 90%;
+            color: var(--text-color);
+        }
+
+        /* Backdrop styling for the <dialog> element */
+        dialog::backdrop {
+            background-color: var(--modal-backdrop);
+        }
+
+        /* Modal Layout */
+        .modal-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .modal-body {
+            padding: 1.5rem 1.25rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid #ddd;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        /* Close Button Styling */
+        .close-icon-btn {
+            background: transparent;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+        }
+
+        .close-icon-btn:hover {
+            background-color: #eee;
+            color: #000;
+        }
+
+        .close-icon-btn:focus-visible {
+            outline: 2px solid #000;
+            outline-offset: 2px;
+        }
+
+        .btn-secondary {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+        }
+
+        .btn-secondary:focus-visible {
+            outline: 2px solid #000;
+            outline-offset: 2px;
+        }
+
+        /* Prevent scrolling on body when modal is open (handled by JS toggling class usually, 
+           but <dialog> handles a lot of interaction automatically) */
+        body:has(dialog[open]) {
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <h1>Modal Dialog Component</h1>
+        <p>This is an example page demonstrating an accessible modal dialog using the native HTML <code>&lt;dialog&gt;</code> element.</p>
+        
+        <button type="button" class="trigger" id="openModalBtn" aria-haspopup="dialog" aria-controls="accessibleModal">
+            Open Settings
+        </button>
+        
+        <p style="margin-top: 2rem;">Additional content to demonstrate backdrop overlay...</p>
+    </main>
+
+    <!-- 
+        The <dialog> element provides native accessibility features:
+        - Implicit role="dialog"
+        - Implicit aria-modal="true"
+        - Focus trapping (when opened with showModal())
+        - Close on Escape key
+        - Restore focus on close
+    -->
+    <dialog id="accessibleModal" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+        <div class="modal-header">
+            <h2 id="modalTitle" class="modal-title">Settings</h2>
+            <button type="button" class="close-icon-btn" id="closeModalIconBtn" aria-label="Close settings">
+                <svg aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <p id="modalDesc">Manage your account preferences and notification settings here.</p>
+            
+            <form id="settingsForm" method="dialog">
+                <!-- Example form inputs to demonstrate focus trapping -->
+                <div style="margin-bottom: 1rem;">
+                    <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Username</label>
+                    <input type="text" id="username" name="username" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" name="notifications">
+                        Receive email notifications
+                    </label>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <!-- 
+                value="cancel" tells the dialog to close without submitting if form method="dialog" is used,
+                or we can just attach an event listener to close() it.
+            -->
+            <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+            <button type="submit" form="settingsForm" class="trigger" value="save">Save Changes</button>
+        </div>
+    </dialog>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const openBtn = document.getElementById('openModalBtn');
+            const modal = document.getElementById('accessibleModal');
+            const closeIconBtn = document.getElementById('closeModalIconBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+
+            // Open the modal
+            openBtn.addEventListener('click', () => {
+                // showModal() is required for the backdrop and accessibility features (focus trap)
+                // show() would open it as a non-modal dialog.
+                modal.showModal();
+            });
+
+            // Close logic
+            const closeModal = () => {
+                modal.close();
+            };
+
+            closeIconBtn.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+
+            // Handle clicking on the backdrop to close (optional but common UX)
+            modal.addEventListener('click', (event) => {
+                // The dialog element covers the viewport when open.
+                // If the click target is the dialog itself (and not its children), it's the backdrop.
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // Accessibility Note: 
+            // The <dialog> element automatically handles returning focus to the trigger button 
+            // when the dialog is closed. No manual focus management is needed for closing.
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #ffffff;
+      --fg: #111111;
+      --muted: #5a5a5a;
+      --border: #c9c9c9;
+      --focus: #0b5fff;
+      --panel: #f6f7f9;
+      --radius: 12px;
+      --space-1: 0.5rem;
+      --space-2: 1rem;
+      --space-3: 1.5rem;
+      --maxw: 62rem;
+      --shadow: 0 1px 2px rgba(0,0,0,.08), 0 6px 18px rgba(0,0,0,.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e0f12;
+        --fg: #f2f3f5;
+        --muted: #b8bcc6;
+        --border: #2a2f3a;
+        --focus: #7aa7ff;
+        --panel: #151821;
+        --shadow: 0 1px 2px rgba(0,0,0,.30), 0 8px 24px rgba(0,0,0,.35);
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    header, main, footer {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: var(--space-3) var(--space-2);
+    }
+
+    header {
+      padding-top: calc(var(--space-3) + 0.5rem);
+      padding-bottom: var(--space-2);
+    }
+
+    h1, h2 {
+      line-height: 1.2;
+      margin: 0 0 var(--space-2) 0;
+    }
+
+    p {
+      margin: 0 0 var(--space-2) 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--space-2);
+      background: color-mix(in oklab, var(--panel) 60%, transparent);
+      box-shadow: var(--shadow);
+      margin: 0 0 var(--space-3) 0;
+    }
+
+    .example h2 {
+      font-size: 1.1rem;
+      margin-bottom: var(--space-1);
+    }
+
+    /* Shared focus styles */
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+      border-radius: 6px;
+    }
+
+    /* Native details styling */
+    details {
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      background: var(--bg);
+      overflow: clip;
+    }
+
+    details > summary {
+      cursor: pointer;
+      padding: 0.85rem 1rem;
+      font-weight: 600;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    details > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .marker {
+      inline-size: 1.1rem;
+      block-size: 1.1rem;
+      flex: 0 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: color-mix(in oklab, var(--panel) 70%, var(--bg));
+      color: var(--fg);
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    details[open] .marker::before { content: "−"; }
+    details:not([open]) .marker::before { content: "+"; }
+
+    details .details {
+      padding: 0 1rem 1rem 1rem;
+      border-top: 1px solid var(--border);
+      background: color-mix(in oklab, var(--panel) 55%, var(--bg));
+    }
+
+    details .details > *:first-child {
+      margin-top: 0.9rem;
+    }
+
+    ul {
+      padding-left: 1.25rem;
+      margin: 0.5rem 0 0 0;
+    }
+
+    /* Custom button + region widget */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      border-radius: 999px;
+      padding: 0.75rem 1rem;
+      font-weight: 650;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    .toggle:hover {
+      background: color-mix(in oklab, var(--panel) 60%, var(--bg));
+    }
+
+    .hint {
+      margin: 0.25rem 0 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .details[hidden] { display: none; }
+
+    .details.custom {
+      margin-top: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      padding: 1rem;
+      background: color-mix(in oklab, var(--panel) 55%, var(--bg));
+    }
+
+    footer {
+      padding-top: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    a {
+      color: inherit;
+      text-decoration-color: color-mix(in oklab, var(--muted) 70%, transparent);
+      text-underline-offset: 0.15em;
+    }
+
+    a:hover {
+      text-decoration-color: currentColor;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Expand/Collapse Widget Demo</h1>
+    <p>
+      Two accessible expand/collapse patterns are shown below: a native <code>&lt;details&gt;</code> disclosure
+      and a custom button that controls a content region.
+    </p>
+  </header>
+
+  <main>
+    <section class="example" aria-labelledby="ex1-title">
+      <h2 id="ex1-title">Example 1: Native disclosure (<code>&lt;details&gt;</code>)</h2>
+      <details>
+        <summary>
+          <span class="marker" aria-hidden="true"></span>
+          What information is included?
+        </summary>
+        <div class="details">
+          <p>
+            This section expands and collapses using the browser’s native disclosure element, which supports
+            keyboard interaction by default.
+          </p>
+          <ul>
+            <li>Keyboard: Tab to the summary, then press Enter or Space to toggle.</li>
+            <li>State is conveyed automatically (expanded/collapsed).</li>
+            <li>Content is only visible when expanded.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <section class="example" aria-labelledby="ex2-title">
+      <h2 id="ex2-title">Example 2: Button controlling a region</h2>
+      <div class="toggle-row">
+        <button
+          type="button"
+          class="toggle"
+          id="toggle-faq"
+          aria-expanded="false"
+          aria-controls="panel-faq"
+        >
+          Show details
+        </button>
+      </div>
+      <p class="hint" id="ex2-hint">Keyboard: Tab to the button, then press Enter or Space to toggle.</p>
+
+      <div
+        class="details custom"
+        id="panel-faq"
+        role="region"
+        aria-labelledby="toggle-faq"
+        aria-describedby="ex2-hint"
+        hidden
+      >
+        <p>
+          This panel is toggled by a standard button with <code>aria-expanded</code> and
+          <code>aria-controls</code>. The controlled content is a labeled region for assistive technologies.
+        </p>
+        <ul>
+          <li>The button text updates to match the current state.</li>
+          <li>The region is removed from the accessibility tree when hidden.</li>
+          <li>Focus remains on the toggle button (no unexpected focus movement).</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      Tip: Native <code>&lt;details&gt;</code> is preferred when possible. Custom widgets should preserve semantics and keyboard behavior.
+    </p>
+  </footer>
+
+  <script>
+    (function () {
+      const btn = document.getElementById('toggle-faq');
+      const panel = document.getElementById('panel-faq');
+
+      function setExpanded(isExpanded) {
+        btn.setAttribute('aria-expanded', String(isExpanded));
+        panel.hidden = !isExpanded;
+        btn.textContent = isExpanded ? 'Hide details' : 'Show details';
+      }
+
+      btn.addEventListener('click', () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        setExpanded(!expanded);
+      });
+
+      // Initialize to a known state
+      setExpanded(false);
+    })();
+  </script>
+</body>
+</html>

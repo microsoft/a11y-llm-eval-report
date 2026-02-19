@@ -1,0 +1,362 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expand/Collapse Widget - Accessibility Example</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --color-bg: #ffffff;
+      --color-text: #1a1a1a;
+      --color-border: #d0d0d0;
+      --color-focus: #0066cc;
+      --color-focus-bg: #e6f0ff;
+      --color-muted-text: #666666;
+      --color-hover-bg: #f5f5f5;
+      --color-danger: #d32f2f;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+      padding: 20px;
+    }
+
+    header {
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header-description {
+      color: var(--color-muted-text);
+      font-size: 16px;
+    }
+
+    main {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .example {
+      margin-bottom: 30px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .example-title {
+      font-size: 18px;
+      font-weight: 600;
+      padding: 16px;
+      background-color: var(--color-hover-bg);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .example-content {
+      padding: 16px;
+    }
+
+    /* Native <details> element styling */
+    details {
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    details summary {
+      padding: 16px;
+      background-color: var(--color-hover-bg);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: none;
+    }
+
+    details summary:hover {
+      background-color: #ececec;
+    }
+
+    details summary:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: -2px;
+      background-color: var(--color-focus-bg);
+    }
+
+    details summary::marker {
+      color: var(--color-focus);
+    }
+
+    details[open] summary {
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .details {
+      padding: 16px;
+    }
+
+    /* Custom button-based expand/collapse */
+    .toggle-button {
+      width: 100%;
+      padding: 16px;
+      background-color: var(--color-hover-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 8px 8px 0 0;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--color-text);
+      transition: background-color 150ms ease-in-out;
+    }
+
+    .toggle-button:hover {
+      background-color: #ececec;
+    }
+
+    .toggle-button:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: -2px;
+      background-color: var(--color-focus-bg);
+    }
+
+    .toggle-button:active {
+      background-color: #dcdcdc;
+    }
+
+    .toggle-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      transition: transform 200ms ease-in-out;
+    }
+
+    .toggle-button[aria-expanded="true"] .toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 200ms ease-in-out;
+      background-color: var(--color-bg);
+    }
+
+    .collapsible-content.expanded {
+      max-height: 500px;
+    }
+
+    .collapsible-inner {
+      padding: 16px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+      color: var(--color-muted-text);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (forced-colors: active) {
+      details summary:focus-visible {
+        outline: 2px solid;
+      }
+
+      .toggle-button:focus-visible {
+        outline: 2px solid;
+      }
+
+      .example,
+      details,
+      .toggle-button {
+        border-color: CanvasText;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .example-title,
+      .example-content,
+      details summary,
+      .toggle-button,
+      .collapsible-inner {
+        padding: 12px;
+      }
+
+      .toggle-button {
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+    <h1>Expand/Collapse Widgets</h1>
+    <p class="header-description">Demonstration of accessible expand/collapse (accordion-like) components using both native HTML and custom implementations.</p>
+  </header>
+
+  <main id="maincontent" tabindex="-1">
+    <!-- Example 1: Native HTML details/summary -->
+    <div class="example">
+      <div class="example-title">Example 1: Native &lt;details&gt; Element</div>
+      <div class="example-content">
+        <p style="margin-bottom: 12px; color: var(--color-muted-text); font-size: 14px;">
+          Uses the semantic HTML <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements. This is the simplest and most accessible approach.
+        </p>
+        <details>
+          <summary>What is semantic HTML?</summary>
+          <div class="details">
+            <p>Semantic HTML refers to the meaningful use of HTML markup to reinforce the meaning of the content within web pages rather than merely to define its presentation or look. Semantic HTML is processed by traditional web browsers as well as by assistive technologies.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Example 2: Another native details element -->
+    <div class="example">
+      <div class="example-title">Example 2: Multiple Native Details Widgets</div>
+      <div class="example-content">
+        <p style="margin-bottom: 12px; color: var(--color-muted-text); font-size: 14px;">
+          Each <code>&lt;details&gt;</code> element is independent and can be expanded or collapsed separately.
+        </p>
+        <details>
+          <summary>Why use semantic HTML?</summary>
+          <div class="details">
+            <p>Semantic HTML improves accessibility by providing a meaningful structure that assistive technologies can understand and navigate. It also improves search engine optimization and makes code more maintainable.</p>
+          </div>
+        </details>
+        <details>
+          <summary>What are some examples of semantic HTML?</summary>
+          <div class="details">
+            <p>Examples include: <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;footer&gt;</code>, <code>&lt;figure&gt;</code>, and <code>&lt;details&gt;</code>.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- Example 3: Custom button-based expand/collapse -->
+    <div class="example">
+      <div class="example-title">Example 3: Custom Button-Based Widget</div>
+      <div class="example-content">
+        <p style="margin-bottom: 12px; color: var(--color-muted-text); font-size: 14px;">
+          Uses a custom <code>&lt;button&gt;</code> element with <code>aria-expanded</code> to control a separate content container. Fully keyboard accessible with visible focus indicators.
+        </p>
+        <button class="toggle-button" aria-expanded="false" aria-controls="custom-content-1">
+          <span>How do screen readers work?</span>
+          <span class="toggle-icon" aria-hidden="true">▼</span>
+        </button>
+        <div class="collapsible-content" id="custom-content-1">
+          <div class="collapsible-inner">
+            <p>Screen readers are assistive technologies that read the text content of web pages aloud to users who are blind or have low vision. They announce interactive elements, headings, lists, form labels, and other structural information to help users navigate and understand the page.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 4: Multiple custom buttons -->
+    <div class="example">
+      <div class="example-title">Example 4: Multiple Custom Buttons</div>
+      <div class="example-content">
+        <p style="margin-bottom: 12px; color: var(--color-muted-text); font-size: 14px;">
+          Multiple custom toggle buttons demonstrating independent expand/collapse functionality with proper ARIA attributes.
+        </p>
+        <button class="toggle-button" aria-expanded="false" aria-controls="custom-content-2">
+          <span>What is keyboard navigation?</span>
+          <span class="toggle-icon" aria-hidden="true">▼</span>
+        </button>
+        <div class="collapsible-content" id="custom-content-2">
+          <div class="collapsible-inner">
+            <p>Keyboard navigation allows users to interact with web pages using only their keyboard (Tab, Enter, Space, and arrow keys). This is essential for users with mobility impairments or those who prefer keyboard use. All interactive elements should be reachable and operable via keyboard.</p>
+          </div>
+        </div>
+
+        <button class="toggle-button" aria-expanded="false" aria-controls="custom-content-3" style="margin-top: 12px;">
+          <span>What are focus indicators?</span>
+          <span class="toggle-icon" aria-hidden="true">▼</span>
+        </button>
+        <div class="collapsible-content" id="custom-content-3">
+          <div class="collapsible-inner">
+            <p>Focus indicators are visual cues (usually a border or outline) that show which interactive element currently has keyboard focus. They must have sufficient contrast and must not be removed, as they are critical for keyboard users to understand where they are on the page.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>These examples demonstrate accessible expand/collapse widgets using both native HTML and custom implementations with ARIA attributes.</p>
+  </footer>
+
+  <style>
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+  </style>
+
+  <script>
+    // Handle custom toggle buttons
+    const toggleButtons = document.querySelectorAll('.toggle-button');
+
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const isExpanded = this.getAttribute('aria-expanded') === 'true';
+        const contentId = this.getAttribute('aria-controls');
+        const content = document.getElementById(contentId);
+
+        // Toggle the aria-expanded state
+        this.setAttribute('aria-expanded', !isExpanded);
+
+        // Toggle the content visibility
+        if (content) {
+          content.classList.toggle('expanded');
+        }
+      });
+
+      // Handle keyboard: Enter and Space activate the button
+      button.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          this.click();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

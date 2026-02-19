@@ -1,0 +1,313 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessible Modal Dialog Example</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: Canvas;
+      --fg: CanvasText;
+      --muted: color-mix(in oklab, var(--fg) 70%, var(--bg));
+      --border: color-mix(in oklab, var(--fg) 25%, var(--bg));
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --radius: 12px;
+      --focus: #0b5fff;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    main {
+      padding: 2rem 1rem;
+      max-width: 60rem;
+      margin: 0 auto;
+    }
+
+    .stack > * + * { margin-top: 1rem; }
+
+    .button {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .65rem 1rem;
+      background: color-mix(in oklab, var(--bg) 88%, var(--fg));
+      color: var(--fg);
+      font: inherit;
+      cursor: pointer;
+    }
+    .button.primary {
+      background: color-mix(in oklab, var(--focus) 85%, var(--bg));
+      border-color: color-mix(in oklab, var(--focus) 55%, var(--bg));
+      color: white;
+    }
+    .button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .inline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      align-items: center;
+    }
+
+    /* Backdrop (for browsers without ::backdrop support on dialog) */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+    }
+
+    dialog {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0;
+      width: min(40rem, calc(100% - 2rem));
+      box-shadow: var(--shadow);
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    dialog::backdrop {
+      background: rgba(0,0,0,.55);
+    }
+
+    .modal {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      max-height: min(80vh, 40rem);
+    }
+
+    .modal header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal header h2 {
+      font-size: 1.125rem;
+      margin: 0;
+    }
+
+    .modal .content {
+      padding: 1rem 1.25rem;
+      overflow: auto;
+    }
+
+    .modal footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .help {
+      color: var(--muted);
+      margin: .25rem 0 0;
+      font-size: .95rem;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="stack">
+    <h1>Modal dialog example</h1>
+    <p>This page demonstrates an accessible modal dialog. It starts closed.</p>
+
+    <div class="inline-actions">
+      <button type="button" class="button primary trigger" id="openDialogBtn">
+        Open dialog
+      </button>
+      <a href="#more" class="button" style="text-decoration: none; display: inline-block;">Go to more content</a>
+    </div>
+
+    <p id="more" class="help">
+      Tip: When the dialog opens, focus moves into it. Press <kbd>Escape</kbd> or activate “Close” to dismiss.
+    </p>
+
+    <p>
+      Additional page content to demonstrate focus restoration after closing the dialog.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    </p>
+
+    <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+      <div class="modal">
+        <header>
+          <h2 id="dialogTitle">Example modal dialog</h2>
+          <p id="dialogDesc" class="help">This dialog traps focus while open and returns focus to the trigger when closed.</p>
+        </header>
+
+        <div class="content">
+          <form class="stack" id="exampleForm">
+            <div>
+              <label for="nameInput">Name</label><br />
+              <input id="nameInput" name="name" type="text" autocomplete="name"
+                     style="width: 100%; max-width: 28rem; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--fg);" />
+              <p class="help" id="nameHelp">Optional. This is just a demo; nothing is submitted.</p>
+            </div>
+
+            <fieldset style="border: 1px solid var(--border); border-radius: 10px; padding: .75rem 1rem;">
+              <legend>Choose an option</legend>
+              <div class="stack" style="margin-top: .5rem;">
+                <label><input type="radio" name="choice" value="a" /> Option A</label>
+                <label><input type="radio" name="choice" value="b" /> Option B</label>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+
+        <footer>
+          <button type="button" class="button" id="closeDialogBtn">Close</button>
+          <button type="button" class="button primary" id="confirmBtn">Confirm</button>
+        </footer>
+      </div>
+    </dialog>
+
+    <div id="fallbackBackdrop" class="backdrop" hidden></div>
+  </main>
+
+  <script>
+    (function () {
+      const dialog = document.getElementById('exampleDialog');
+      const openBtn = document.getElementById('openDialogBtn'); // has class "trigger"
+      const closeBtn = document.getElementById('closeDialogBtn');
+      const confirmBtn = document.getElementById('confirmBtn');
+      const nameInput = document.getElementById('nameInput');
+      const backdrop = document.getElementById('fallbackBackdrop');
+
+      let lastActiveElement = null;
+      const hasDialog = typeof HTMLDialogElement === 'function';
+
+      function showFallbackBackdrop() {
+        backdrop.hidden = false;
+        document.documentElement.style.overflow = 'hidden';
+      }
+      function hideFallbackBackdrop() {
+        backdrop.hidden = true;
+        document.documentElement.style.overflow = '';
+      }
+
+      function openDialog() {
+        lastActiveElement = document.activeElement;
+
+        if (hasDialog && typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute('open', '');
+          showFallbackBackdrop();
+        }
+
+        // Move focus into the dialog.
+        queueMicrotask(() => {
+          (nameInput || closeBtn || dialog).focus();
+        });
+      }
+
+      function closeDialog(returnFocus = true) {
+        if (hasDialog && typeof dialog.close === 'function') {
+          dialog.close();
+        } else {
+          dialog.removeAttribute('open');
+          hideFallbackBackdrop();
+        }
+
+        if (returnFocus && lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          queueMicrotask(() => lastActiveElement.focus());
+        }
+      }
+
+      openBtn.addEventListener('click', openDialog);
+      closeBtn.addEventListener('click', () => closeDialog(true));
+      confirmBtn.addEventListener('click', () => closeDialog(true));
+
+      // Click outside to close (native dialog handles this with backdrop; implement for both).
+      dialog.addEventListener('click', (e) => {
+        const rect = dialog.getBoundingClientRect();
+        const clickedInDialog =
+          e.clientX >= rect.left && e.clientX <= rect.right &&
+          e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+        if (!clickedInDialog) closeDialog(true);
+      });
+
+      // ESC to close fallback mode
+      document.addEventListener('keydown', (e) => {
+        const isOpen = dialog.hasAttribute('open');
+        if (!isOpen) return;
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeDialog(true);
+        }
+      });
+
+      // Restore focus for native dialog close events too.
+      dialog.addEventListener('close', () => {
+        // In native mode, close() triggers this; in fallback mode, we manage manually.
+        if (hasDialog) {
+          if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+            queueMicrotask(() => lastActiveElement.focus());
+          }
+        }
+      });
+
+      // Backdrop click in fallback mode
+      backdrop.addEventListener('click', () => closeDialog(true));
+
+      // Basic focus trap for fallback mode only
+      function getFocusable(container) {
+        const selectors = [
+          'a[href]',
+          'button:not([disabled])',
+          'input:not([disabled])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          '[tabindex]:not([tabindex="-1"])'
+        ];
+        return Array.from(container.querySelectorAll(selectors.join(',')))
+          .filter(el => !el.hasAttribute('disabled') && el.offsetParent !== null);
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (hasDialog) return; // native <dialog> handles focus management
+        if (!dialog.hasAttribute('open')) return;
+        if (e.key !== 'Tab') return;
+
+        const focusables = getFocusable(dialog);
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

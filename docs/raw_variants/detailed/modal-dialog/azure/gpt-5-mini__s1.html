@@ -1,0 +1,551 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Example modal dialog - patterns - accessible demo</title>
+  <style>
+    /* Design tokens (small token palette) */
+    :root{
+      --color-bg: #ffffff;
+      --color-text: #0b1220; /* very dark */
+      --color-muted-text: #3b4858; /* meets contrast */
+      --color-border: #d1d9e0;
+      --color-primary: #0b6cf6; /* blue */
+      --color-danger: #c62828;
+      --color-success: #1b9a59;
+      --color-focus: #ffb000; /* yellow-ish for strong contrast */
+      --color-overlay: rgba(11,18,32,0.6);
+      --radius: 8px;
+      --max-width: 720px;
+      --container-padding: 16px;
+      --shadow: 0 10px 30px rgba(11,18,32,0.15);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    /* Basic reset and layout */
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--color-bg);
+      color:var(--color-text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    header, nav, main, footer { padding: 12px var(--container-padding); }
+    .site {
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+    header {
+      border-bottom:1px solid var(--color-border);
+      background:linear-gradient(180deg, rgba(11,108,246,0.02), transparent);
+    }
+    nav {
+      background:transparent;
+    }
+    .container {
+      max-width:1100px;
+      margin:0 auto;
+      width:100%;
+    }
+
+    /* Skip link - visible when focused */
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+    .skip:focus {
+      clip: auto;
+      clip-path: none;
+      height: auto;
+      width: auto;
+      position: static;
+      display:inline-block;
+      margin:8px;
+      padding:8px 12px;
+      background:var(--color-primary);
+      color:white;
+      border-radius:6px;
+      text-decoration:none;
+    }
+
+    /* Content */
+    main {
+      flex:1 0 auto;
+    }
+    h1 {
+      font-size:22px;
+      margin:12px 0;
+    }
+    p.lead {
+      color:var(--color-muted-text);
+      margin-top:0;
+    }
+
+    /* Button styles */
+    .btn {
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:10px 14px;
+      border-radius:8px;
+      border:1px solid var(--color-border);
+      background:linear-gradient(180deg,#fff,#f6fbff);
+      color:var(--color-text);
+      text-decoration:none;
+      cursor:pointer;
+      font-size:15px;
+    }
+    .btn:focus {
+      outline:3px solid var(--color-focus);
+      outline-offset:2px;
+    }
+    .btn.primary {
+      background:var(--color-primary);
+      color:#fff;
+      border-color:transparent;
+    }
+    .btn[aria-disabled="true"],
+    .btn:disabled {
+      opacity:0.6;
+      cursor:not-allowed;
+    }
+
+    /* Modal overlay and dialog */
+    .overlay {
+      position:fixed;
+      inset:0;
+      background:var(--color-overlay);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:1000;
+    }
+    .dialog {
+      background:var(--color-bg);
+      color:var(--color-text);
+      max-width:var(--max-width);
+      width:100%;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      border:1px solid var(--color-border);
+      padding:18px;
+      box-sizing:border-box;
+    }
+    .dialog:focus {
+      outline:3px solid var(--color-focus);
+      outline-offset:3px;
+    }
+    .dialog-header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .dialog-title{
+      margin:0;
+      font-size:18px;
+    }
+    .dialog-body{
+      margin-top:12px;
+      color:var(--color-muted-text);
+      line-height:1.4;
+    }
+    .dialog-footer{
+      margin-top:18px;
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+    }
+
+    /* Close button */
+    .close {
+      background:transparent;
+      border:1px solid var(--color-border);
+      padding:6px 8px;
+      border-radius:6px;
+      cursor:pointer;
+    }
+    .close:focus {
+      outline:3px solid var(--color-focus);
+      outline-offset:2px;
+    }
+
+    /* Form */
+    .field {
+      display:flex;
+      flex-direction:column;
+      margin-top:12px;
+    }
+    label {
+      font-weight:600;
+      margin-bottom:6px;
+      font-size:14px;
+      color:var(--color-text);
+    }
+    input[type="text"]{
+      padding:10px;
+      border:1px solid var(--color-border);
+      border-radius:6px;
+      font-size:14px;
+    }
+    input[type="text"]:focus {
+      outline:3px solid rgba(11,108,246,0.18);
+      outline-offset:1px;
+      border-color:var(--color-primary);
+    }
+    .required {
+      color:var(--color-danger);
+      margin-left:6px;
+      font-weight:700;
+    }
+    .error {
+      color:var(--color-danger);
+      font-size:13px;
+      margin-top:6px;
+    }
+
+    /* Small screens / reflow */
+    @media (max-width:480px){
+      .dialog { padding:14px; border-radius:10px; }
+      h1 { font-size:20px; }
+    }
+
+    /* Ensure focus visibility in forced colors */
+    @media (forced-colors: active) {
+      .btn:focus, .close:focus, .dialog:focus, input[type="text"]:focus {
+        outline: 3px solid Highlight;
+      }
+      .overlay {
+        background: WindowText;
+      }
+      .dialog {
+        background: Window;
+        color: WindowText;
+        border: 2px solid ButtonBorder;
+      }
+    }
+
+    /* Utility */
+    .muted { color:var(--color-muted-text); font-size:14px; }
+    a.link { color:var(--color-primary); text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <div class="site">
+    <header class="container" role="banner">
+      <!-- Skip link as the first focusable element -->
+      <a href="#maincontent" class="sr-only skip" id="skip-link">Skip to main content</a>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <strong>Accessible Pattern Lab</strong>
+          <div class="muted" style="font-size:13px">Demo: modal dialog component</div>
+        </div>
+        <div>
+          <nav aria-label="Primary">
+            <ul style="list-style:none;margin:0;padding:0;display:flex;gap:8px;">
+              <li><a class="btn" href="#" style="text-decoration:none;">Home</a></li>
+              <li><a class="btn" href="#" style="text-decoration:none;">Docs</a></li>
+              <li>
+                <!-- Trigger button for modal must have class 'trigger' per request -->
+                <button class="btn primary trigger" id="openDialog" aria-haspopup="dialog" aria-expanded="false">
+                  Open Dialog
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <nav class="container" aria-label="Secondary navigation">
+      <!-- Example nav (no role=menu) -->
+      <ul style="list-style:none;margin:8px 0;padding:0;display:flex;gap:10px;">
+        <li><a class="link" href="#">Section A</a></li>
+        <li><a class="link" href="#">Section B</a></li>
+        <li><a class="link" href="#">Section C</a></li>
+      </ul>
+    </nav>
+
+    <main id="maincontent" tabindex="-1" class="container" role="main" aria-labelledby="page-title">
+      <h1 id="page-title">Modal dialog example</h1>
+      <p class="lead">This page demonstrates an accessible modal dialog. The dialog is closed by default. Use the "Open Dialog" button in the header (it has the class "trigger").</p>
+
+      <section aria-labelledby="example-heading">
+        <h2 id="example-heading" style="font-size:16px;margin-top:16px;">Guidelines demonstrated</h2>
+        <ul>
+          <li>Keyboard operable: Tab to open, Tab/Shift+Tab inside the dialog, Escape to close.</li>
+          <li>Focus is trapped in the dialog while open and returns to the trigger when closed.</li>
+          <li>All interactive elements have visible labels.</li>
+          <li>Contrast and forced-colors support.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="container" role="contentinfo">
+      <div class="muted">© Example company — accessible demo</div>
+    </footer>
+  </div>
+
+  <!-- Modal overlay (closed by default) -->
+  <!-- Hidden visually and from assistive tech when closed using hidden attribute and aria-hidden -->
+  <div id="modalOverlay" class="overlay" hidden aria-hidden="true">
+    <div id="dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogDesc" tabindex="-1">
+      <div class="dialog-header">
+        <h3 id="dialogTitle" class="dialog-title">Subscribe to notifications</h3>
+        <div>
+          <button class="close" id="closeDialog" aria-label="Close dialog">
+            <!-- decorative X icon using currentColor -->
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block">
+              <path d="M18.3 5.7a1 1 0 0 0-1.4-1.4L12 9.17 7.1 4.3A1 1 0 1 0 5.7 5.7L10.6 10.6 5.7 15.5a1 1 0 0 0 1.4 1.4L12 12.83l4.9 4.07a1 1 0 0 0 1.4-1.4L13.4 10.6z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="dialogDesc" class="dialog-body">
+        <p>Enter your name to subscribe to our notifications. Required fields are marked with an asterisk.</p>
+
+        <form id="modalForm" novalidate>
+          <div class="field">
+            <label for="name">Full name <span class="required" aria-hidden="true">*</span></label>
+            <input id="name" name="name" type="text" autocomplete="name" aria-required="true" />
+            <div id="nameError" class="error" role="alert" aria-live="assertive" hidden></div>
+          </div>
+
+          <div class="dialog-footer">
+            <button type="button" class="btn" id="cancelBtn">Cancel</button>
+            <button type="submit" class="btn primary" id="submitBtn">Subscribe</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Utility selectors for focusable elements
+      const FOCUSABLE_SELECTORS = [
+        'a[href]',
+        'area[href]',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        'button:not([disabled])',
+        'iframe',
+        'object',
+        'embed',
+        '[tabindex]:not([tabindex="-1"])',
+        '[contenteditable]'
+      ].join(',');
+
+      const openBtn = document.querySelector('.trigger');
+      const overlay = document.getElementById('modalOverlay');
+      const dialog = document.getElementById('dialog');
+      const closeBtn = document.getElementById('closeDialog');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const modalForm = document.getElementById('modalForm');
+      const nameInput = document.getElementById('name');
+      const nameError = document.getElementById('nameError');
+      let lastFocused = null;
+      let focusableInDialog = [];
+      let firstFocusable = null;
+      let lastFocusable = null;
+
+      // Regions to hide from assistive tech and prevent focus when modal is open
+      const pageRegions = Array.from(document.querySelectorAll('header, nav, main, footer, .site > :not(.overlay)'));
+
+      function openModal() {
+        // Save last focused element to return focus later
+        lastFocused = document.activeElement;
+
+        // Show overlay and dialog
+        overlay.removeAttribute('hidden');
+        overlay.removeAttribute('aria-hidden');
+
+        // Update trigger aria-expanded
+        openBtn.setAttribute('aria-expanded', 'true');
+
+        // Make page regions inert by setting aria-hidden and disabling focusable elements
+        pageRegions.forEach(region => {
+          region.setAttribute('aria-hidden', 'true');
+          // disable focusable children by setting tabindex=-1; store old tabindex to restore later
+          const focusables = Array.from(region.querySelectorAll(FOCUSABLE_SELECTORS));
+          focusables.forEach(el => {
+            if (el.hasAttribute('data-old-tabindex')) return;
+            const old = el.getAttribute('tabindex');
+            if (old !== null) el.setAttribute('data-old-tabindex', old);
+            else el.setAttribute('data-old-tabindex', 'none');
+            el.setAttribute('tabindex', '-1');
+          });
+        });
+
+        // Prevent background scrolling
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+
+        // Make dialog keyboard-focusable and focus it
+        dialog.focus();
+
+        // Compute focusable items inside dialog for focus trap
+        focusableInDialog = Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTORS));
+        // If there are no focusable elements, ensure dialog is focusable (it already is)
+        if (focusableInDialog.length > 0) {
+          firstFocusable = focusableInDialog[0];
+          lastFocusable = focusableInDialog[focusableInDialog.length - 1];
+          // Move focus to first focusable control for better UX (labelled control)
+          firstFocusable.focus();
+        }
+
+        // Listen for keyboard events
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeModal(returnFocus = true) {
+        // Hide overlay
+        overlay.setAttribute('hidden', '');
+        overlay.setAttribute('aria-hidden', 'true');
+
+        // Restore aria-expanded
+        openBtn.setAttribute('aria-expanded', 'false');
+
+        // Restore page regions
+        pageRegions.forEach(region => {
+          region.removeAttribute('aria-hidden');
+          const focusables = Array.from(region.querySelectorAll('[data-old-tabindex]'));
+          focusables.forEach(el => {
+            const old = el.getAttribute('data-old-tabindex');
+            if (old === 'none') el.removeAttribute('tabindex');
+            else el.setAttribute('tabindex', old);
+            el.removeAttribute('data-old-tabindex');
+          });
+        });
+
+        // Restore scrolling
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+
+        // Remove keyboard listener
+        document.removeEventListener('keydown', onKeyDown);
+
+        // Clear any inline form errors
+        clearValidation();
+
+        // Return focus
+        if (returnFocus && lastFocused && typeof lastFocused.focus === 'function') {
+          lastFocused.focus();
+        }
+      }
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal(true);
+          return;
+        }
+        if (e.key === 'Tab') {
+          // Focus trap
+          if (focusableInDialog.length === 0) {
+            // Nothing to tab to; keep focus on dialog container
+            e.preventDefault();
+            dialog.focus();
+            return;
+          }
+          if (e.shiftKey) {
+            // Shift + Tab
+            if (document.activeElement === firstFocusable || document.activeElement === dialog) {
+              e.preventDefault();
+              lastFocusable.focus();
+            }
+          } else {
+            // Tab
+            if (document.activeElement === lastFocusable) {
+              e.preventDefault();
+              firstFocusable.focus();
+            }
+          }
+        }
+      }
+
+      // Click overlay background to close - only if click is outside dialog
+      overlay.addEventListener('click', function(e){
+        if (e.target === overlay) {
+          closeModal(true);
+        }
+      });
+
+      // Open button
+      openBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        openModal();
+      });
+
+      // Close buttons
+      closeBtn.addEventListener('click', function(){
+        closeModal(true);
+      });
+      cancelBtn.addEventListener('click', function(){
+        closeModal(true);
+      });
+
+      // Form validation
+      function showValidationError(message) {
+        nameInput.setAttribute('aria-invalid', 'true');
+        nameError.textContent = message;
+        nameError.removeAttribute('hidden');
+        nameInput.setAttribute('aria-describedby', nameError.id);
+        // Focus the invalid field
+        nameInput.focus();
+      }
+      function clearValidation() {
+        nameInput.removeAttribute('aria-invalid');
+        nameInput.removeAttribute('aria-describedby');
+        nameError.textContent = '';
+        nameError.setAttribute('hidden', '');
+      }
+
+      modalForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        clearValidation();
+        const val = nameInput.value.trim();
+        if (!val) {
+          showValidationError('Please enter your name. This field is required.');
+          return;
+        }
+        // Simulate success then close
+        // In a real app, perform submission here
+        alert('Subscribed as: ' + val);
+        closeModal(true);
+      });
+
+      // Accessibility: If user focuses the overlay container by some means, redirect to dialog
+      overlay.addEventListener('focusin', function(e){
+        if (!overlay.hasAttribute('hidden') && !dialog.contains(e.target)) {
+          if (focusableInDialog.length > 0) firstFocusable.focus();
+          else dialog.focus();
+        }
+      });
+
+      // Ensure dialog respects reduced-motion preference (no motion added so okay)
+
+      // Ensure pressing Enter on trigger opens (already handled by click)
+      // Ensure that if the page restores focus to an element that no longer exists, nothing breaks.
+
+      // Expose for testing (not required, but harmless)
+      window.__accessibleModal = {
+        open: openModal,
+        close: closeModal
+      };
+
+      // Final: Safe defaults for reflow at narrow widths and long strings handled via CSS (max-width and width:100%)
+    })();
+  </script>
+</body>
+</html>

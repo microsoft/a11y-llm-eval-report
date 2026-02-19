@@ -1,0 +1,190 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Expand/Collapse Widget Example</title>
+    <style>
+        :root {
+            --primary-color: #005a9c;
+            --border-color: #ccc;
+            --bg-color: #f9f9f9;
+            --focus-ring: 3px solid #005a9c;
+            --focus-offset: 2px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+        }
+
+        h1 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        /* 
+         * Example 1: Native HTML <details> and <summary> 
+         * This is the preferred semantic way.
+         */
+        .example {
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        details {
+            width: 100%;
+        }
+
+        summary {
+            cursor: pointer;
+            padding: 1rem;
+            background-color: var(--bg-color);
+            font-weight: bold;
+            list-style: none; /* Hide default triangle in some browsers */
+            position: relative;
+        }
+
+        /* Custom marker styling */
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: "+";
+            position: absolute;
+            right: 1rem;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        details[open] summary {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        details[open] summary::after {
+            content: "-";
+        }
+
+        summary:focus-visible {
+            outline: var(--focus-ring);
+            outline-offset: -3px; /* Draws inside the box */
+            z-index: 1;
+        }
+        
+        /* 
+         * Example 2: ARIA-based Disclosure Pattern 
+         * Used when styling requirements exceed <details> capabilities or for legacy support.
+         */
+        .disclosure-btn {
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            background-color: var(--bg-color);
+            border: none;
+            border-bottom: 1px solid transparent;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .disclosure-btn:focus-visible {
+            outline: var(--focus-ring);
+            outline-offset: -3px;
+        }
+
+        .disclosure-btn[aria-expanded="true"] {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .disclosure-icon {
+            transition: transform 0.2s;
+        }
+
+        .disclosure-btn[aria-expanded="true"] .disclosure-icon {
+            transform: rotate(180deg);
+        }
+
+        .details {
+            padding: 1rem;
+            background-color: #fff;
+        }
+
+        /* Utility for ARIA example to hide content accessibly */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <h1>Expand/Collapse Examples</h1>
+        
+        <h2>Example 1: Semantic HTML (Preferred)</h2>
+        <p>Using the native <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> elements. This requires no JavaScript for basic functionality and is accessible by default.</p>
+
+        <div class="example">
+            <details class="details">
+                <summary>Review Shipping Information</summary>
+                <div class="details-content">
+                    <p>Standard shipping is free for orders over $50. Expedited shipping options are available at checkout.</p>
+                    <p>Estimated delivery: 3-5 business days.</p>
+                </div>
+            </details>
+        </div>
+
+        <h2>Example 2: ARIA Disclosure Pattern</h2>
+        <p>Using a <code>&lt;button&gt;</code> and a container <code>&lt;div&gt;</code> linked via <code>aria-expanded</code> and <code>aria-controls</code>. This is useful when you need precise animation control or custom behaviors not supported by native elements.</p>
+
+        <div class="example">
+            <button type="button" class="disclosure-btn" aria-expanded="false" aria-controls="content-2">
+                <span>Payment Options</span>
+                <span class="disclosure-icon" aria-hidden="true">▼</span>
+            </button>
+            <div id="content-2" class="details hidden">
+                <p>We accept Visa, Mastercard, American Express, and PayPal.</p>
+                <p><a href="#">Manage saved payment methods</a>.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        /**
+         * Logic for Example 2 (ARIA Disclosure)
+         * WCAG requirement: State must be programmatically associated and focus manageable.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const disclosureButtons = document.querySelectorAll('.disclosure-btn');
+
+            disclosureButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // 1. Toggle aria-expanded state
+                    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+                    button.setAttribute('aria-expanded', !isExpanded);
+
+                    // 2. Control visibility of the associated panel
+                    const controlsId = button.getAttribute('aria-controls');
+                    const content = document.getElementById(controlsId);
+                    
+                    if (content) {
+                        if (!isExpanded) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

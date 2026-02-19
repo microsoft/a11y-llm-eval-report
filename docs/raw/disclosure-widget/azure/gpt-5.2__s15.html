@@ -1,0 +1,321 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --text: #e7ecff;
+      --muted: #aab3d6;
+      --border: rgba(255,255,255,0.12);
+      --focus: #7aa2ff;
+      --accent: #6ee7ff;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #0b1020, #070a14);
+      color: var(--text);
+      padding: 24px;
+    }
+    h1 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      max-width: 70ch;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      max-width: 900px;
+    }
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .example {
+      border: 1px solid var(--border);
+      background: rgba(18, 26, 51, 0.65);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+      backdrop-filter: blur(6px);
+    }
+    .example h2 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+    }
+
+    /* Common trigger styling */
+    .trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 650;
+      text-align: left;
+    }
+    .trigger:hover { background: rgba(255,255,255,0.06); }
+    .trigger:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .trigger .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .trigger .subtitle {
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chev {
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.15);
+    }
+    .chev svg {
+      width: 12px;
+      height: 12px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.9;
+      transition: transform 180ms ease;
+    }
+
+    /* Controlled content container (required class) */
+    .details {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(0,0,0,0.18);
+      overflow: clip;
+    }
+
+    /* Animated collapse region */
+    .details .inner {
+      padding: 12px 12px 12px;
+      color: var(--text);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+    .details .inner p { margin: 0 0 10px; color: var(--text); }
+    .details .inner ul { margin: 0; padding-left: 18px; color: var(--muted); }
+    .details .inner li { margin: 6px 0; }
+
+    /* JS-driven height animation using a wrapper */
+    .collapsible {
+      height: 0;
+      opacity: 0;
+      transition: height 220ms ease, opacity 180ms ease;
+      will-change: height;
+    }
+    .collapsible[data-open="true"] {
+      opacity: 1;
+    }
+
+    /* When open, rotate chevron */
+    .trigger[aria-expanded="true"] .chev svg { transform: rotate(180deg); }
+
+    /* Native details element styling */
+    details.native {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      overflow: hidden;
+    }
+    details.native summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 12px;
+      font-weight: 650;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+    }
+    details.native summary::-webkit-details-marker { display: none; }
+    details.native[open] summary { border-bottom: 1px solid var(--border); }
+    details.native summary:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: 12px;
+    }
+    details.native .details {
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    code.kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 8px;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <h1>Expand/Collapse Widget</h1>
+  <p>
+    Two examples: a custom ARIA widget with animated height, and a native <code class="kbd">&lt;details&gt;</code> element.
+    Each widget is wrapped in a <code class="kbd">div.example</code>, and the controlled content container uses the <code class="kbd">details</code> class.
+  </p>
+
+  <div class="grid">
+    <!-- Example 1: Custom button + controlled panel -->
+    <div class="example">
+      <h2>Example 1: Custom (ARIA + animation)</h2>
+
+      <button class="trigger" type="button" aria-expanded="false" aria-controls="panel-1" id="trigger-1">
+        <span class="meta">
+          <span>Project notes</span>
+          <span class="subtitle">Click to expand/collapse (keyboard: Enter/Space)</span>
+        </span>
+        <span class="chev" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 9l6 6 6-6"></path>
+          </svg>
+        </span>
+      </button>
+
+      <div class="details" id="panel-1" role="region" aria-labelledby="trigger-1">
+        <div class="collapsible" data-open="false">
+          <div class="inner">
+            <p><strong>Status:</strong> In progress. Next milestone is due Friday.</p>
+            <ul>
+              <li>Finalize API contract</li>
+              <li>Write integration tests</li>
+              <li>Prepare release notes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 2: Native <details> with controlled content container -->
+    <div class="example">
+      <h2>Example 2: Native &lt;details&gt;</h2>
+
+      <details class="native">
+        <summary>
+          <span class="meta">
+            <span>Shipping & returns</span>
+            <span class="subtitle">Native toggle with built-in accessibility</span>
+          </span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </span>
+        </summary>
+
+        <div class="details">
+          <div class="inner">
+            <p>
+              Orders ship within 1–2 business days. Returns are accepted within 30 days in original condition.
+            </p>
+            <ul>
+              <li>Tracking provided by email</li>
+              <li>Refunds processed within 3–5 days after receipt</li>
+              <li>International delivery times vary</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const trigger = document.getElementById('trigger-1');
+      const panel = document.getElementById('panel-1');
+      const collapsible = panel.querySelector('.collapsible');
+
+      function setOpen(open) {
+        trigger.setAttribute('aria-expanded', String(open));
+        collapsible.dataset.open = String(open);
+
+        // Animate height between 0 and scrollHeight
+        const startHeight = collapsible.getBoundingClientRect().height;
+        const endHeight = open ? collapsible.scrollHeight : 0;
+
+        // Ensure visibility when opening
+        if (open) collapsible.style.height = startHeight + 'px';
+
+        requestAnimationFrame(() => {
+          collapsible.style.height = endHeight + 'px';
+        });
+
+        const onDone = (e) => {
+          if (e.propertyName !== 'height') return;
+          collapsible.removeEventListener('transitionend', onDone);
+
+          // Clear inline height when open to allow dynamic content sizing
+          if (open) collapsible.style.height = 'auto';
+        };
+        collapsible.addEventListener('transitionend', onDone);
+      }
+
+      trigger.addEventListener('click', () => {
+        const open = trigger.getAttribute('aria-expanded') === 'true';
+        setOpen(!open);
+      });
+
+      // Optional: start with closed state
+      setOpen(false);
+
+      // Native details chevron rotation (sync)
+      document.querySelectorAll('details.native').forEach((d) => {
+        const summary = d.querySelector('summary');
+        const sync = () => {
+          // Rotate by mimicking aria-expanded for styling reuse
+          summary.setAttribute('aria-expanded', d.open ? 'true' : 'false');
+        };
+        d.addEventListener('toggle', sync);
+        sync();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,592 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accessible expand/collapse widgets - Patterns - Demo</title>
+  <style>
+    /* Design tokens (small, limited palette) */
+    :root{
+      --color-bg: #ffffff;
+      --color-surface: #f7f8fa;
+      --color-text: #0b1220; /* very dark */
+      --color-muted-text: #3b4858; /* still meets contrast */
+      --color-border: #d6dce6;
+      --color-link: #0b66ff;
+      --color-focus: #0047b3; /* focus ring */
+      --color-danger: #b00020;
+      --color-success: #007a3d;
+      --radius: 8px;
+      --space-xs: 8px;
+      --space-s: 12px;
+      --space-m: 16px;
+      --space-l: 24px;
+      --max-width: 900px;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--color-bg);
+      color:var(--color-text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.4;
+      font-size:16px;
+    }
+
+    /* Layout */
+    .page {
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+
+    header, nav, main, footer {
+      box-sizing:border-box;
+    }
+
+    header {
+      border-bottom:1px solid var(--color-border);
+      background:var(--color-surface);
+      padding:calc(var(--space-m));
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 var(--space-m) var(--space-l);
+      width:100%;
+    }
+
+    /* Skip link */
+    .sr-only:not(:focus):not(:active){
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height:1px;
+      overflow:hidden;
+      position:absolute;
+      white-space:nowrap;
+      width:1px;
+    }
+
+    a.skip {
+      display:inline-block;
+      padding:8px 12px;
+      background:var(--color-bg);
+      color:var(--color-link);
+      border:1px solid var(--color-border);
+      border-radius:6px;
+      text-decoration:none;
+    }
+    a.skip:focus {
+      position:relative;
+      z-index:10;
+      outline:4px solid var(--color-focus);
+      outline-offset:2px;
+    }
+
+    nav {
+      margin-top:12px;
+      margin-bottom:6px;
+    }
+    nav ul {
+      display:flex;
+      gap:12px;
+      padding:0;
+      margin:0;
+      list-style:none;
+      flex-wrap:wrap;
+    }
+    nav a {
+      color:var(--color-link);
+      text-decoration:none;
+      padding:6px 8px;
+      border-radius:6px;
+      font-weight:600;
+    }
+    nav a:focus {
+      outline:3px solid var(--color-focus);
+      outline-offset:2px;
+    }
+
+    main {
+      padding-top: var(--space-l);
+      padding-bottom: var(--space-l);
+      flex:1 0 auto;
+    }
+
+    h1 {
+      font-size:1.5rem;
+      margin:0 0 8px 0;
+    }
+
+    p.lead {
+      margin:0 0 var(--space-m) 0;
+      color:var(--color-muted-text);
+      max-width:60ch;
+    }
+
+    /* Examples */
+    .examples {
+      display:grid;
+      gap: var(--space-l);
+    }
+
+    .example {
+      border:1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: var(--space-m);
+      background: white;
+      box-shadow: 0 1px 0 rgba(11,18,32,0.03);
+    }
+
+    .example h2 {
+      font-size:1rem;
+      margin:0 0 var(--space-s) 0;
+      color:var(--color-text);
+    }
+    .example p {
+      margin:0 0 var(--space-s) 0;
+      color:var(--color-muted-text);
+      font-size:0.95rem;
+    }
+
+    /* Expand/Collapse button */
+    .expander {
+      display:flex;
+      gap:12px;
+      align-items:center;
+      width:100%;
+      background:transparent;
+      border:1px solid var(--color-border);
+      padding:12px;
+      border-radius:8px;
+      text-align:left;
+      cursor:pointer;
+      color:var(--color-text);
+      font-weight:600;
+      font-size:1rem;
+    }
+
+    .expander:hover {
+      background:#f3f6fb;
+    }
+
+    .expander:active {
+      transform:translateY(0.5px);
+    }
+
+    /* Icon */
+    .expander .icon {
+      width:20px;
+      height:20px;
+      display:inline-block;
+      flex:0 0 20px;
+      transition:transform 200ms ease;
+    }
+    /* rotate when expanded via data attribute on button parent */
+    .expander[aria-expanded="true"] .icon {
+      transform: rotate(180deg);
+    }
+
+    /* Panel (controlled content) */
+    .details {
+      margin-top:12px;
+      padding:12px;
+      border-radius:6px;
+      border:1px dashed var(--color-border);
+      background:#fbfcfe;
+      color:var(--color-text);
+      font-size:0.96rem;
+      line-height:1.5;
+      overflow-wrap:anywhere;
+    }
+
+    /* Focus styles - visible and meets contrast requirements vs background */
+    .expander:focus-visible {
+      outline:3px solid var(--color-focus);
+      outline-offset:3px;
+    }
+    .expander:focus {
+      /* for browsers not supporting focus-visible */
+      outline:3px solid rgba(0,71,179,0.18);
+      outline-offset:3px;
+    }
+
+    /* Small helper text */
+    .hint {
+      font-size:0.88rem;
+      color:var(--color-muted-text);
+    }
+
+    /* Accordion specific layout */
+    .accordion {
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    /* Ensure interactive children inside closed panel are not focusable (we use hidden attribute) */
+    .details a, .details button {
+      color:var(--color-link);
+      text-decoration:underline;
+      background:transparent;
+      border:none;
+      padding:0;
+      font:inherit;
+      cursor:pointer;
+    }
+
+    /* Footer */
+    footer {
+      border-top:1px solid var(--color-border);
+      padding:var(--space-m);
+      background:var(--color-surface);
+    }
+
+    /* Responsive and reflow rules */
+    @media (max-width:420px) {
+      .container {
+        padding-left:12px;
+        padding-right:12px;
+      }
+      .expander {
+        padding:10px;
+        gap:10px;
+      }
+      h1 { font-size:1.25rem; }
+    }
+
+    /* Forced colors (high contrast) */
+    @media (forced-colors: active) {
+      :root {
+        color-scheme: light only;
+      }
+      body {
+        background: Canvas;
+        color: CanvasText;
+      }
+      .expander {
+        border: 2px solid ButtonBorder;
+        background: Canvas;
+      }
+      .expander:focus {
+        outline: 3px solid Highlight;
+        outline-offset: 0;
+      }
+      .details {
+        background: Canvas;
+        border: 2px dashed ButtonBorder;
+      }
+      a.skip {
+        border: 2px solid ButtonBorder;
+        background: Canvas;
+        color: LinkText;
+      }
+      svg { forced-color-adjust: auto; }
+    }
+
+    /* Utility: keep focus outline visible in forced-colors too (box-shadow fallback) */
+    .expander:focus {
+      box-shadow: 0 0 0 3px rgba(0,71,179,0.12);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <!-- Skip link must be the first focusable element -->
+      <div class="container">
+        <a href="#maincontent" class="sr-only skip">Skip to main content</a>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <strong>Component Demos</strong>
+            <div style="font-size:0.9rem;color:var(--color-muted-text);">Accessible expand/collapse patterns</div>
+          </div>
+          <nav aria-label="Top navigation">
+            <ul>
+              <li><a href="#widgets">Widgets</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main id="maincontent" tabindex="-1" class="container" role="main" aria-labelledby="pageTitle">
+      <h1 id="pageTitle">Accessible expand / collapse widgets</h1>
+      <p class="lead">Two examples: a single expand/collapse region and a keyboard-accessible accordion with arrow-key navigation. Use Tab, Enter, Space to toggle, and arrow keys to move among accordion headers. Content panels use the <code>details</code> class.</p>
+
+      <section id="widgets" aria-labelledby="widgetsTitle" class="examples">
+        <!-- Example 1: Single expand/collapse -->
+        <div class="example" id="example-single">
+          <h2 id="singleTitle">Single expand / collapse</h2>
+          <p class="hint">A single toggle button that controls a nearby content region. This pattern is appropriate for revealing additional details.</p>
+
+          <!-- Widget start -->
+          <div>
+            <button
+              id="toggle-single"
+              class="expander"
+              aria-expanded="false"
+              aria-controls="details-single"
+              aria-describedby="singleDesc"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 15.5l-7-7h14z" fill="currentColor"></path>
+              </svg>
+              <span>Show more details</span>
+            </button>
+
+            <div id="details-single" class="details" role="region" aria-labelledby="toggle-single" hidden aria-hidden="true">
+              <p id="singleDesc">This panel contains additional information that is hidden by default. When expanded, interactive elements become reachable by keyboard and assistive technologies.</p>
+              <p>Example content includes a link and a secondary action:</p>
+              <ul>
+                <li><a href="https://www.w3.org/WAI/" target="_blank" rel="noopener">WAI Accessibility Guidelines</a></li>
+                <li><button type="button" onclick="alert('Example action')">Secondary action</button></li>
+              </ul>
+            </div>
+          </div>
+          <!-- Widget end -->
+        </div>
+
+        <!-- Example 2: Accordion with multiple sections -->
+        <div class="example" id="example-accordion">
+          <h2 id="accordionTitle">Accordion (keyboard accessible)</h2>
+          <p class="hint">Multiple sections where only the content for the expanded header is shown. Use Up/Down/Home/End keys to navigate between headers. Only one header is tabbable at a time (roving tabindex).</p>
+
+          <!-- Accordion start -->
+          <div class="accordion" id="myAccordion" role="region" aria-labelledby="accordionTitle" aria-roledescription="accordion">
+            <!-- Section 1 -->
+            <div>
+              <h3 style="margin:0;">
+                <button
+                  id="acc-1"
+                  class="expander"
+                  aria-expanded="true"
+                  aria-controls="details-1"
+                  tabindex="0"
+                >
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 15.5l-7-7h14z" fill="currentColor"></path>
+                  </svg>
+                  <span>Accordion section one</span>
+                </button>
+              </h3>
+              <div id="details-1" class="details" role="region" aria-labelledby="acc-1">
+                <p>This section is open by default. It contains explanatory content and demonstrates how content reflows at narrow widths. Resize the window to see stacking behavior. Long words or URLs will wrap as needed: <code>https://example.com/very/long/path/that/should/wrap</code></p>
+              </div>
+            </div>
+
+            <!-- Section 2 -->
+            <div>
+              <h3 style="margin:0;">
+                <button
+                  id="acc-2"
+                  class="expander"
+                  aria-expanded="false"
+                  aria-controls="details-2"
+                  tabindex="-1"
+                >
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 15.5l-7-7h14z" fill="currentColor"></path>
+                  </svg>
+                  <span>Accordion section two</span>
+                </button>
+              </h3>
+              <div id="details-2" class="details" role="region" aria-labelledby="acc-2" hidden aria-hidden="true">
+                <p>This panel is collapsed by default. It includes an example form control to show that inputs inside a collapsed panel are not focusable until expanded.</p>
+                <label for="sampleInput">Sample input</label>
+                <input id="sampleInput" type="text" placeholder="Enter text" style="display:block;margin-top:8px;padding:8px;border:1px solid var(--color-border);border-radius:6px;min-width:180px;">
+              </div>
+            </div>
+
+            <!-- Section 3 -->
+            <div>
+              <h3 style="margin:0;">
+                <button
+                  id="acc-3"
+                  class="expander"
+                  aria-expanded="false"
+                  aria-controls="details-3"
+                  tabindex="-1"
+                >
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 15.5l-7-7h14z" fill="currentColor"></path>
+                  </svg>
+                  <span>Accordion section three</span>
+                </button>
+              </h3>
+              <div id="details-3" class="details" role="region" aria-labelledby="acc-3" hidden aria-hidden="true">
+                <p>Collapsed content. The accordion implements roving tabindex so that only one header receives Tab focus. Arrow keys move focus; Enter or Space toggles expansion.</p>
+              </div>
+            </div>
+          </div>
+          <!-- Accordion end -->
+        </div>
+      </section>
+
+      <section id="about" aria-labelledby="aboutTitle" style="margin-top:var(--space-l);">
+        <h2 id="aboutTitle">Notes</h2>
+        <p class="hint">This demo uses native buttons, proper aria-expanded/aria-controls, and hidden attribute to remove collapsed content from the accessibility tree. It also adapts to OS high contrast settings.</p>
+      </section>
+    </main>
+
+    <footer class="container">
+      <small style="color:var(--color-muted-text)">Demo: Accessible expand/collapse widgets — keyboard, focus, contrast, and reflow considered. Manual accessibility testing recommended.</small>
+    </footer>
+  </div>
+
+  <script>
+    // Utility: toggle a single expander
+    (function(){
+      const singleBtn = document.getElementById('toggle-single');
+      const singlePanel = document.getElementById('details-single');
+
+      singleBtn.addEventListener('click', () => {
+        const expanded = singleBtn.getAttribute('aria-expanded') === 'true';
+        singleBtn.setAttribute('aria-expanded', String(!expanded));
+        if (expanded) {
+          singlePanel.hidden = true;
+          singlePanel.setAttribute('aria-hidden', 'true');
+        } else {
+          singlePanel.hidden = false;
+          singlePanel.setAttribute('aria-hidden', 'false');
+          // Move focus into panel if needed:
+          // singlePanel.querySelector('a, button, input')?.focus();
+        }
+      });
+    })();
+
+    // Accordion implementation with roving tabindex
+    (function(){
+      const accordion = document.getElementById('myAccordion');
+      if (!accordion) return;
+      const buttons = Array.from(accordion.querySelectorAll('.expander'));
+      // Ensure panels' hidden/aria-hidden are in sync with initial aria-expanded
+      buttons.forEach(btn => {
+        const panel = document.getElementById(btn.getAttribute('aria-controls'));
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        if (panel) {
+          panel.hidden = !expanded;
+          panel.setAttribute('aria-hidden', String(!expanded));
+        }
+      });
+
+      // Roving tabindex: ensure exactly one button has tabindex="0"
+      function setRoving(index) {
+        buttons.forEach((b, i) => {
+          b.setAttribute('tabindex', i === index ? '0' : '-1');
+        });
+      }
+
+      // find the first button with tabindex 0 or default to 0
+      let currentIndex = buttons.findIndex(b => b.getAttribute('tabindex') === '0');
+      if (currentIndex === -1) {
+        // find first aria-expanded true
+        currentIndex = buttons.findIndex(b => b.getAttribute('aria-expanded') === 'true');
+        if (currentIndex === -1) currentIndex = 0;
+        setRoving(currentIndex);
+      }
+
+      // Keyboard navigation
+      buttons.forEach((btn, idx) => {
+        btn.addEventListener('keydown', (evt) => {
+          const key = evt.key;
+          let handled = false;
+          if (key === 'ArrowDown' || key === 'ArrowRight') {
+            // move to next
+            const next = (idx + 1) % buttons.length;
+            setRoving(next);
+            buttons[next].focus();
+            currentIndex = next;
+            handled = true;
+          } else if (key === 'ArrowUp' || key === 'ArrowLeft') {
+            const prev = (idx - 1 + buttons.length) % buttons.length;
+            setRoving(prev);
+            buttons[prev].focus();
+            currentIndex = prev;
+            handled = true;
+          } else if (key === 'Home') {
+            setRoving(0);
+            buttons[0].focus();
+            currentIndex = 0;
+            handled = true;
+          } else if (key === 'End') {
+            const last = buttons.length - 1;
+            setRoving(last);
+            buttons[last].focus();
+            currentIndex = last;
+            handled = true;
+          } else if (key === 'PageUp') {
+            // map to Home
+            setRoving(0);
+            buttons[0].focus();
+            currentIndex = 0;
+            handled = true;
+          } else if (key === 'PageDown') {
+            // map to End
+            const last = buttons.length - 1;
+            setRoving(last);
+            buttons[last].focus();
+            currentIndex = last;
+            handled = true;
+          }
+
+          if (handled) {
+            evt.preventDefault();
+            evt.stopPropagation();
+          }
+        });
+
+        // Toggle expansion on click
+        btn.addEventListener('click', () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          // Collapse all others if this is a single-expand accordion (optional).
+          // For this demo we'll allow multiple open panels; to restrict to single, uncomment below.
+          // buttons.forEach(b => { b.setAttribute('aria-expanded','false'); document.getElementById(b.getAttribute('aria-controls')).hidden = true; document.getElementById(b.getAttribute('aria-controls')).setAttribute('aria-hidden','true'); });
+          btn.setAttribute('aria-expanded', String(!expanded));
+          const panel = document.getElementById(btn.getAttribute('aria-controls'));
+          if (panel) {
+            panel.hidden = expanded; // if it was expanded, hide it; otherwise show
+            panel.setAttribute('aria-hidden', String(expanded));
+            // If expanding, move focus to first focusable element inside panel optionally:
+            // if (!expanded) {
+            //   const first = panel.querySelector('a, button, input, [tabindex]:not([tabindex="-1"])');
+            //   first?.focus();
+            // }
+          }
+          // update roving: make the clicked button tabbable
+          const newIndex = buttons.indexOf(btn);
+          if (newIndex >= 0) {
+            setRoving(newIndex);
+            currentIndex = newIndex;
+          }
+        });
+
+        // Manage focus styling when a non-tabbable button receives focus programmatically
+        btn.addEventListener('focus', () => {
+          // nothing special required; roving tabindex ensures only one tabbable
+        });
+      });
+
+      // Ensure that if focus leaves the accordion and returns via Tab, the currentIndex button is tabbable
+      accordion.addEventListener('focusin', (e) => {
+        const target = e.target;
+        const idx = buttons.indexOf(target);
+        if (idx >= 0) {
+          setRoving(idx);
+          currentIndex = idx;
+        }
+      });
+    })();
+
+    // Prevent focusable elements inside hidden panels from being programmatically focusable
+    // The use of [hidden] ensures they won't be accessible, but some UA quirks may remain.
+    // No additional code here by default.
+  </script>
+</body>
+</html>

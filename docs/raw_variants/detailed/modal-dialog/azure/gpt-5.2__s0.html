@@ -1,0 +1,424 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal dialog example - Components - Demo</title>
+  <style>
+    :root{
+      --color-bg: #ffffff;
+      --color-surface: #ffffff;
+      --color-text: #111827;
+      --color-muted-text: #374151;
+      --color-border: #374151;
+      --color-link: #0b3bbd;
+      --color-link-visited: #5b21b6;
+      --color-focus: #1d4ed8;
+      --color-danger: #b91c1c;
+
+      --radius: 12px;
+      --shadow: 0 18px 50px rgba(0,0,0,0.25);
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+
+      --max-content: 70rem;
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+    }
+
+    a { color: var(--color-link); }
+    a:visited { color: var(--color-link-visited); }
+
+    .container{
+      max-width: var(--max-content);
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-4);
+    }
+
+    header.site-header{
+      border-bottom: 2px solid var(--color-border);
+    }
+
+    nav ul{
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      list-style: none;
+      padding: 0;
+      margin: var(--space-3) 0 0;
+    }
+
+    nav a{
+      display: inline-block;
+      padding: 0.35rem 0.6rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      border: 1px solid transparent;
+    }
+    nav a:hover{
+      border-color: var(--color-border);
+      text-decoration: underline;
+    }
+
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+    .skip-link{
+      left: var(--space-4);
+      top: var(--space-4);
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 2px solid var(--color-border);
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      z-index: 1000;
+    }
+
+    :focus-visible{
+      outline: 3px solid var(--color-focus);
+      outline-offset: 3px;
+    }
+
+    .btn{
+      appearance: none;
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      padding: 0.6rem 0.9rem;
+      border-radius: 0.65rem;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      max-width: 100%;
+    }
+    .btn:hover{ text-decoration: underline; }
+    .btn:active{ transform: translateY(1px); }
+    .btn-primary{
+      background: var(--color-link);
+      color: #ffffff;
+      border-color: var(--color-link);
+    }
+    .btn-primary:hover{ filter: brightness(0.95); }
+    .btn-secondary{
+      background: var(--color-surface);
+    }
+
+    .stack{
+      display: grid;
+      gap: var(--space-4);
+      min-width: 0;
+    }
+
+    .card{
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: var(--space-5);
+      background: var(--color-surface);
+      min-width: 0;
+    }
+
+    p, li { overflow-wrap: anywhere; }
+
+    /* Dialog */
+    dialog{
+      border: none;
+      padding: 0;
+      width: min(42rem, calc(100vw - 2rem));
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      color: var(--color-text);
+      box-shadow: var(--shadow);
+    }
+    dialog::backdrop{
+      background: rgba(0, 0, 0, 0.55);
+    }
+
+    .dialog-inner{
+      padding: var(--space-5);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+    }
+    .dialog-header{
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: var(--space-4);
+      min-width: 0;
+    }
+    .dialog-title{
+      margin: 0;
+      font-size: 1.35rem;
+      line-height: 1.25;
+    }
+    .dialog-body{
+      margin-top: var(--space-3);
+      color: var(--color-muted-text);
+    }
+    .dialog-actions{
+      margin-top: var(--space-5);
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .icon-btn{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.6rem;
+      height: 2.6rem;
+      border-radius: 0.65rem;
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    .icon-btn:hover{ text-decoration: underline; }
+    .icon{
+      width: 1.25rem;
+      height: 1.25rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Ensure reflow at 320px: stack actions if needed */
+    @media (max-width: 360px){
+      .dialog-actions{ flex-direction: column; }
+      .dialog-actions .btn{ width: 100%; }
+    }
+
+    @media (forced-colors: active){
+      dialog{
+        border: 2px solid CanvasText;
+        box-shadow: none;
+      }
+      dialog::backdrop{
+        background: Canvas;
+        opacity: 0.9;
+      }
+      .dialog-inner{
+        border-color: CanvasText;
+      }
+      .btn, .icon-btn{
+        border-color: ButtonBorder;
+        background: ButtonFace;
+        color: ButtonText;
+      }
+      .btn-primary{
+        background: Highlight;
+        color: HighlightText;
+        border-color: Highlight;
+      }
+      :focus-visible{
+        outline-color: Highlight;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a href="#maincontent" class="sr-only skip-link">Skip to main content</a>
+    <div class="container">
+      <div class="stack" style="gap: var(--space-3);">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap: var(--space-4); flex-wrap:wrap;">
+          <div>
+            <div style="font-weight: 800;">Demo site</div>
+            <div style="color: var(--color-muted-text);">Accessible component examples</div>
+          </div>
+        </div>
+        <nav aria-label="Primary">
+          <ul>
+            <li><a href="#modal-example">Modal dialog</a></li>
+            <li><a href="#notes">Notes</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="maincontent" tabindex="-1">
+    <div class="container">
+      <h1 id="modal-example">Modal dialog example</h1>
+
+      <section class="card stack" aria-labelledby="open-heading">
+        <h2 id="open-heading" style="margin:0;">Open the dialog</h2>
+        <p style="margin:0; color: var(--color-muted-text);">
+          This example uses the native <code>&lt;dialog&gt;</code> element. When open, focus moves into the dialog and stays there until it is closed.
+        </p>
+
+        <div>
+          <button type="button" class="btn btn-primary trigger" id="openDialogBtn">
+            Open dialog
+          </button>
+        </div>
+      </section>
+
+      <section id="notes" class="card stack" aria-labelledby="notes-heading" style="margin-top: var(--space-6);">
+        <h2 id="notes-heading" style="margin:0;">Notes</h2>
+        <ul style="margin:0; padding-left: 1.2rem; color: var(--color-muted-text);">
+          <li>Press <kbd>Escape</kbd> to close.</li>
+          <li>Use <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between controls.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="container" style="border-top: 2px solid var(--color-border); margin-top: var(--space-6);">
+    <p style="margin: var(--space-4) 0; color: var(--color-muted-text);">
+      Demo footer content.
+    </p>
+  </footer>
+
+  <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+    <div class="dialog-inner">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="dialogTitle">Confirm your choice</h2>
+
+        <button type="button" class="icon-btn" id="closeIconBtn">
+          <span class="sr-only">Close dialog</span>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6 6l12 12M18 6L6 18"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="dialog-body" id="dialogDesc">
+        <p style="margin: 0;">
+          This is an example modal dialog. Choose an action below, or close the dialog to return to the page.
+        </p>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmBtn">Confirm</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    (function () {
+      const openBtn = document.getElementById('openDialogBtn');
+      const dialog = document.getElementById('exampleDialog');
+      const closeIconBtn = document.getElementById('closeIconBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const confirmBtn = document.getElementById('confirmBtn');
+
+      let lastActiveElement = null;
+
+      function getFocusableElements(container) {
+        const selectors = [
+          'a[href]',
+          'button:not([disabled])',
+          'input:not([disabled])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          '[tabindex]:not([tabindex="-1"])'
+        ];
+        return Array.from(container.querySelectorAll(selectors.join(',')))
+          .filter(el => !el.hasAttribute('hidden') && getComputedStyle(el).visibility !== 'hidden');
+      }
+
+      function focusFirstInDialog() {
+        const focusables = getFocusableElements(dialog);
+        (focusables[0] || dialog).focus();
+      }
+
+      function openDialog() {
+        lastActiveElement = document.activeElement;
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+          focusFirstInDialog();
+        } else {
+          // Basic fallback: if <dialog> is unsupported, keep it hidden (no trap).
+          // A full fallback is intentionally not implemented in this minimal example.
+          alert('Your browser does not support the dialog element.');
+        }
+      }
+
+      function closeDialog(returnFocus = true) {
+        if (dialog.open) dialog.close();
+        if (returnFocus && lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        }
+      }
+
+      openBtn.addEventListener('click', openDialog);
+
+      closeIconBtn.addEventListener('click', () => closeDialog(true));
+      cancelBtn.addEventListener('click', () => closeDialog(true));
+      confirmBtn.addEventListener('click', () => closeDialog(true));
+
+      // Ensure clicking on the backdrop closes (native dialog does not close on backdrop click by default).
+      dialog.addEventListener('click', (event) => {
+        const rect = dialog.getBoundingClientRect();
+        const clickedInDialog =
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom;
+
+        if (!clickedInDialog) closeDialog(true);
+      });
+
+      // Trap focus inside dialog while open.
+      dialog.addEventListener('keydown', (event) => {
+        if (!dialog.open) return;
+
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeDialog(true);
+          return;
+        }
+
+        if (event.key !== 'Tab') return;
+
+        const focusables = getFocusableElements(dialog);
+        if (focusables.length === 0) {
+          event.preventDefault();
+          dialog.focus();
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      });
+
+      // When the dialog closes (including via built-in behavior), restore focus.
+      dialog.addEventListener('close', () => {
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

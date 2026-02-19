@@ -1,0 +1,154 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessible Modal Example</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    .trigger {
+      padding: 0.6rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #666;
+      border-radius: 0.4rem;
+      background: #f0f0f0;
+      color: #111;
+      cursor: pointer;
+    }
+    .trigger:focus {
+      outline: 3px solid #005fcc;
+      outline-offset: 2px;
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .overlay[aria-hidden="false"] {
+      display: flex;
+    }
+    .modal {
+      background: #fff;
+      color: #111;
+      max-width: 30rem;
+      width: 100%;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .modal h2 {
+      margin-top: 0;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .button {
+      padding: 0.5rem 0.9rem;
+      border: 1px solid #666;
+      border-radius: 0.4rem;
+      background: #f0f0f0;
+      color: #111;
+      cursor: pointer;
+    }
+    .button.primary {
+      background: #005fcc;
+      color: #fff;
+      border-color: #005fcc;
+    }
+    .button:focus {
+      outline: 3px solid #005fcc;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal Dialog Example</h1>
+    <p>This modal is closed by default. Use the button to open it.</p>
+    <button class="trigger" id="openModal" aria-haspopup="dialog">Open modal</button>
+  </main>
+
+  <div class="overlay" id="modalOverlay" aria-hidden="true">
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+      aria-describedby="modalDesc"
+    >
+      <h2 id="modalTitle">Subscribe to updates</h2>
+      <p id="modalDesc">Choose how you would like to receive notifications.</p>
+      <form>
+        <div>
+          <label for="email">Email address</label><br />
+          <input id="email" name="email" type="email" autocomplete="email" />
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="button primary">Subscribe</button>
+          <button type="button" class="button" id="closeModal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const openButton = document.getElementById('openModal');
+    const closeButton = document.getElementById('closeModal');
+    const overlay = document.getElementById('modalOverlay');
+    const modal = overlay.querySelector('.modal');
+    let lastFocused = null;
+
+    function openModal() {
+      lastFocused = document.activeElement;
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      const focusable = modal.querySelectorAll('a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+      if (focusable.length) focusable[0].focus();
+    }
+
+    function closeModal() {
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if (lastFocused) lastFocused.focus();
+    }
+
+    function trapFocus(e) {
+      if (overlay.getAttribute('aria-hidden') === 'true') return;
+      if (e.key !== 'Tab') return;
+      const focusable = modal.querySelectorAll('a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    openButton.addEventListener('click', openModal);
+    closeButton.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+      trapFocus(e);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,442 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accessible Modal Dialog Example</title>
+  <style>
+    :root{
+      --overlay-bg: rgba(0,0,0,0.6);
+      --dialog-bg: #fff;
+      --accent: #0b63d7;
+      --text: #111827;
+      --radius: 8px;
+      --max-width: 38rem;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #f7f7fb;
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    header, main {
+      padding: 1rem;
+      max-width: 52rem;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 .5rem 0;
+      font-size: 1.25rem;
+      line-height: 1.2;
+    }
+
+    p.lead {
+      margin:0 0 1rem 0;
+      color: #374151;
+    }
+
+    .trigger {
+      display:inline-block;
+      margin-top: .5rem;
+      padding: .6rem .9rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .trigger:focus {
+      outline: 3px solid #cfe2ff;
+      outline-offset: 2px;
+    }
+
+    /* Overlay and dialog */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none; /* hidden by default */
+      align-items: center;
+      justify-content: center;
+      background: var(--overlay-bg);
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .overlay[data-open="true"] {
+      display: flex;
+    }
+
+    .dialog {
+      background: var(--dialog-bg);
+      border-radius: var(--radius);
+      max-width: var(--max-width);
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.35);
+      padding: 1rem 1rem 1.25rem 1rem;
+      position: relative;
+      box-sizing: border-box;
+      outline: none; /* we'll manage focus outlines on elements */
+    }
+
+    .dialog header {
+      display:flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+    }
+
+    .dialog h2 {
+      margin: 0;
+      font-size: 1.125rem;
+    }
+
+    .dialog p {
+      margin: .75rem 0 1rem 0;
+      color: #374151;
+    }
+
+    .controls {
+      display:flex;
+      gap:.5rem;
+      justify-content: flex-end;
+      margin-top: .25rem;
+    }
+
+    .btn {
+      padding: .55rem .8rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .95rem;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn.secondary {
+      background: #e6edf8;
+      color: #0b3b78;
+    }
+
+    .btn:focus {
+      outline: 3px solid #cfe2ff;
+      outline-offset: 2px;
+    }
+
+    /* close button */
+    .close {
+      background: transparent;
+      border: none;
+      padding: .25rem;
+      font-size: 1.25rem;
+      line-height: 1;
+      color: #374151;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    .close:focus {
+      outline: 3px solid #cfe2ff;
+      outline-offset: 2px;
+    }
+
+    /* Visually hidden utility for accessibility when needed */
+    .sr-only {
+      position: absolute !important;
+      height: 1px; width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap; /* added line */
+    }
+
+    /* Make focus visible for keyboard users on focusable non-buttons (e.g., links) */
+    a:focus {
+      outline: 3px solid #cfe2ff;
+      outline-offset: 2px;
+    }
+
+    /* Reduce motion for users who prefer reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .overlay { transition: none; }
+      .dialog { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Accessible Modal Dialog Example</h1>
+    <p class="lead">This page demonstrates an accessible, keyboard-friendly modal dialog component. The modal is closed by default. Use the "Open dialog" button to open it.</p>
+  </header>
+
+  <main id="main-content">
+    <p>
+      Example content on the page. When the modal opens, background content is hidden from assistive technology and keyboard focus is trapped inside the dialog.
+    </p>
+
+    <p>
+      <button class="trigger" id="openDialog" aria-haspopup="dialog" aria-controls="dialog" type="button">Open dialog</button>
+    </p>
+
+    <section aria-label="More page content">
+      <h2>Other page section</h2>
+      <p>Keep interacting with the page and then open the dialog to test focus management and keyboard support.</p>
+      <a href="#" id="sampleLink">A sample link</a>
+    </section>
+  </main>
+
+  <!-- Modal overlay and dialog -->
+  <div id="modalOverlay" class="overlay" data-open="false" aria-hidden="true">
+    <!-- Start sentinel for focus trapping (keyboard users) -->
+    <div tabindex="0" class="sr-only" id="start-sentinel"></div>
+
+    <div id="dialog"
+         class="dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="dialogTitle"
+         aria-describedby="dialogDesc"
+         aria-hidden="true"
+         tabindex="-1">
+      <header>
+        <h2 id="dialogTitle">Subscribe to updates</h2>
+        <button class="close" id="closeDialog" aria-label="Close dialog" title="Close dialog" type="button">&times;</button>
+      </header>
+
+      <div id="dialogContent">
+        <p id="dialogDesc">Join our mailing list to receive the latest news and updates.</p>
+
+        <form id="subscribeForm">
+          <label for="email">Email address</label><br />
+          <input id="email" name="email" type="email" inputmode="email" required style="margin-top:.25rem;padding:.5rem;border:1px solid #d1d5db;border-radius:6px;width:100%;" />
+          <div class="controls" style="margin-top:1rem;">
+            <button class="btn secondary" id="cancelBtn" type="button">Cancel</button>
+            <button class="btn primary" id="submitBtn" type="submit">Subscribe</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- End sentinel for focus trapping -->
+    <div tabindex="0" class="sr-only" id="end-sentinel"></div>
+  </div>
+
+  <script>
+    (function () {
+      const openTrigger = document.querySelector('.trigger'); // element with class "trigger"
+      const overlay = document.getElementById('modalOverlay');
+      const dialog = document.getElementById('dialog');
+      const closeButton = document.getElementById('closeDialog');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const form = document.getElementById('subscribeForm');
+      const mainContent = document.getElementById('main-content');
+      const startSentinel = document.getElementById('start-sentinel');
+      const endSentinel = document.getElementById('end-sentinel');
+
+      let lastFocusedElement = null;
+
+      // Selectors for focusable elements inside dialog
+      const FOCUSABLE_SELECTORS = 'a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+      function getFocusableElements(container) {
+        return Array.prototype.slice.call(container.querySelectorAll(FOCUSABLE_SELECTORS));
+      }
+
+      function openModal() {
+        // Save last focused element to restore later
+        lastFocusedElement = document.activeElement;
+
+        // Show overlay
+        overlay.setAttribute('data-open', 'true');
+        overlay.setAttribute('aria-hidden', 'false');
+        dialog.setAttribute('aria-hidden', 'false');
+
+        // Hide main content from assistive tech and make inert if available
+        mainContent.setAttribute('aria-hidden', 'true');
+        if ('inert' in HTMLElement.prototype) {
+          mainContent.inert = true;
+        }
+
+        // Prevent background scroll
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+
+        // Focus first focusable element inside dialog or the dialog itself
+        const focusables = getFocusableElements(dialog);
+        if (focusables.length) {
+          focusables[0].focus();
+        } else {
+          dialog.focus();
+        }
+
+        // Add keydown listener for Escape and Tab trapping
+        document.addEventListener('keydown', onKeyDown);
+        // Add click on overlay to close when clicking outside the dialog content
+        overlay.addEventListener('click', onOverlayClick);
+      }
+
+      function closeModal(returnFocus = true) {
+        overlay.setAttribute('data-open', 'false');
+        overlay.setAttribute('aria-hidden', 'true');
+        dialog.setAttribute('aria-hidden', 'true');
+
+        // Restore main content accessibility
+        mainContent.setAttribute('aria-hidden', 'false');
+        if ('inert' in HTMLElement.prototype) {
+          mainContent.inert = false;
+        }
+
+        // Restore scrolling
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+
+        // Remove listeners
+        document.removeEventListener('keydown', onKeyDown);
+        overlay.removeEventListener('click', onOverlayClick);
+
+        // Return focus to the element that opened the dialog
+        if (returnFocus && lastFocusedElement) {
+          lastFocusedElement.focus();
+        }
+      }
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+
+        if (e.key === 'Tab') {
+          // Trap focus within the dialog
+          const focusables = getFocusableElements(dialog);
+          if (focusables.length === 0) {
+            // No focusable elements: ensure focus stays on dialog
+            e.preventDefault();
+            dialog.focus();
+            return;
+          }
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey) {
+            // Shift + Tab
+            if (document.activeElement === first || document.activeElement === dialog) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            // Tab
+            if (document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      }
+
+      function onOverlayClick(e) {
+        // Close only if clicked on the overlay itself (outside dialog)
+        if (e.target === overlay) {
+          closeModal();
+        }
+      }
+
+      // Open trigger: click already works (button), but also ensure keyboard interaction is supported
+      openTrigger.addEventListener('click', function () {
+        openModal();
+      });
+
+      // Close elements inside the dialog
+      closeButton.addEventListener('click', function () {
+        closeModal();
+      });
+
+      cancelBtn.addEventListener('click', function () {
+        closeModal();
+      });
+
+      // Prevent clicks inside the dialog from bubbling to overlay
+      dialog.addEventListener('click', function (e) {
+        e.stopPropagation();
+      });
+
+      // Handle form submission (demonstration)
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        // For demo: show a brief confirmation and close
+        const email = form.email.value || '';
+        // Announce to assistive tech via alert role (simulated here by alert)
+        // In real apps, send data to server, show proper success UI inside dialog or outside.
+        alert('Subscribed with ' + email);
+        closeModal();
+      });
+
+      // Focus sentinels to help keyboard-only users tab into the dialog from outside
+      startSentinel.addEventListener('focus', function () {
+        // If overlay is open, put focus to the last focusable inside the dialog
+        if (overlay.getAttribute('data-open') === 'true') {
+          const focusables = getFocusableElements(dialog);
+          if (focusables.length) {
+            focusables[focusables.length - 1].focus();
+          } else {
+            dialog.focus();
+          }
+        }
+      });
+
+      endSentinel.addEventListener('focus', function () {
+        // If overlay is open, put focus to the first focusable inside the dialog
+        if (overlay.getAttribute('data-open') === 'true') {
+          const focusables = getFocusableElements(dialog);
+          if (focusables.length) {
+            focusables[0].focus();
+          } else {
+            dialog.focus();
+          }
+        }
+      });
+
+      // Ensure that clicking the overlay's hidden area doesn't focus it unexpectedly on some browsers
+      overlay.addEventListener('mousedown', function (e) {
+        if (e.target === overlay) {
+          // Prevent focus change when clicking on overlay background
+          e.preventDefault();
+        }
+      });
+
+      // Initialize: ensure modal is hidden from assistive tech by default
+      overlay.setAttribute('data-open', 'false');
+      overlay.setAttribute('aria-hidden', 'true');
+      dialog.setAttribute('aria-hidden', 'true');
+
+      // Make sure the trigger is keyboard-accessible and has aria attributes (already a button)
+      openTrigger.setAttribute('aria-expanded', 'false');
+      openTrigger.addEventListener('click', function () {
+        // sync aria-expanded
+        const opened = overlay.getAttribute('data-open') === 'true';
+        openTrigger.setAttribute('aria-expanded', String(opened));
+      });
+
+      // Also update aria-expanded when dialog is programmatically closed
+      const observer = new MutationObserver(function () {
+        const opened = overlay.getAttribute('data-open') === 'true';
+        openTrigger.setAttribute('aria-expanded', String(opened));
+      });
+      observer.observe(overlay, { attributes: true, attributeFilter: ['data-open'] });
+
+      // Accessibility note: If the browser supports the <dialog> element, it's still
+      // fine to use this approach. Here we use a custom implementation to ensure:
+      // - full keyboard support (Escape, Tab trapping)
+      // - aria-hidden toggling of the background content
+    })();
+  </script>
+</body>
+</html>

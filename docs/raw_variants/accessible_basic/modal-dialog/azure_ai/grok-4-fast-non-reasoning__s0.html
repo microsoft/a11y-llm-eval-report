@@ -1,0 +1,246 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Dialog Example</title>
+    <style>
+        /* Reset and base styles for accessibility */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #fff;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:focus {
+            outline: 2px solid #007bff;
+            outline-offset: 2px;
+        }
+        button:focus:not(:focus-visible) {
+            outline: none;
+        }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal[open] {
+            display: flex;
+        }
+        .modal-dialog {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .modal-close:hover {
+            background-color: #f8f9fa;
+        }
+        .modal-close:focus {
+            outline: 2px solid #007bff;
+            outline-offset: 2px;
+        }
+        .modal-close:focus:not(:focus-visible) {
+            outline: none;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        @media (max-width: 576px) {
+            .modal-dialog {
+                margin: 20px;
+                max-height: calc(100vh - 40px);
+            }
+            .modal-header {
+                padding: 15px;
+            }
+            .modal-body,
+            .modal-footer {
+                padding: 15px;
+            }
+        }
+        /* Focus management */
+        .modal[open] .modal-dialog {
+            outline: none;
+        }
+        /* Screen reader only */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Modal Dialog Example</h1>
+        <p>This demonstrates an accessible modal dialog component. Click the button below to open the modal.</p>
+        <button type="button" class="trigger" aria-describedby="modal-description">Open Modal</button>
+        <p id="modal-description" class="sr-only">Example modal dialog</p>
+    </main>
+
+    <dialog class="modal" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h2 id="modal-title" class="modal-title">Modal Title</h2>
+                <button type="button" class="modal-close" aria-label="Close modal">
+                    &times;
+                </button>
+            </header>
+            <section class="modal-body">
+                <p>This is the content of the modal dialog. It demonstrates a basic, accessible modal component that can be opened and closed using keyboard navigation.</p>
+                <p>Focus is trapped within the modal when open, and it can be closed with the Escape key, the close button, or the Cancel button.</p>
+            </section>
+            <footer class="modal-footer">
+                <button type="button" class="btn-secondary">Cancel</button>
+                <button type="button">OK</button>
+            </footer>
+        </div>
+    </dialog>
+
+    <script>
+        (function() {
+            const modal = document.querySelector('.modal');
+            const trigger = document.querySelector('.trigger');
+            const closeButtons = modal.querySelectorAll('.modal-close, .btn-secondary');
+            const okButton = modal.querySelector('footer button:last-child');
+            const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+            let firstFocusableElement = null;
+            let lastFocusableElement = null;
+
+            // Open modal
+            trigger.addEventListener('click', function() {
+                modal.showModal();
+                modal.setAttribute('open', '');
+                firstFocusableElement = modal.querySelector(focusableElements);
+                lastFocusableElement = modal.querySelectorAll(focusableElements)[modal.querySelectorAll(focusableElements).length - 1];
+                firstFocusableElement.focus();
+                document.body.style.overflow = 'hidden'; // Prevent body scroll
+            });
+
+            // Close modal functions
+            function closeModal() {
+                modal.close();
+                modal.removeAttribute('open');
+                trigger.focus(); // Return focus to trigger
+                document.body.style.overflow = ''; // Restore body scroll
+            }
+
+            closeButtons.forEach(button => {
+                button.addEventListener('click', closeModal);
+            });
+
+            okButton.addEventListener('click', function() {
+                // Simulate action, then close
+                alert('OK button clicked!'); // Replace with actual functionality
+                closeModal();
+            });
+
+            // Close on Escape key
+            modal.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeModal();
+                } else if (e.key === 'Tab') {
+                    const focusable = modal.querySelectorAll(focusableElements);
+                    if (focusable.length === 0) return;
+
+                    if (e.shiftKey) {
+                        // Shift + Tab
+                        if (document.activeElement === firstFocusableElement) {
+                            e.preventDefault();
+                            lastFocusableElement.focus();
+                        }
+                    } else {
+                        // Tab
+                        if (document.activeElement === lastFocusableElement) {
+                            e.preventDefault();
+                            firstFocusableElement.focus();
+                        }
+                    }
+                }
+            });
+
+            // Close on backdrop click (outside dialog)
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

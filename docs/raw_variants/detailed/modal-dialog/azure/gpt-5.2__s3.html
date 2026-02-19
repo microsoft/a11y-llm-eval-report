@@ -1,0 +1,485 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal dialog example - components - demo</title>
+  <style>
+    :root{
+      color-scheme: light dark;
+
+      --color-bg: #ffffff;
+      --color-surface: #ffffff;
+      --color-text: #111827;
+      --color-muted-text: #374151;
+      --color-border: #9ca3af;
+      --color-link: #1d4ed8;
+      --color-link-visited: #6d28d9;
+      --color-focus: #1d4ed8;
+      --color-danger: #b91c1c;
+
+      --radius: 12px;
+      --shadow: 0 12px 30px rgba(0,0,0,0.22);
+      --maxw: 48rem;
+    }
+
+    @media (prefers-color-scheme: dark){
+      :root{
+        --color-bg: #0b1220;
+        --color-surface: #0f172a;
+        --color-text: #e5e7eb;
+        --color-muted-text: #cbd5e1;
+        --color-border: #64748b;
+        --color-link: #93c5fd;
+        --color-link-visited: #c4b5fd;
+        --color-focus: #93c5fd;
+        --color-danger: #fca5a5;
+        --shadow: 0 18px 40px rgba(0,0,0,0.55);
+      }
+    }
+
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.5;
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    a{ color: var(--color-link); }
+    a:visited{ color: var(--color-link-visited); }
+
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    :focus-visible{
+      outline: 3px solid var(--color-focus);
+      outline-offset: 3px;
+    }
+
+    header, nav, main, footer {
+      display: block;
+    }
+
+    header{
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    nav{
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    nav ul{
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1rem;
+    }
+
+    nav a{
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.125rem 0;
+    }
+    nav a:hover{
+      border-bottom-color: currentColor;
+    }
+
+    main{
+      padding: 1rem;
+      max-width: var(--maxw);
+      margin: 0 auto;
+    }
+
+    .card{
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      background: var(--color-surface);
+      overflow-wrap: anywhere;
+    }
+
+    .actions{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .btn{
+      appearance: none;
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      border-radius: 999px;
+      padding: 0.6rem 1rem;
+      font: inherit;
+      cursor: pointer;
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .btn:hover{
+      border-color: var(--color-text);
+    }
+    .btn.primary{
+      border-color: var(--color-link);
+      background: var(--color-link);
+      color: #ffffff;
+    }
+    .btn.primary:hover{
+      filter: brightness(0.95);
+    }
+
+    @media (prefers-color-scheme: dark){
+      .btn.primary{ color: #0b1220; }
+    }
+
+    /* Modal */
+    dialog{
+      width: min(40rem, calc(100vw - 2rem));
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 0;
+      background: var(--color-surface);
+      color: var(--color-text);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    dialog::backdrop{
+      background: rgba(0,0,0,0.55);
+    }
+
+    .dialog__header{
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .dialog__title{
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .dialog__body{
+      padding: 1rem;
+    }
+
+    .dialog__footer{
+      padding: 1rem;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .field{
+      display: grid;
+      gap: 0.35rem;
+      margin-top: 0.75rem;
+    }
+    label{
+      font-weight: 600;
+    }
+    input[type="text"]{
+      width: 100%;
+      max-width: 100%;
+      min-height: 44px;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.6rem;
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font: inherit;
+    }
+    input[type="text"]:focus-visible{
+      outline: 3px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+    .help{
+      color: var(--color-muted-text);
+      margin: 0;
+    }
+    .error{
+      color: var(--color-danger);
+      margin: 0;
+      font-weight: 600;
+    }
+
+    footer{
+      padding: 1rem;
+      border-top: 1px solid var(--color-border);
+      color: var(--color-muted-text);
+    }
+
+    @media (forced-colors: active){
+      dialog{
+        border: 2px solid CanvasText;
+        box-shadow: none;
+      }
+      dialog::backdrop{
+        background: Canvas;
+        opacity: 0.85;
+      }
+      .btn{
+        border-color: ButtonText;
+      }
+      .btn.primary{
+        background: ButtonFace;
+        color: ButtonText;
+        border-color: ButtonText;
+      }
+      input[type="text"]{
+        border-color: ButtonText;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+    <strong>Demo site</strong>
+  </header>
+
+  <nav aria-label="Primary">
+    <ul>
+      <li><a href="#modal-example">Modal example</a></li>
+      <li><a href="#notes">Notes</a></li>
+    </ul>
+  </nav>
+
+  <main id="maincontent" tabindex="-1">
+    <h1 id="modal-example">Modal dialog component (example)</h1>
+
+    <section class="card" aria-labelledby="modal-example">
+      <p>
+        This example uses the native <code>&lt;dialog&gt;</code> element. The dialog is closed by default, and opening it moves focus into the dialog.
+        Closing it returns focus to the button that opened it.
+      </p>
+
+      <div class="actions">
+        <button type="button" class="btn primary trigger" id="openDialogBtn">
+          Open dialog
+        </button>
+
+        <a href="#notes">Jump to notes</a>
+      </div>
+    </section>
+
+    <section class="card" id="notes" aria-labelledby="notes-heading" style="margin-top: 1rem;">
+      <h2 id="notes-heading">Notes</h2>
+      <ul>
+        <li>Press <kbd>Escape</kbd> to close the dialog.</li>
+        <li>The “Close dialog” button also closes it.</li>
+        <li>Submitting the form demonstrates inline error messaging and focus management.</li>
+      </ul>
+    </section>
+
+    <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+      <div class="dialog__header">
+        <h2 class="dialog__title" id="dialogTitle">Share feedback</h2>
+        <p class="help" id="dialogDesc">All fields are optional unless marked required.</p>
+      </div>
+
+      <div class="dialog__body">
+        <form id="dialogForm" novalidate>
+          <div class="field">
+            <label for="nameInput">Name <span aria-hidden="true">*</span></label>
+            <input
+              id="nameInput"
+              name="name"
+              type="text"
+              autocomplete="name"
+              aria-required="true"
+              aria-describedby="nameHelp"
+            />
+            <p class="help" id="nameHelp">Enter your name so we know how to address you.</p>
+            <p class="error" id="nameError" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="topicInput">Topic</label>
+            <input id="topicInput" name="topic" type="text" autocomplete="off" aria-describedby="topicHelp" />
+            <p class="help" id="topicHelp">For example: “Account access” or “Billing”.</p>
+          </div>
+        </form>
+      </div>
+
+      <div class="dialog__footer">
+        <button type="button" class="btn" id="closeDialogBtn">Close dialog</button>
+        <button type="submit" class="btn primary" form="dialogForm" id="submitBtn">Send</button>
+      </div>
+    </dialog>
+  </main>
+
+  <footer>
+    <small>Example UI for learning and prototyping.</small>
+  </footer>
+
+  <script>
+    (function () {
+      const openBtn = document.getElementById('openDialogBtn');
+      const dialog = document.getElementById('exampleDialog');
+      const closeBtn = document.getElementById('closeDialogBtn');
+
+      const form = document.getElementById('dialogForm');
+      const nameInput = document.getElementById('nameInput');
+      const nameError = document.getElementById('nameError');
+
+      let lastActiveElement = null;
+
+      function setNameError(message) {
+        if (message) {
+          nameInput.setAttribute('aria-invalid', 'true');
+          nameError.textContent = message;
+          nameError.hidden = false;
+
+          const describedBy = new Set(
+            (nameInput.getAttribute('aria-describedby') || '')
+              .split(/\s+/)
+              .filter(Boolean)
+          );
+          describedBy.add('nameError');
+          nameInput.setAttribute('aria-describedby', Array.from(describedBy).join(' '));
+        } else {
+          nameInput.removeAttribute('aria-invalid');
+          nameError.textContent = '';
+          nameError.hidden = true;
+
+          const describedBy = (nameInput.getAttribute('aria-describedby') || '')
+            .split(/\s+/)
+            .filter(Boolean)
+            .filter((id) => id !== 'nameError');
+
+          if (describedBy.length) nameInput.setAttribute('aria-describedby', describedBy.join(' '));
+          else nameInput.removeAttribute('aria-describedby');
+        }
+      }
+
+      function openDialog() {
+        lastActiveElement = document.activeElement;
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute('open', '');
+        }
+      }
+
+      function closeDialog(returnFocus = true) {
+        if (dialog.open) dialog.close();
+        if (returnFocus && lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        }
+      }
+
+      openBtn.addEventListener('click', openDialog);
+
+      closeBtn.addEventListener('click', function () {
+        closeDialog(true);
+      });
+
+      dialog.addEventListener('close', function () {
+        setNameError('');
+        form.reset();
+      });
+
+      dialog.addEventListener('cancel', function (e) {
+        e.preventDefault();
+        closeDialog(true);
+      });
+
+      dialog.addEventListener('click', function (e) {
+        const rect = dialog.getBoundingClientRect();
+        const inDialog =
+          rect.top <= e.clientY &&
+          e.clientY <= rect.top + rect.height &&
+          rect.left <= e.clientX &&
+          e.clientX <= rect.left + rect.width;
+
+        if (!inDialog) closeDialog(true);
+      });
+
+      dialog.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeDialog(true);
+        }
+      });
+
+      dialog.addEventListener('show', function () {
+        // no-op placeholder (some browsers don't fire 'show')
+      });
+
+      dialog.addEventListener('transitionend', function () {
+        // no-op
+      });
+
+      dialog.addEventListener('focusin', function () {
+        // no-op
+      });
+
+      // Move focus to the first control when opened
+      dialog.addEventListener('toggle', function () {
+        // no-op placeholder; 'toggle' is not widely supported for dialog
+      });
+
+      openBtn.addEventListener('keydown', function (e) {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+          // native button behavior already works; keep as no-op to avoid double-trigger
+        }
+      });
+
+      dialog.addEventListener('close', function () {
+        // no-op; close handled above
+      });
+
+      // Ensure focus goes inside when opened
+      dialog.addEventListener('mousedown', function () {
+        // no-op
+      });
+
+      dialog.addEventListener('mouseup', function () {
+        // no-op
+      });
+
+      // Use a microtask after showModal for consistent focusing.
+      function focusFirstField() {
+        queueMicrotask(() => {
+          nameInput.focus();
+        });
+      }
+
+      openBtn.addEventListener('click', function () {
+        openDialog();
+        focusFirstField();
+      }, { once: false });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const name = nameInput.value.trim();
+        if (!name) {
+          setNameError('Enter your name to continue.');
+          nameInput.focus();
+          return;
+        }
+
+        setNameError('');
+        closeDialog(true);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,361 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0b1020;
+      --panel: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.14);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --focus: #7aa7ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.25);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f7fb;
+        --panel: #ffffff;
+        --border: rgba(0,0,0,0.12);
+        --text: rgba(0,0,0,0.88);
+        --muted: rgba(0,0,0,0.62);
+        --shadow: 0 10px 30px rgba(0,0,0,0.08);
+      }
+    }
+
+    body {
+      margin: 0;
+      padding: 32px 18px;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 8px;
+      letter-spacing: 0.2px;
+    }
+
+    p.lede {
+      margin: 0 0 22px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 760px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .example {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .example header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .example header h2 {
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .example header small {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    /* Widget styling */
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid color-mix(in oklab, var(--focus) 70%, transparent);
+      outline-offset: 2px;
+    }
+
+    .toggle .label {
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .toggle .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      flex: 0 0 auto;
+    }
+
+    .toggle[aria-expanded="true"] .icon {
+      background: color-mix(in oklab, var(--panel) 40%, transparent);
+    }
+
+    .details {
+      overflow: clip;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-top: 10px;
+      background: color-mix(in oklab, var(--panel) 70%, transparent);
+    }
+
+    .details[hidden] {
+      display: block; /* keep for animation setup; JS will set height to 0 */
+      height: 0;
+      border-width: 0;
+      margin-top: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .details .content {
+      padding: 12px;
+      color: var(--text);
+    }
+
+    .details .content p {
+      margin: 0 0 10px;
+      color: var(--muted);
+    }
+
+    .details .content ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .details .content li {
+      margin: 6px 0;
+      color: var(--text);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      background: transparent;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widget</h1>
+    <p class="lede">Two examples: one uses custom JavaScript (with animation), and one uses native <span aria-hidden="true">&lt;details&gt;</span> with a controlled content container marked as <code>details</code>.</p>
+
+    <section class="grid" aria-label="Examples">
+      <!-- Example 1: Custom widget -->
+      <div class="example">
+        <header>
+          <h2>Example 1: Custom button + controlled panel</h2>
+          <small>Animated, accessible</small>
+        </header>
+
+        <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-1" id="toggle-1">
+          <span class="label">Show more information</span>
+          <span class="icon" aria-hidden="true">▸</span>
+        </button>
+
+        <div class="details" id="panel-1" role="region" aria-labelledby="toggle-1" hidden>
+          <div class="content">
+            <p>This content is revealed by toggling <code>aria-expanded</code> and animating the panel height.</p>
+            <ul>
+              <li>Keyboard: Tab to focus, Enter/Space to toggle</li>
+              <li>Screen readers: linked via <code>aria-controls</code> and <code>aria-labelledby</code></li>
+              <li>Motion: respects <code>prefers-reduced-motion</code></li>
+            </ul>
+            <div class="row" aria-label="Tags">
+              <span class="chip">aria-expanded</span>
+              <span class="chip">aria-controls</span>
+              <span class="chip">role="region"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example 2: Native details element (still includes a .details container for controlled content) -->
+      <div class="example">
+        <header>
+          <h2>Example 2: Native &lt;details&gt; + summary</h2>
+          <small>No JS required</small>
+        </header>
+
+        <details>
+          <summary class="toggle">
+            <span class="label">Read the FAQ</span>
+            <span class="icon" aria-hidden="true">▾</span>
+          </summary>
+
+          <div class="details">
+            <div class="content">
+              <p>The browser provides expand/collapse behavior automatically.</p>
+              <ul>
+                <li><strong>Q:</strong> Is it accessible? <strong>A:</strong> Yes, by default.</li>
+                <li><strong>Q:</strong> Can I style it? <strong>A:</strong> Yes, via CSS.</li>
+                <li><strong>Q:</strong> Can the controlled content still use <code>.details</code>? <strong>A:</strong> Yes, as shown.</li>
+              </ul>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <p class="sr-only" id="motion-note">Animations are disabled if reduced motion is enabled in your system settings.</p>
+  </main>
+
+  <script>
+    (function () {
+      const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function setChevron(btn, expanded) {
+        const icon = btn.querySelector('.icon');
+        if (icon) icon.textContent = expanded ? '▾' : '▸';
+      }
+
+      function animatePanel(panel, expand) {
+        if (prefersReducedMotion) {
+          if (expand) {
+            panel.hidden = false;
+            panel.style.height = '';
+            panel.style.borderWidth = '';
+            panel.style.marginTop = '';
+          } else {
+            panel.hidden = true;
+            panel.style.height = '';
+          }
+          return;
+        }
+
+        panel.style.overflow = 'hidden';
+        panel.style.willChange = 'height';
+
+        if (expand) {
+          panel.hidden = false;
+          // Reset styling to measure natural height
+          panel.style.height = 'auto';
+          const target = panel.scrollHeight;
+          panel.style.height = '0px';
+
+          // Restore border/margin when expanding
+          panel.style.borderWidth = '';
+          panel.style.marginTop = '';
+
+          requestAnimationFrame(() => {
+            panel.style.transition = 'height 180ms ease';
+            panel.style.height = target + 'px';
+          });
+
+          panel.addEventListener('transitionend', function onEnd(e) {
+            if (e.propertyName !== 'height') return;
+            panel.removeEventListener('transitionend', onEnd);
+            panel.style.transition = '';
+            panel.style.height = '';
+            panel.style.overflow = '';
+            panel.style.willChange = '';
+          });
+        } else {
+          const start = panel.getBoundingClientRect().height;
+          panel.style.height = start + 'px';
+
+          requestAnimationFrame(() => {
+            panel.style.transition = 'height 160ms ease';
+            panel.style.height = '0px';
+          });
+
+          panel.addEventListener('transitionend', function onEnd(e) {
+            if (e.propertyName !== 'height') return;
+            panel.removeEventListener('transitionend', onEnd);
+            panel.style.transition = '';
+            panel.hidden = true;
+            panel.style.height = '';
+            panel.style.overflow = '';
+            panel.style.willChange = '';
+          });
+        }
+      }
+
+      const toggle = document.getElementById('toggle-1');
+      const panel = document.getElementById('panel-1');
+
+      if (toggle && panel) {
+        setChevron(toggle, false);
+
+        toggle.addEventListener('click', () => {
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          const next = !expanded;
+          toggle.setAttribute('aria-expanded', String(next));
+          setChevron(toggle, next);
+          animatePanel(panel, next);
+        });
+
+        toggle.addEventListener('keydown', (e) => {
+          // Ensure Space toggles reliably when focus is on button (some UAs already do)
+          if (e.code === 'Space') {
+            e.preventDefault();
+            toggle.click();
+          }
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

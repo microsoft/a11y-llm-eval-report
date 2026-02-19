@@ -1,0 +1,488 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expand/Collapse Widget Examples</title>
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-text: #1a1a1a;
+      --color-muted-text: #6b6b6b;
+      --color-border: #d1d5db;
+      --color-focus: #3b82f6;
+      --color-focus-border: #2563eb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-bg: #1f2937;
+        --color-text: #f9fafb;
+        --color-muted-text: #9ca3af;
+        --color-border: #4b5563;
+      }
+    }
+
+    @media (forced-colors: active) {
+      :root {
+        --color-bg: Canvas;
+        --color-text: CanvasText;
+        --color-muted-text: GrayText;
+        --color-border: ButtonBorder;
+        --color-focus: Highlight;
+        --color-focus-border: HighlightText;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: var(--color-text);
+      background-color: var(--color-bg);
+      margin: 0;
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    h1, h2 {
+      color: var(--color-text);
+    }
+
+    .example {
+      margin-bottom: 3rem;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .example h3 {
+      margin: 0;
+      padding: 1rem 1.5rem;
+      background-color: #f9fafb;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .example h3 {
+        background-color: #374151;
+      }
+    }
+
+    .expandable {
+      border: none;
+      background: none;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      text-align: left;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--color-text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s ease;
+    }
+
+    .expandable:hover {
+      background-color: #f3f4f6;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .expandable:hover {
+        background-color: #4b5563;
+      }
+    }
+
+    .expandable:focus {
+      outline: none;
+      background-color: #dbeafe;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-radius: 4px;
+    }
+
+    @media (forced-colors: active) {
+      .expandable:focus {
+        background-color: Highlight;
+        color: HighlightText;
+        box-shadow: none;
+        border: 2px solid var(--color-focus-border);
+      }
+    }
+
+    .expandable[aria-expanded="true"] .icon {
+      transform: rotate(180deg);
+    }
+
+    .icon {
+      transition: transform 0.2s ease;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      fill: currentColor;
+    }
+
+    .details {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      background-color: transparent;
+    }
+
+    .details[aria-hidden="false"] {
+      max-height: 1000px;
+      padding: 0 1.5rem 1.5rem;
+    }
+
+    .details p {
+      margin: 0 0 1rem 0;
+      color: var(--color-text);
+    }
+
+    .details ul {
+      margin: 0 0 1rem 1.5rem;
+      padding: 0;
+      color: var(--color-text);
+    }
+
+    .details li {
+      margin-bottom: 0.5rem;
+    }
+
+    .example-content {
+      padding: 0 1.5rem 1.5rem;
+    }
+
+    code {
+      background-color: #f3f4f6;
+      padding: 0.125rem 0.25rem;
+      border-radius: 3px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      color: #d63384;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      code {
+        background-color: #1f2937;
+      }
+    }
+
+    @media (max-width: 320px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .example h3 {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+      }
+      
+      .expandable {
+        padding: 0.75rem 1rem;
+        font-size: 0.9375rem;
+      }
+      
+      .details[aria-hidden="false"] {
+        padding: 0 1rem 1rem;
+      }
+      
+      .example-content {
+        padding: 0 1rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#maincontent" class="sr-only">Skip to main content</a>
+  
+  <header>
+    <h1>Expand/Collapse Widget Examples</h1>
+  </header>
+
+  <main id="maincontent" tabindex="-1">
+    <div class="example">
+      <h2>Basic Expand/Collapse</h2>
+      <p class="example-content">A simple accordion-style widget for hiding and showing content sections.</p>
+      
+      <div role="region" aria-labelledby="basic-heading">
+        <button 
+          id="basic-heading"
+          class="expandable"
+          aria-expanded="false"
+          aria-controls="basic-content"
+        >
+          <span>What is an expand/collapse widget?</span>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M7 10l5 5 5-5z"/>
+          </svg>
+        </button>
+        
+        <div 
+          id="basic-content" 
+          class="details" 
+          role="region" 
+          aria-labelledby="basic-heading"
+          aria-hidden="true"
+          tabindex="-1"
+        >
+          <p>An expand/collapse widget allows users to show or hide sections of content. This helps reduce cognitive load by letting people focus on relevant information while keeping other details accessible but out of the way.</p>
+          <p>These widgets are commonly used in:</p>
+          <ul>
+            <li>FAQ sections</li>
+            <li>Help documentation</li>
+            <li>Settings panels</li>
+            <li>Product specifications</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>Multiple Items with Single Selection</h2>
+      <p class="example-content">An accordion pattern where only one section can be open at a time.</p>
+      
+      <div role="region" aria-labelledby="accordion-heading">
+        <h3 id="accordion-heading">Frequently Asked Questions</h3>
+        
+        <div>
+          <button 
+            class="expandable"
+            aria-expanded="true"
+            aria-controls="faq1"
+          >
+            <span>How do I get started?</span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M7 10l5 5 5-5z"/>
+            </svg>
+          </button>
+          
+          <div 
+            id="faq1" 
+            class="details" 
+            role="region" 
+            aria-hidden="false"
+            tabindex="-1"
+          >
+            <p>To get started, create an account and explore the dashboard. You'll find tutorials and guides to help you navigate the interface.</p>
+          </div>
+        </div>
+        
+        <div>
+          <button 
+            class="expandable"
+            aria-expanded="false"
+            aria-controls="faq2"
+          >
+            <span>What payment methods are accepted?</span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M7 10l5 5 5-5z"/>
+            </svg>
+          </button>
+          
+          <div 
+            id="faq2" 
+            class="details" 
+            role="region" 
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <p>We accept major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers. Some regions also support local payment methods like Apple Pay and Google Pay.</p>
+          </div>
+        </div>
+        
+        <div>
+          <button 
+            class="expandable"
+            aria-expanded="false"
+            aria-controls="faq3"
+          >
+            <span>Can I cancel my subscription?</span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M7 10l5 5 5-5z"/>
+            </svg>
+          </button>
+          
+          <div 
+            id="faq3" 
+            class="details" 
+            role="region" 
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <p>Yes, you can cancel your subscription at any time from your account settings. Your access will remain active until the end of your current billing period.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="example">
+      <h2>Multiple Items with Independent Control</h2>
+      <p class="example-content">Multiple expand/collapse widgets that can be opened independently.</p>
+      
+      <div role="region" aria-labelledby="features-heading">
+        <h3 id="features-heading">Product Features</h3>
+        
+        <div>
+          <button 
+            class="expandable"
+            aria-expanded="false"
+            aria-controls="feature1"
+          >
+            <span>Real-time Collaboration</span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M7 10l5 5 5-5z"/>
+            </svg>
+          </button>
+          
+          <div 
+            id="feature1" 
+            class="details" 
+            role="region" 
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <p>Work together with your team in real time. Multiple users can edit documents simultaneously with live updates and presence indicators.</p>
+          </div>
+        </div>
+        
+        <div>
+          <button 
+            class="expandable"
+            aria-expanded="false"
+            aria-controls="feature2"
+          >
+            <span>Advanced Security</span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M7 10l5 5 5-5z"/>
+            </svg>
+          </button>
+          
+          <div 
+            id="feature2" 
+            class="details" 
+            role="region" 
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <p>Your data is protected with enterprise-grade security including end-to-end encryption, two-factor authentication, and regular security audits.</p>
+          </div>
+        </div>
+        
+        <div>
+          <button 
+            class="expandable"
+            aria-expanded="false"
+            aria-controls="feature3"
+          >
+            <span>Mobile Accessibility</span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M7 10l5 5 5-5z"/>
+            </svg>
+          </button>
+          
+          <div 
+            id="feature3" 
+            class="details" 
+            role="region" 
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <p>Access your workspace from any device with our responsive web interface and native mobile applications for iOS and Android.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Basic expand/collapse functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const expandableButtons = document.querySelectorAll('.expandable');
+      
+      expandableButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          toggleExpandable(this);
+        });
+        
+        // Handle keyboard activation
+        button.addEventListener('keydown', function(event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleExpandable(this);
+          } else if (event.key === 'Escape') {
+            // Close if open
+            if (this.getAttribute('aria-expanded') === 'true') {
+              toggleExpandable(this);
+            }
+          }
+        });
+      });
+      
+      function toggleExpandable(button) {
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        const targetId = button.getAttribute('aria-controls');
+        const target = document.getElementById(targetId);
+        const icon = button.querySelector('.icon');
+        
+        if (isExpanded) {
+          // Collapse
+          button.setAttribute('aria-expanded', 'false');
+          target.setAttribute('aria-hidden', 'true');
+          if (icon) icon.style.transform = 'rotate(0deg)';
+          
+          // Focus management: move focus back to button when collapsing
+          target.setAttribute('tabindex', '-1');
+        } else {
+          // Expand
+          button.setAttribute('aria-expanded', 'true');
+          target.setAttribute('aria-hidden', 'false');
+          if (icon) icon.style.transform = 'rotate(180deg)';
+          
+          // Focus management: focus first focusable element in expanded content
+          setTimeout(() => {
+            const firstFocusable = target.querySelector(
+              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            if (firstFocusable) {
+              firstFocusable.focus();
+            }
+          }, 100);
+        }
+        
+        // Handle single-selection accordion behavior for FAQ section
+        if (button.closest('[role="region"]')?.querySelector('#accordion-heading')) {
+          const otherButtons = button.parentElement.parentElement.querySelectorAll('.expandable');
+          otherButtons.forEach(otherButton => {
+            if (otherButton !== button) {
+              const otherTargetId = otherButton.getAttribute('aria-controls');
+              const otherTarget = document.getElementById(otherTargetId);
+              const otherIcon = otherButton.querySelector('.icon');
+              
+              otherButton.setAttribute('aria-expanded', 'false');
+              otherTarget.setAttribute('aria-hidden', 'true');
+              if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+              otherTarget.setAttribute('tabindex', '-1');
+            }
+          });
+        }
+      }
+    });
+  </script>
+</body>
+</html>

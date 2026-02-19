@@ -1,0 +1,613 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accessible Expand/Collapse Widgets - Examples</title>
+  <style>
+    /* Design tokens (small, conservative palette) */
+    :root{
+      --color-bg: #ffffff;
+      --color-surface: #f5f7fb;
+      --color-text: #0b0b0b;
+      --color-muted-text: #334155;
+      --color-border: #e2e8f0;
+      --color-link: #005fcc;
+      --color-focus: #005fcc; /* must meet contrast rules */
+      --color-danger: #b00020;
+      --color-success: #027a48;
+      --radius: 8px;
+      --gap: 16px;
+      --max-width: 900px;
+    }
+
+    /* High contrast / forced colors fallback */
+    @media (forced-colors: active) {
+      :root {
+        /* It's fine to keep CSS tokens, but forced colors will override */
+      }
+      /* Ensure focus outlines use system colors */
+      :focus {
+        outline: 2px solid Highlight;
+      }
+      .btn:focus {
+        border: 2px solid Highlight;
+      }
+    }
+
+    /* Basic page layout and typography */
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--color-bg);
+      color:var(--color-text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      line-height:1.4;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .container{
+      max-width:var(--max-width);
+      margin:24px auto;
+      padding:16px;
+    }
+
+    header, nav, main, footer{
+      display:block;
+    }
+
+    /* Skip link - first focusable element (visually hidden until focused) */
+    .skip-link {
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: var(--color-link);
+      color: white;
+      padding: 8px 12px;
+      z-index: 1000;
+      transform: translateY(-120%);
+      transition: transform 150ms ease-in-out;
+      border-bottom-right-radius: 6px;
+    }
+    .skip-link:focus{
+      transform: translateY(0);
+    }
+
+    /* Utility visually-hidden for assistive first-focus */
+    .sr-only:not(:focus):not(:active) {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    /* Page header */
+    header {
+      border-bottom: 1px solid var(--color-border);
+      padding: 12px 0;
+      margin-bottom: 16px;
+    }
+
+    header .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    header h1{
+      font-size: 1rem;
+      margin:0;
+      color:var(--color-text);
+    }
+
+    /* Main content */
+    main {
+      padding: 8px 0;
+    }
+
+    h1.page-title{
+      font-size:1.25rem;
+      margin:0 0 12px 0;
+    }
+    p.lead{
+      margin-top:8px;
+      color:var(--color-muted-text);
+      margin-bottom:20px;
+    }
+
+    /* Example wrapper */
+    .example {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      padding: 16px;
+      border-radius: var(--radius);
+      margin-bottom: var(--gap);
+      box-shadow: 0 1px 0 rgba(11,11,11,0.02);
+    }
+
+    /* Expand/collapse button */
+    .collapser {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      width:100%;
+      background:transparent;
+      border: 1px solid transparent;
+      padding: 10px 12px;
+      text-align:left;
+      cursor:pointer;
+      border-radius: 6px;
+      color:var(--color-text);
+      font-size:1rem;
+    }
+
+    .collapser:hover {
+      background: rgba(0,95,204,0.04);
+    }
+
+    .collapser:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(0,95,204,0.12);
+      border: 2px solid var(--color-focus);
+      background: rgba(0,95,204,0.03);
+    }
+
+    .collapser .label{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+    }
+
+    .collapser .title {
+      font-weight:600;
+      color:var(--color-text);
+      margin:0;
+      font-size:1rem;
+    }
+
+    .collapser .subtitle {
+      font-size:0.875rem;
+      color:var(--color-muted-text);
+    }
+
+    /* Icon */
+    .icon {
+      width:20px;
+      height:20px;
+      flex:0 0 20px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .icon svg {
+      width:20px;
+      height:20px;
+      display:block;
+      fill: none;
+      stroke: currentColor;
+      stroke-width:2;
+    }
+
+    /* Controlled details content */
+    .details {
+      margin-top:12px;
+      padding:12px;
+      border-radius:6px;
+      border:1px solid var(--color-border);
+      background: white;
+      color:var(--color-text);
+      overflow-wrap:anywhere; /* handle long tokens */
+    }
+
+    /* Focus management: when content contains controls, ensure they are visible */
+    .details :focus{
+      outline: 2px solid rgba(0,95,204,0.18);
+      outline-offset: 2px;
+    }
+
+    /* Small form inside details */
+    .field {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:12px;
+    }
+    label{
+      font-size:0.875rem;
+      color:var(--color-text);
+    }
+    input[type="text"]{
+      padding:8px;
+      border-radius:6px;
+      border:1px solid var(--color-border);
+      font-size:1rem;
+      max-width:100%;
+    }
+    input[type="text"]:focus{
+      border-color:var(--color-focus);
+      box-shadow:0 0 0 3px rgba(0,95,204,0.08);
+      outline:none;
+    }
+
+    .help {
+      font-size:0.825rem;
+      color:var(--color-muted-text);
+    }
+
+    .error {
+      color:var(--color-danger);
+      font-size:0.875rem;
+    }
+
+    .btn {
+      background: var(--color-link);
+      color: white;
+      border:none;
+      padding:8px 12px;
+      border-radius:6px;
+      cursor:pointer;
+      font-size:0.95rem;
+    }
+    .btn:focus{
+      outline:none;
+      box-shadow:0 0 0 4px rgba(0,95,204,0.12);
+      border:2px solid var(--color-focus);
+    }
+    .btn:active {
+      transform: translateY(0.5px);
+    }
+
+    /* Responsive behavior and reflow rules */
+    @media (max-width: 480px) {
+      .container {
+        padding:12px;
+        margin:12px;
+      }
+      .collapser {
+        padding:10px;
+      }
+    }
+
+    /* Ensure long words wrap, prevent horizontal scrolling */
+    * {
+      min-width: 0;
+    }
+
+    /* Footer */
+    footer {
+      margin-top:24px;
+      padding-top:12px;
+      border-top:1px solid var(--color-border);
+      color:var(--color-muted-text);
+      font-size:0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Skip link: first focusable element -->
+  <a href="#maincontent" class="skip-link">Skip to main content</a>
+
+  <header class="container" role="banner" aria-label="Site header">
+    <div class="brand" aria-hidden="false">
+      <svg width="36" height="36" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="10" fill="currentColor"></circle>
+      </svg>
+      <h1>Accessibility patterns</h1>
+    </div>
+  </header>
+
+  <nav class="container" role="navigation" aria-label="Primary">
+    <ul style="list-style:none;padding:0;margin:0;display:flex;gap:12px;">
+      <li><a href="#" style="color:var(--color-link);text-decoration:none;">Overview</a></li>
+      <li><a href="#" style="color:var(--color-link);text-decoration:none;">Widgets</a></li>
+      <li><a href="#" style="color:var(--color-link);text-decoration:none;">Guidance</a></li>
+    </ul>
+  </nav>
+
+  <main id="maincontent" tabindex="-1" class="container" role="main" aria-labelledby="page-title">
+    <h1 id="page-title" class="page-title">Expand / Collapse Widgets</h1>
+    <p class="lead">Examples of accessible expand/collapse widgets. Use the buttons to reveal or hide content. All controls are keyboard operable and labeled. Content containers use the class "details".</p>
+
+    <!-- Example 1 -->
+    <div class="example" data-example="simple">
+      <!-- Button controls a region; visible label is in the button text -->
+      <button
+        id="collapser-1"
+        class="collapser"
+        aria-expanded="false"
+        aria-controls="details-1"
+        aria-describedby="collapser-1-desc"
+        type="button"
+      >
+        <span class="icon" aria-hidden="true">
+          <!-- Chevron icon rotates using aria-expanded state via script -->
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          </svg>
+        </span>
+        <span class="label">
+          <span class="title">More information</span>
+          <span id="collapser-1-desc" class="subtitle">Opens a short descriptive section</span>
+        </span>
+      </button>
+
+      <div id="details-1" class="details" role="region" aria-labelledby="collapser-1" hidden>
+        <p>
+          This section contains additional information that expands and collapses. The region uses the class
+          "details". When collapsed, the content is removed from the accessibility tree using the hidden attribute.
+        </p>
+        <p class="help">Tip: You can also navigate to the control and press Enter or Space to toggle it.</p>
+      </div>
+    </div>
+
+    <!-- Example 2: includes a small form to demonstrate focusable content -->
+    <div class="example" data-example="form">
+      <button
+        id="collapser-2"
+        class="collapser"
+        aria-expanded="false"
+        aria-controls="details-2"
+        aria-describedby="collapser-2-desc"
+        type="button"
+      >
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          </svg>
+        </span>
+        <span class="label">
+          <span class="title">Contact preferences</span>
+          <span id="collapser-2-desc" class="subtitle">Opens a short form with one required field</span>
+        </span>
+      </button>
+
+      <div id="details-2" class="details" role="region" aria-labelledby="collapser-2" hidden>
+        <form id="prefs-form" novalidate>
+          <div class="field">
+            <label for="email">Email address <span aria-hidden="true" style="color:var(--color-danger)">*</span></label>
+            <input id="email" name="email" type="text" aria-required="true" aria-describedby="email-help email-error" />
+            <div id="email-help" class="help">We will use this only for important notifications.</div>
+            <div id="email-error" class="error" aria-live="assertive" hidden></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn" type="submit">Save preferences</button>
+            <button class="btn" type="button" id="example-reset" style="background:#e6eefc;color:var(--color-link);border:1px solid var(--color-border);">Reset</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Additional guidance / explanation (non-interactive) -->
+    <section aria-labelledby="notes-title" style="margin-top:8px;">
+      <h2 id="notes-title" style="font-size:1rem;margin:0 0 8px 0;">Notes</h2>
+      <ul style="margin:0 0 12px 18px;color:var(--color-muted-text);">
+        <li>Buttons expose their state via aria-expanded and point to the controlled content with aria-controls.</li>
+        <li>Controlled content uses role="region" and aria-labelledby to provide an accessible name derived from the button's text.</li>
+        <li>Hidden content uses the hidden attribute to remove it from the accessibility tree while collapsed.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="container" role="contentinfo">
+    <p>Example expand/collapse widgets — keyboard accessible, visible focus, labels, and form validation example.</p>
+  </footer>
+
+  <script>
+    (function(){
+      'use strict';
+
+      /**
+       * Utility: getFocusableElements - returns focusable children within a container
+       */
+      function getFocusableElements(container) {
+        return Array.from(container.querySelectorAll('a[href], button:not([disabled]), textarea, input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+          .filter(el => el.offsetParent !== null || el.getAttribute('aria-hidden') !== 'true');
+      }
+
+      /**
+       * Toggle function for a collapser button
+       */
+      function toggleCollapser(button, shouldOpen) {
+        var detailsId = button.getAttribute('aria-controls');
+        var details = document.getElementById(detailsId);
+        var isOpen = button.getAttribute('aria-expanded') === 'true';
+        var opening = typeof shouldOpen === 'boolean' ? shouldOpen : !isOpen;
+
+        if (!details) return;
+
+        if (opening) {
+          button.setAttribute('aria-expanded','true');
+          details.hidden = false;
+          details.removeAttribute('aria-hidden');
+          // Rotate chevron icon (simple transform)
+          var svg = button.querySelector('svg');
+          if (svg) svg.style.transform = 'rotate(180deg)';
+          // Optionally move focus inside details to first focusable element
+          var focusables = getFocusableElements(details);
+          if (focusables.length) {
+            // Do not automatically steal focus unless user explicitly opened with keyboard (we allow it by default here)
+            // To avoid surprising keyboard users, we do not move focus automatically; comment out if preferred.
+          }
+        } else {
+          button.setAttribute('aria-expanded','false');
+          details.hidden = true;
+          details.setAttribute('aria-hidden','true');
+          var svg = button.querySelector('svg');
+          if (svg) svg.style.transform = '';
+        }
+      }
+
+      // Attach to all collapser buttons
+      var collapserButtons = document.querySelectorAll('.collapser');
+      collapserButtons.forEach(function(btn){
+        btn.addEventListener('click', function(e){
+          toggleCollapser(btn);
+        });
+
+        // Provide keyboard handler for Escape: if region open and focus inside, hide and move focus back to button
+        btn.addEventListener('keydown', function(e){
+          // Space and Enter default behavior activates button automatically; no need to handle.
+          if (e.key === 'Escape' || e.key === 'Esc') {
+            var details = document.getElementById(btn.getAttribute('aria-controls'));
+            if (details && !details.hidden) {
+              toggleCollapser(btn, false);
+              btn.focus();
+            }
+          }
+        });
+      });
+
+      // Also close an open region when Escape is pressed while focus is inside the region
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' || e.key === 'Esc') {
+          var active = document.activeElement;
+          var openDetails = document.querySelectorAll('.details:not([hidden])');
+          openDetails.forEach(function(details){
+            if (details.contains(active)) {
+              // find the controlling button
+              var id = details.id;
+              var button = document.querySelector('[aria-controls="' + id + '"]');
+              if (button) {
+                toggleCollapser(button, false);
+                button.focus();
+              }
+            }
+          });
+        }
+      });
+
+      // Simple form validation for the example form
+      var prefsForm = document.getElementById('prefs-form');
+      if (prefsForm) {
+        prefsForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          var input = prefsForm.querySelector('#email');
+          var err = prefsForm.querySelector('#email-error');
+          var value = input.value.trim();
+
+          // Reset previous error
+          input.removeAttribute('aria-invalid');
+          err.hidden = true;
+          err.textContent = '';
+
+          if (!value) {
+            var msg = 'Please enter your email address.';
+            err.textContent = msg;
+            err.hidden = false;
+            input.setAttribute('aria-invalid','true');
+            // Associate the error via aria-describedby (already present)
+            // Move focus to the invalid input
+            input.focus();
+            return;
+          }
+
+          // Very simple email-like check
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            var msg2 = 'Please enter a valid email address (example: name@example.com).';
+            err.textContent = msg2;
+            err.hidden = false;
+            input.setAttribute('aria-invalid','true');
+            input.focus();
+            return;
+          }
+
+          // Simulate successful save
+          err.hidden = false;
+          err.textContent = '';
+          var success = document.createElement('div');
+          success.className = 'help';
+          success.style.color = 'var(--color-success)';
+          success.textContent = 'Preferences saved.';
+          prefsForm.appendChild(success);
+          // Remove success message after a short time (non-critical)
+          setTimeout(function(){ if (success && success.parentNode) success.parentNode.removeChild(success); }, 3000);
+        });
+
+        // Reset button behavior
+        var resetBtn = document.getElementById('example-reset');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', function(){
+            prefsForm.reset();
+            var input = prefsForm.querySelector('#email');
+            input.removeAttribute('aria-invalid');
+            var err = prefsForm.querySelector('#email-error');
+            err.hidden = true;
+            err.textContent = '';
+            input.focus();
+          });
+        }
+      }
+
+      // Ensure that dynamic aria-hidden and hidden attributes keep content non-focusable when collapsed.
+      // (hidden already removes it from AT; ensure no descendant has tabindex >= 0 when hidden)
+      // Watch for toggles to guard focusable descendants when hidden.
+      var observer = new MutationObserver(function(mutations){
+        mutations.forEach(function(m){
+          if (m.type === 'attributes' && m.attributeName === 'hidden') {
+            var target = m.target;
+            if (target.hidden) {
+              // If any descendants are programmatically focusable, make them unfocusable
+              var tabbables = target.querySelectorAll('[tabindex]:not([tabindex="-1"])');
+              tabbables.forEach(function(node){
+                node.dataset._savedTabindex = node.getAttribute('tabindex');
+                node.setAttribute('tabindex','-1');
+              });
+            } else {
+              // restore
+              var saved = target.querySelectorAll('[data-_saved-tabindex]');
+              saved.forEach(function(node){
+                var val = node.dataset._savedTabindex;
+                if (val !== undefined) {
+                  node.setAttribute('tabindex', val);
+                } else {
+                  node.removeAttribute('tabindex');
+                }
+                delete node.dataset._savedTabindex;
+              });
+            }
+          }
+        });
+      });
+
+      // Observe all details containers for hidden changes
+      var detailsNodes = document.querySelectorAll('.details');
+      detailsNodes.forEach(function(node){
+        observer.observe(node, { attributes:true });
+      });
+
+      // Ensure the skip link actually moves focus to main for some browsers
+      var skipLink = document.querySelector('.skip-link');
+      if (skipLink) {
+        skipLink.addEventListener('click', function(e){
+          var main = document.getElementById('maincontent');
+          if (main) {
+            main.focus({ preventScroll: false });
+          }
+        });
+      }
+
+      // Final: set initial states for any collapser buttons (ensure svg rotation consistent)
+      collapserButtons.forEach(function(btn){
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        var details = document.getElementById(btn.getAttribute('aria-controls'));
+        if (details) {
+          if (!expanded) {
+            details.hidden = true;
+            details.setAttribute('aria-hidden','true');
+          } else {
+            details.hidden = false;
+            details.removeAttribute('aria-hidden');
+          }
+          var svg = btn.querySelector('svg');
+          if (svg) svg.style.transform = expanded ? 'rotate(180deg)' : '';
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>

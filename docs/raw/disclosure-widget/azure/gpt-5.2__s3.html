@@ -1,0 +1,380 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Expand/Collapse Widget Demo</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #0f1a2e;
+      --text: #e8eefc;
+      --muted: #b5c2e8;
+      --border: rgba(255,255,255,.14);
+      --accent: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: radial-gradient(1200px 600px at 20% 0%, #16264a 0%, transparent 60%),
+                  radial-gradient(900px 700px at 90% 10%, #1a2b55 0%, transparent 55%),
+                  linear-gradient(180deg, var(--bg), #070b14);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 40px 18px 70px;
+    }
+
+    h1 {
+      font-weight: 750;
+      margin: 0 0 6px;
+      letter-spacing: -0.02em;
+    }
+
+    p.lead {
+      margin: 0 0 28px;
+      color: var(--muted);
+      max-width: 70ch;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .example {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .example h2 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .details {
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      background: rgba(10, 16, 30, .55);
+      overflow: hidden;
+    }
+
+    .toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 12px;
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+    }
+
+    .toggle:focus-visible {
+      outline: 3px solid rgba(122, 162, 255, .45);
+      outline-offset: 2px;
+      border-radius: 12px;
+    }
+
+    .toggle .label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .toggle .label strong {
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .toggle .label span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chev {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      flex: 0 0 auto;
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .toggle:hover .chev {
+      background: rgba(122, 162, 255, .14);
+    }
+
+    .details[data-open="true"] .chev {
+      transform: rotate(180deg);
+    }
+
+    .content {
+      padding: 0 12px;
+      max-height: 0;
+      opacity: 0;
+      overflow: clip;
+      transition: max-height 220ms ease, opacity 180ms ease;
+      border-top: 1px solid rgba(255,255,255,.10);
+    }
+
+    .details[data-open="true"] .content {
+      opacity: 1;
+      padding: 12px;
+    }
+
+    .content p {
+      margin: 0 0 10px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .content p:last-child { margin-bottom: 0; }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .chip {
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn {
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.14);
+      padding: 9px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .btn:hover { border-color: rgba(122,162,255,.55); }
+    .btn:focus-visible {
+      outline: 3px solid rgba(122, 162, 255, .45);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Expand/Collapse Widgets</h1>
+    <p class="lead">
+      Two examples: one uses a custom button-controlled panel, the other uses the native <code>&lt;details&gt;</code> element.
+      Each widget is wrapped in a <span style="font-family: var(--mono);">div.example</span>, and the controlled content container uses the <span style="font-family: var(--mono);">.details</span> class.
+    </p>
+
+    <section class="grid" aria-label="Expand/collapse examples">
+      <div class="example">
+        <h2>Custom (button + ARIA)</h2>
+
+        <div class="details" data-open="false">
+          <button class="toggle" type="button" aria-expanded="false" aria-controls="panel-a" id="toggle-a">
+            <span class="label">
+              <strong>Shipping information</strong>
+              <span>Delivery times, carriers, and tracking</span>
+            </span>
+            <span class="chev" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+
+          <div class="content" id="panel-a" role="region" aria-labelledby="toggle-a" hidden>
+            <p>
+              Orders ship within 1–2 business days. You’ll receive a tracking link as soon as the label is created.
+            </p>
+            <p>
+              Standard delivery is typically 3–5 business days; expedited options may be available at checkout.
+            </p>
+            <div class="meta">
+              <span class="chip">Carrier: UPS / USPS</span>
+              <span class="chip">Cutoff: 2:00 PM local</span>
+              <span class="chip">Tracking: Included</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" aria-label="Demo controls">
+          <button class="btn" type="button" data-action="open" data-target="toggle-a">Open</button>
+          <button class="btn" type="button" data-action="close" data-target="toggle-a">Close</button>
+          <button class="btn" type="button" data-action="toggle" data-target="toggle-a">Toggle</button>
+        </div>
+      </div>
+
+      <div class="example">
+        <h2>Native (&lt;details&gt;)</h2>
+
+        <details class="details" id="native-details">
+          <summary class="toggle">
+            <span class="label">
+              <strong>Return policy</strong>
+              <span>Eligibility, window, and refunds</span>
+            </span>
+            <span class="chev" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </summary>
+
+          <div class="content" role="region" aria-label="Return policy details">
+            <p>
+              Returns are accepted within 30 days of delivery for unused items in original packaging.
+            </p>
+            <p>
+              Refunds are issued to the original payment method after inspection (usually 3–7 business days).
+            </p>
+            <div class="meta">
+              <span class="chip">Window: 30 days</span>
+              <span class="chip">Condition: Unused</span>
+              <span class="chip">Refund: Original payment</span>
+            </div>
+          </div>
+        </details>
+
+        <div class="row" aria-label="Demo controls">
+          <button class="btn" type="button" id="native-open">Open</button>
+          <button class="btn" type="button" id="native-close">Close</button>
+          <button class="btn" type="button" id="native-toggle">Toggle</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Custom widget behavior (.details div)
+    function setOpen(container, open) {
+      const btn = container.querySelector('.toggle');
+      const panel = container.querySelector('.content');
+
+      container.dataset.open = open ? 'true' : 'false';
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+      if (open) {
+        panel.hidden = false;
+        // Measure and animate max-height
+        panel.style.maxHeight = '0px';
+        panel.offsetHeight; // force reflow
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+      } else {
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+        panel.offsetHeight; // force reflow
+        panel.style.maxHeight = '0px';
+        // Hide after animation finishes
+        window.setTimeout(() => { panel.hidden = true; }, 240);
+      }
+    }
+
+    document.querySelectorAll('div.details .toggle').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const container = btn.closest('.details');
+        const isOpen = container.dataset.open === 'true';
+        setOpen(container, !isOpen);
+      });
+
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          btn.click();
+        }
+      });
+    });
+
+    // Demo buttons for custom widget
+    document.querySelectorAll('[data-action][data-target]').forEach((ctl) => {
+      ctl.addEventListener('click', () => {
+        const targetId = ctl.getAttribute('data-target');
+        const action = ctl.getAttribute('data-action');
+        const btn = document.getElementById(targetId);
+        const container = btn?.closest('.details');
+        if (!container) return;
+
+        const isOpen = container.dataset.open === 'true';
+        if (action === 'open') setOpen(container, true);
+        if (action === 'close') setOpen(container, false);
+        if (action === 'toggle') setOpen(container, !isOpen);
+      });
+    });
+
+    // Native <details> styling/animation helper: reuse .content transitions
+    function syncNative(detailsEl) {
+      const content = detailsEl.querySelector('.content');
+      if (!content) return;
+
+      if (detailsEl.open) {
+        content.hidden = false;
+        content.style.maxHeight = '0px';
+        content.offsetHeight;
+        content.style.maxHeight = content.scrollHeight + 'px';
+      } else {
+        content.style.maxHeight = content.scrollHeight + 'px';
+        content.offsetHeight;
+        content.style.maxHeight = '0px';
+        window.setTimeout(() => { content.hidden = true; }, 240);
+      }
+    }
+
+    const native = document.getElementById('native-details');
+    if (native) {
+      // Ensure summary remains the interactive control
+      native.querySelector('.content').hidden = !native.open;
+      syncNative(native);
+      native.addEventListener('toggle', () => syncNative(native));
+      window.addEventListener('resize', () => {
+        if (native.open) syncNative(native);
+      });
+
+      document.getElementById('native-open')?.addEventListener('click', () => { native.open = true; syncNative(native); });
+      document.getElementById('native-close')?.addEventListener('click', () => { native.open = false; syncNative(native); });
+      document.getElementById('native-toggle')?.addEventListener('click', () => { native.open = !native.open; syncNative(native); });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Example modal dialog - Components - Demo</title>
+  <style>
+    :root{
+      color-scheme: light dark;
+      --color-bg: #ffffff;
+      --color-surface: #ffffff;
+      --color-text: #111111;
+      --color-muted-text: #333333;
+      --color-border: #6b6b6b;
+      --color-link: #0b57d0;
+      --color-link-visited: #551a8b;
+      --color-focus: #1a73e8;
+      --color-danger: #b00020;
+      --color-backdrop: #111111;
+      --shadow: 0 18px 44px rgba(0,0,0,.35);
+      --radius: 12px;
+      --space-1: .5rem;
+      --space-2: .75rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --max-line: 70ch;
+      --focus-outline: 3px solid var(--color-focus);
+    }
+
+    @media (prefers-color-scheme: dark){
+      :root{
+        --color-bg: #0b0c0f;
+        --color-surface: #111318;
+        --color-text: #f2f4f8;
+        --color-muted-text: #d7dae0;
+        --color-border: #9aa0a6;
+        --color-link: #8ab4f8;
+        --color-link-visited: #d2b7ff;
+        --color-focus: #8ab4f8;
+        --color-backdrop: #000000;
+        --shadow: 0 18px 44px rgba(0,0,0,.6);
+      }
+    }
+
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height: 1.5;
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    .sr-only:not(:focus):not(:active){
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
+    a{ color: var(--color-link); }
+    a:visited{ color: var(--color-link-visited); }
+    a:focus-visible, button:focus-visible, input:focus-visible{
+      outline: var(--focus-outline);
+      outline-offset: 2px;
+    }
+
+    header, nav, main, footer{ padding: var(--space-3); }
+    header{
+      border-bottom: 1px solid var(--color-border);
+    }
+    nav{
+      border-bottom: 1px solid var(--color-border);
+    }
+    .container{
+      max-width: 60rem;
+      margin: 0 auto;
+    }
+    .stack > * + *{ margin-top: var(--space-3); }
+    .muted{ color: var(--color-muted-text); max-width: var(--max-line); }
+
+    .btn{
+      appearance: none;
+      border: 2px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      padding: .6rem 1rem;
+      border-radius: 999px;
+      font: inherit;
+      line-height: 1.2;
+      cursor: pointer;
+      max-width: 100%;
+    }
+    .btn:hover{ border-color: var(--color-text); }
+    .btn:active{ transform: translateY(1px); }
+    .btn-primary{
+      border-color: var(--color-link);
+      background: var(--color-link);
+      color: #ffffff;
+    }
+    @media (prefers-color-scheme: dark){
+      .btn-primary{ color: #0b0c0f; }
+    }
+
+    /* Modal */
+    .modal-backdrop{
+      position: fixed;
+      inset: 0;
+      background: var(--color-backdrop);
+      opacity: .65;
+    }
+
+    .modal{
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: var(--space-3);
+    }
+
+    .modal-panel{
+      width: min(44rem, 100%);
+      max-height: min(80vh, 36rem);
+      overflow: auto;
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--space-4);
+    }
+
+    .modal-header{
+      display: flex;
+      gap: var(--space-2);
+      align-items: start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .modal-title{
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .modal-actions{
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      margin-top: var(--space-3);
+    }
+
+    .close-btn{
+      border-radius: 999px;
+      min-width: 2.5rem;
+      padding-inline: .75rem;
+    }
+
+    /* Prevent background scroll when modal is open */
+    body.modal-open{
+      overflow: hidden;
+    }
+
+    /* Reflow safety */
+    p, li, a { overflow-wrap: anywhere; }
+
+    @media (forced-colors: active){
+      .btn{
+        border: 2px solid ButtonText;
+        background: ButtonFace;
+        color: ButtonText;
+      }
+      .btn-primary{
+        border: 2px solid ButtonText;
+      }
+      .modal-panel{
+        background: Canvas;
+        color: CanvasText;
+        border: 2px solid CanvasText;
+        box-shadow: none;
+      }
+      .modal-backdrop{
+        background: CanvasText;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#maincontent" class="sr-only">Skip to main content</a>
+    <div class="container">
+      <div class="stack">
+        <div>
+          <strong>Demo site</strong>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav aria-label="Primary">
+    <div class="container">
+      <ul style="list-style:none; padding:0; margin:0; display:flex; gap:1rem; flex-wrap:wrap;">
+        <li><a href="#modal-demo">Modal example</a></li>
+        <li><a href="#notes">Notes</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="maincontent" tabindex="-1">
+    <div class="container stack">
+      <h1 id="modal-demo">Modal dialog example</h1>
+      <p class="muted">
+        This example uses a native <code>&lt;dialog&gt;</code> element. The dialog is closed by default and can be opened with the button below.
+      </p>
+
+      <div class="stack" style="max-width: var(--max-line);">
+        <button type="button" class="btn btn-primary trigger" id="openDialogBtn">
+          Open dialog
+        </button>
+
+        <p id="notes" class="muted">
+          Tip: While the dialog is open, press <kbd>Escape</kbd> to close it, or use the visible Close button.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <small class="muted">Example component page.</small>
+    </div>
+  </footer>
+
+  <dialog id="exampleDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+    <div class="modal" data-dialog-ui>
+      <div class="modal-backdrop" data-close="backdrop" aria-hidden="true"></div>
+
+      <div class="modal-panel">
+        <div class="modal-header">
+          <h2 class="modal-title" id="dialogTitle">Share settings</h2>
+          <button type="button" class="btn close-btn" data-close="button">
+            Close
+          </button>
+        </div>
+
+        <p class="muted" id="dialogDesc">
+          Choose how you want to share. This is sample content to demonstrate focus management and keyboard support.
+        </p>
+
+        <form id="shareForm" class="stack" novalidate>
+          <div class="stack" style="gap: .5rem;">
+            <label for="recipientEmail">Recipient email <span aria-hidden="true">*</span></label>
+            <input
+              id="recipientEmail"
+              name="recipientEmail"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              required
+              aria-required="true"
+              style="padding:.6rem .75rem; border:2px solid var(--color-border); border-radius:.5rem; background:var(--color-surface); color:var(--color-text);"
+            />
+            <div id="recipientEmailHelp" class="muted" style="margin-top:-.25rem;">
+              Example: name@example.com
+            </div>
+            <div id="recipientEmailError" style="color: var(--color-danger); font-weight: 600;" hidden></div>
+          </div>
+
+          <fieldset style="border:2px solid var(--color-border); border-radius:.75rem; padding: .75rem 1rem;">
+            <legend>Sharing level</legend>
+            <div class="stack" style="gap:.5rem; margin-top:.5rem;">
+              <label><input type="radio" name="level" value="view" checked /> Can view</label>
+              <label><input type="radio" name="level" value="comment" /> Can comment</label>
+              <label><input type="radio" name="level" value="edit" /> Can edit</label>
+            </div>
+          </fieldset>
+
+          <div class="modal-actions">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn" data-close="cancel">Cancel</button>
+          </div>
+
+          <p class="muted" style="margin: 0;">
+            Saving is simulated. Form validation is included as an example.
+          </p>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    (function () {
+      const openBtn = document.getElementById('openDialogBtn');
+      const dialog = document.getElementById('exampleDialog');
+      const shareForm = document.getElementById('shareForm');
+      const email = document.getElementById('recipientEmail');
+      const emailHelp = document.getElementById('recipientEmailHelp');
+      const emailError = document.getElementById('recipientEmailError');
+
+      let lastActive = null;
+
+      function isDialogSupported() {
+        return typeof dialog.showModal === 'function';
+      }
+
+      function setEmailError(message) {
+        if (message) {
+          emailError.textContent = message;
+          emailError.hidden = false;
+          email.setAttribute('aria-invalid', 'true');
+          email.setAttribute('aria-describedby', `${emailHelp.id} ${emailError.id}`);
+        } else {
+          emailError.textContent = '';
+          emailError.hidden = true;
+          email.removeAttribute('aria-invalid');
+          email.setAttribute('aria-describedby', `${emailHelp.id}`);
+        }
+      }
+
+      // Ensure describedby always includes help text.
+      email.setAttribute('aria-describedby', emailHelp.id);
+
+      function openDialog() {
+        lastActive = document.activeElement;
+
+        if (isDialogSupported()) {
+          dialog.showModal();
+        } else {
+          // Basic fallback: show as non-modal (still visible and operable).
+          dialog.setAttribute('open', '');
+        }
+
+        document.body.classList.add('modal-open');
+
+        // Focus the first focusable control in the dialog.
+        window.requestAnimationFrame(() => {
+          email.focus();
+        });
+      }
+
+      function closeDialog(returnFocus = true) {
+        if (dialog.open) {
+          dialog.close();
+        } else {
+          dialog.removeAttribute('open');
+        }
+
+        document.body.classList.remove('modal-open');
+
+        if (returnFocus && lastActive && typeof lastActive.focus === 'function') {
+          lastActive.focus();
+        }
+      }
+
+      openBtn.addEventListener('click', openDialog);
+
+      dialog.addEventListener('click', (e) => {
+        // Click on the backdrop closes; click inside panel does not.
+        const backdrop = e.target.closest('[data-close="backdrop"]');
+        const closeBtn = e.target.closest('[data-close="button"], [data-close="cancel"]');
+        if (backdrop || closeBtn) {
+          closeDialog(true);
+        }
+      });
+
+      // Keep focus return behavior consistent even if closed by ESC.
+      dialog.addEventListener('close', () => {
+        document.body.classList.remove('modal-open');
+        if (lastActive && document.activeElement === document.body) {
+          lastActive.focus();
+        }
+        setEmailError('');
+        shareForm.reset();
+      });
+
+      // Prevent closing on invalid submit; focus first invalid control.
+      shareForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const value = email.value.trim();
+        let message = '';
+
+        if (!value) {
+          message = 'Enter an email address.';
+        } else if (!email.checkValidity()) {
+          message = 'Enter a valid email address, like name@example.com.';
+        }
+
+        setEmailError(message);
+
+        if (message) {
+          email.focus();
+          return;
+        }
+
+        closeDialog(true);
+      });
+
+      email.addEventListener('input', () => {
+        if (!emailError.hidden) setEmailError('');
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accessible Expand/Collapse Widget Examples</title>
+  <style>
+    :root{
+      --accent:#005ea6;
+      --bg:#f8fbff;
+      --surface:#fff;
+      --muted:#6b7280;
+      --focus: 3px solid rgba(0,94,166,0.2);
+      --radius:8px;
+    }
+    body{
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      line-height:1.4;
+      margin:1rem;
+      background: linear-gradient(180deg,var(--bg),#fff 40%);
+      color:#0f172a;
+    }
+    header h1{
+      margin:0 0 .25rem 0;
+      font-size:1.25rem;
+    }
+    header p{margin:0 0 1rem 0;color:var(--muted);font-size:.95rem}
+    .example{
+      background:var(--surface);
+      border:1px solid rgba(15,23,42,0.06);
+      border-radius:var(--radius);
+      padding:1rem;
+      margin:0 0 1rem 0;
+      box-shadow: 0 1px 0 rgba(15,23,42,0.03);
+    }
+
+    /* Toggle button */
+    .toggle{
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      padding:.45rem .6rem;
+      font-size:1rem;
+      background:transparent;
+      border:1px solid rgba(15,23,42,0.08);
+      border-radius:6px;
+      cursor:pointer;
+      color:var(--accent);
+      transition:background .12s, box-shadow .12s, transform .06s;
+    }
+    .toggle:hover{ background: rgba(0,94,166,0.04); }
+    .toggle:active{ transform: translateY(1px); }
+    .toggle:focus{ outline:none; box-shadow: var(--focus); border-color:var(--accent); }
+
+    .toggle .icon{
+      width:1rem; height:1rem; display:inline-block; flex:0 0 1rem;
+      transition:transform .18s ease;
+    }
+    /* icon rotate when expanded */
+    .toggle[aria-expanded="true"] .icon{ transform: rotate(180deg); }
+
+    .details{
+      margin-top:.75rem;
+      padding:.75rem;
+      border-radius:6px;
+      background:linear-gradient(180deg, rgba(0,94,166,0.02), rgba(0,94,166,0.01));
+      border:1px dashed rgba(0,94,166,0.06);
+    }
+
+    /* Small helper text and list styles */
+    .muted{ color:var(--muted); font-size:.92rem; margin:.25rem 0 0 0; }
+    .details p{ margin:.25rem 0; }
+    .details ul{ margin:.25rem 0 0 1.25rem; }
+    .sr-only{
+      position: absolute!important;
+      height: 1px; width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap;
+      clip-path: inset(50%);
+      border: 0; padding: 0; margin: -1px;
+    }
+
+    /* Responsive */
+    @media (min-width:720px){
+      .example{ max-width:60rem; }
+    }
+  </style>
+</head>
+<body>
+  <header aria-labelledby="page-title">
+    <h1 id="page-title">Expand / Collapse Widget — Accessible Examples</h1>
+    <p>Each widget is wrapped with a container classed "example". The controlled content containers use the class "details". Use the buttons to expand or collapse content.</p>
+  </header>
+
+  <!-- Example 1: Collapsed by default -->
+  <div class="example" data-example="1">
+    <button
+      id="toggle-1"
+      class="toggle"
+      aria-expanded="false"
+      aria-controls="details-1"
+      aria-describedby="toggle-help-1">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M7 10l5 5 5-5H7z"/>
+      </svg>
+      Show more
+    </button>
+    <span id="toggle-help-1" class="sr-only">Press enter or space to expand</span>
+
+    <div id="details-1" class="details" role="region" aria-labelledby="toggle-1" hidden>
+      <p><strong>Summary:</strong> This content is initially collapsed. It becomes visible when the button is activated.</p>
+      <p>Tips for accessibility:</p>
+      <ul>
+        <li>Use aria-expanded on the controlling element (the button).</li>
+        <li>Use aria-controls to reference the controlled container.</li>
+        <li>The controlled container has role="region" and aria-labelledby to announce its relationship.</li>
+      </ul>
+      <p class="muted">This demonstration uses native buttons for accessible keyboard interaction.</p>
+    </div>
+  </div>
+
+  <!-- Example 2: Expanded by default -->
+  <div class="example" data-example="2">
+    <button
+      id="toggle-2"
+      class="toggle"
+      aria-expanded="true"
+      aria-controls="details-2"
+      aria-describedby="toggle-help-2">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M7 10l5 5 5-5H7z"/>
+      </svg>
+      Show less
+    </button>
+    <span id="toggle-help-2" class="sr-only">Press enter or space to collapse</span>
+
+    <div id="details-2" class="details" role="region" aria-labelledby="toggle-2">
+      <p><strong>Expanded example:</strong> This instance starts expanded to show the open state. You can collapse it using the same button.</p>
+      <p>Content here could be long form, additional controls, or any other information you want to reveal on demand.</p>
+      <p class="muted">The content container has the required class "details".</p>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Find all example toggles and wire them up
+      var examples = document.querySelectorAll('.example');
+
+      // Utility to set button label based on expanded state
+      function updateButtonLabel(btn){
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        // Allow customization via data attributes; fallback to defaults
+        var moreLabel = btn.getAttribute('data-more') || 'Show more';
+        var lessLabel = btn.getAttribute('data-less') || 'Show less';
+        btn.firstChild && (btn.firstChild.nodeType === 1); // keep icon in place
+        // Keep icon as first element; place text content after
+        // Remove any existing text nodes except icon and visually hidden spans
+        Array.from(btn.childNodes).forEach(function(node){
+          if(node.nodeType === Node.TEXT_NODE) node.remove();
+        });
+        // Add a single text node after the icon
+        var label = document.createTextNode(expanded ? lessLabel : moreLabel);
+        btn.appendChild(label);
+      }
+
+      examples.forEach(function(example, idx){
+        var btn = example.querySelector('.toggle');
+        var details = example.querySelector('.details');
+
+        if(!btn || !details) return;
+
+        // Ensure controlled ID exists
+        if(!details.id){
+          details.id = 'details-' + (idx+1) + '-' + Math.random().toString(36).slice(2,8);
+          btn.setAttribute('aria-controls', details.id);
+        }
+        if(!btn.id){
+          btn.id = 'toggle-' + (idx+1) + '-' + Math.random().toString(36).slice(2,8);
+          details.setAttribute('aria-labelledby', btn.id);
+        }
+
+        // Set initial label based on aria-expanded
+        updateButtonLabel(btn);
+
+        // Click handler
+        btn.addEventListener('click', function(){
+          var expanded = btn.getAttribute('aria-expanded') === 'true';
+          var newState = !expanded;
+          btn.setAttribute('aria-expanded', String(newState));
+          if(newState){
+            details.removeAttribute('hidden');
+          } else {
+            details.setAttribute('hidden','');
+          }
+          updateButtonLabel(btn);
+        });
+
+        // In case the user toggles aria-expanded via assistive tech or external scripts,
+        // observe mutations to keep label and hidden state in sync.
+        var observer = new MutationObserver(function(mutations){
+          mutations.forEach(function(m){
+            if(m.type === 'attributes' && m.attributeName === 'aria-expanded'){
+              var expanded = btn.getAttribute('aria-expanded') === 'true';
+              if(expanded){
+                details.removeAttribute('hidden');
+              } else {
+                details.setAttribute('hidden','');
+              }
+              updateButtonLabel(btn);
+            }
+          });
+        });
+        observer.observe(btn, { attributes: true });
+
+      });
+    })();
+  </script>
+</body>
+</html>

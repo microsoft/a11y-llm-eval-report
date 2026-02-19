@@ -1,0 +1,316 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Dialog Component Example - Accessible Components</title>
+    <style>
+        /* CSS Variables for Design System */
+        :root {
+            /* Palette */
+            --color-bg: #ffffff;
+            --color-text: #1a1a1a;
+            --color-muted-text: #595959;
+            --color-border: #767676; /* Meets 3:1 contrast against white */
+            --color-primary: #005a9c; /* Meets 4.5:1 contrast against white */
+            --color-primary-hover: #003d6b;
+            --color-focus: #005a9c;
+            --color-focus-outline: #2a2a2a;
+            --color-overlay: rgba(0, 0, 0, 0.6);
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --radius-md: 0.375rem;
+        }
+
+        /* Basic Reset & Typography */
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Skip Link */
+        .sr-only:not(:focus):not(:active) {
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+
+        .skip-link {
+            background: var(--color-primary);
+            color: #ffffff;
+            font-weight: 700;
+            left: 0;
+            padding: 0.5rem 1rem;
+            position: absolute;
+            top: 0;
+            z-index: 100;
+            text-decoration: none;
+        }
+
+        /* Layout */
+        header, main, footer {
+            padding: var(--space-lg);
+            max-width: 60rem;
+            margin: 0 auto;
+        }
+
+        main {
+            outline: none; /* Managed focus shouldn't show default outline unless needed */
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: var(--space-md);
+        }
+
+        p {
+            margin-bottom: var(--space-md);
+        }
+
+        /* Interactive Elements */
+        button {
+            background-color: var(--color-primary);
+            color: #ffffff;
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        /* Focus Styles - High Visibility */
+        button:focus-visible {
+            box-shadow: 0 0 0 4px #ffffff, 0 0 0 6px var(--color-focus);
+            outline: 2px solid transparent; /* Ensure transparent outline for forced colors */
+        }
+
+        /* Secondary Button Style (for close buttons) */
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--color-text);
+            border: 2px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+            color: #000000;
+        }
+
+        /* Modal Dialog Styles */
+        dialog {
+            background: var(--color-bg);
+            color: var(--color-text);
+            border: 2px solid var(--color-border); /* Visible border for high contrast */
+            border-radius: var(--radius-md);
+            padding: 0; /* Removing default padding to handle internal spacing */
+            max-width: min(calc(100vw - 2rem), 32rem);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            /* Ensure modal is on top */
+            position: fixed; 
+        }
+
+        dialog::backdrop {
+            background-color: var(--color-overlay);
+        }
+
+        /* Modal Internal Structure */
+        .modal-inner {
+            padding: var(--space-lg);
+            /* Ensure modal reflows correctly at 320px */
+            overflow-y: auto;
+            max-height: 80vh; 
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-md);
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Close X button inside header */
+        .icon-btn {
+            background: transparent;
+            border: 2px solid transparent;
+            color: var(--color-text);
+            padding: 0.5rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background-color: #f0f0f0;
+            border-color: var(--color-border);
+            color: #000000;
+        }
+
+        .icon-btn svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            fill: currentColor; /* Adapts to text color */
+        }
+
+        .modal-footer {
+            margin-top: var(--space-lg);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-md);
+            flex-wrap: wrap; /* Reflows at 320px */
+        }
+
+        /* Reflow support: Ensure buttons stack on very small screens */
+        @media (max-width: 400px) {
+            .modal-footer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .modal-footer button {
+                width: 100%;
+            }
+        }
+
+        /* Forced Colors Mode Adjustments */
+        @media (forced-colors: active) {
+            button:focus-visible {
+                outline: 2px solid CanvasText;
+                box-shadow: none;
+            }
+            
+            dialog {
+                border: 2px solid CanvasText;
+            }
+
+            .btn-secondary {
+                border: 2px solid ButtonText;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <header>
+        <a href="#maincontent" class="skip-link">Skip to main content</a>
+        <nav aria-label="Main Navigation">
+            <!-- Navigation placeholder -->
+        </nav>
+    </header>
+
+    <main id="maincontent" tabindex="-1">
+        <h1>Account Settings</h1>
+        
+        <p>Manage your account preferences and security settings below.</p>
+        
+        <section aria-labelledby="delete-account-heading">
+            <h2 id="delete-account-heading">Danger Zone</h2>
+            <p>Once you delete your account, there is no going back. Please be certain.</p>
+            
+            <!-- The Trigger Button -->
+            <button type="button" class="trigger" aria-haspopup="dialog" id="btn-open-modal">
+                Delete Account
+            </button>
+        </section>
+    </main>
+
+    <!-- 
+        Native <dialog> element.
+        - 'aria-labelledby' connects the dialog to its title for screen readers.
+        - 'aria-describedby' connects the dialog to its description.
+        - Native behavior handles focus trapping and Esc key closing automatically when used with .showModal().
+    -->
+    <dialog id="confirmation-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-desc">
+        <div class="modal-inner">
+            <div class="modal-header">
+                <h2 id="dialog-title" class="modal-title">Delete Account?</h2>
+                <button type="button" class="icon-btn" id="btn-close-x" aria-label="Close modal">
+                    <!-- SVG Icon for Close -->
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="dialog-desc">
+                <p>This action creates a permanent deletion of your data. You will lose access to all saved preferences immediately.</p>
+                <p>Are you sure you want to proceed?</p>
+            </div>
+            
+            <!-- Form method="dialog" allows buttons to close the modal without JS if needed, 
+                 but we will use JS for the 'Confirm' action logic. -->
+            <form method="dialog" class="modal-footer">
+                <!-- Secondary action: Cancel (Closes modal by default in form method=dialog) -->
+                <button type="submit" class="btn-secondary">Cancel</button>
+                
+                <!-- Primary action: Confirm (We prevent default submission in JS to handle logic) -->
+                <button type="button" id="btn-confirm-action">Yes, Delete Account</button>
+            </form>
+        </div>
+    </dialog>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const openButton = document.getElementById('btn-open-modal');
+            const dialog = document.getElementById('confirmation-dialog');
+            const closeXButton = document.getElementById('btn-close-x');
+            const confirmButton = document.getElementById('btn-confirm-action');
+
+            // Open the dialog
+            openButton.addEventListener('click', () => {
+                if (typeof dialog.showModal === "function") {
+                    dialog.showModal();
+                } else {
+                    console.error("The <dialog> API is not supported by this browser.");
+                }
+            });
+
+            // Close via the "X" button
+            closeXButton.addEventListener('click', () => {
+                dialog.close();
+            });
+
+            // Close via clicking the backdrop (optional usability enhancement)
+            dialog.addEventListener('click', (event) => {
+                const rect = dialog.getBoundingClientRect();
+                const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+                  rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+                if (!isInDialog) {
+                    dialog.close();
+                }
+            });
+
+            // Handle the confirmation logic
+            confirmButton.addEventListener('click', () => {
+                alert("Account deleted successfully.");
+                dialog.close();
+            });
+
+            // When the dialog closes, return focus to the trigger button
+            // Note: Browsers implementing the <dialog> element natively handle 
+            // focus return automatically in most cases, but explicit handling ensures reliability.
+            dialog.addEventListener('close', () => {
+                openButton.focus();
+            });
+        });
+    </script>
+</body>
+</html>

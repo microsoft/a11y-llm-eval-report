@@ -1,0 +1,194 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --backdrop: rgba(0, 0, 0, 0.55);
+      --surface: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      --radius: 14px;
+      --focus: 2px solid #2563eb;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: #f9fafb;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+    }
+
+    .trigger {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #111827;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(17, 24, 39, 0.15);
+    }
+    .trigger:hover { filter: brightness(1.05); }
+    .trigger:focus-visible { outline: var(--focus); outline-offset: 3px; }
+
+    dialog.modal {
+      width: min(560px, calc(100vw - 32px));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0;
+      box-shadow: var(--shadow);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    dialog.modal::backdrop {
+      background: var(--backdrop);
+    }
+
+    .modal__header, .modal__footer {
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal__header {
+      border-bottom: 1px solid var(--border);
+      justify-content: space-between;
+    }
+
+    .modal__title {
+      margin: 0;
+      font-size: 1.05rem;
+      line-height: 1.2;
+    }
+
+    .modal__body {
+      padding: 16px 18px;
+    }
+
+    .modal__body p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .modal__footer {
+      border-top: 1px solid var(--border);
+      justify-content: flex-end;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover { background: #f3f4f6; }
+    .btn:focus-visible { outline: var(--focus); outline-offset: 3px; }
+
+    .btn--primary {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: white;
+    }
+    .btn--primary:hover { filter: brightness(1.05); }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: inline-grid;
+      place-items: center;
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    .icon-btn:hover { background: #f3f4f6; border-color: var(--border); }
+    .icon-btn:focus-visible { outline: var(--focus); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="example-modal">
+      Open modal
+    </button>
+  </main>
+
+  <dialog class="modal" id="example-modal" aria-labelledby="modal-title">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-title">Example modal dialog</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close dialog">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal__body">
+      <p>
+        This is a simple modal dialog component. Press Escape, click the close button,
+        click outside the dialog, or use the “Done” button to close it.
+      </p>
+    </div>
+
+    <div class="modal__footer">
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button class="btn btn--primary" type="button" data-close>Done</button>
+    </div>
+  </dialog>
+
+  <script>
+    (function () {
+      const openBtn = document.querySelector('.trigger');
+      const dialog = document.getElementById('example-modal');
+      const closeBtns = dialog.querySelectorAll('[data-close]');
+
+      // Closed by default: dialog is not opened until showModal() is called.
+
+      function openModal() {
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        } else {
+          // Fallback for very old browsers: show non-modal.
+          dialog.setAttribute('open', '');
+        }
+      }
+
+      function closeModal() {
+        if (dialog.open) dialog.close();
+      }
+
+      openBtn.addEventListener('click', openModal);
+
+      closeBtns.forEach(btn => btn.addEventListener('click', closeModal));
+
+      // Click outside the dialog content closes it
+      dialog.addEventListener('click', (e) => {
+        const rect = dialog.getBoundingClientRect();
+        const clickedInDialog =
+          e.clientX >= rect.left && e.clientX <= rect.right &&
+          e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+        if (!clickedInDialog) dialog.close();
+      });
+
+      // Return focus to trigger after close
+      dialog.addEventListener('close', () => {
+        openBtn.focus();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -2,266 +2,303 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Expand/Collapse Widget Examples</title>
+  <title>Expand / Collapse Widget Examples</title>
   <style>
-    :root {
-      --accent: #0b76ef;
-      --bg: #ffffff;
-      --muted: #6b7280;
-      --radius: 8px;
-      --gap: 12px;
+    :root{
+      --bg:#f7f9fc;
+      --card:#ffffff;
+      --accent:#0b6cf6;
+      --muted:#6b7280;
+      --radius:10px;
+      --transition:300ms cubic-bezier(.2,.9,.3,1);
     }
 
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: #f6f7fb;
-      margin: 24px;
-      color: #111827;
-      line-height: 1.4;
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:linear-gradient(180deg,var(--bg),#eef3fb 60%);
+      color:#0f1724;
+      padding:40px;
+      line-height:1.45;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
 
-    .container {
-      max-width: 760px;
-      margin: 0 auto;
+    h1{
+      margin:0 0 18px 0;
+      font-size:20px;
     }
 
-    h1 {
-      font-size: 1.25rem;
-      margin: 0 0 18px;
+    p.lead{
+      margin:0 0 26px 0;
+      color:var(--muted);
+      font-size:14px;
     }
 
-    .example {
-      background: var(--bg);
-      border: 1px solid #e6e9ef;
-      border-radius: var(--radius);
-      padding: 16px;
-      margin: 16px 0;
-      box-shadow: 0 1px 2px rgba(16,24,40,0.03);
+    .container{
+      max-width:860px;
+      margin:0 auto;
     }
 
-    .example h2 {
-      font-size: 1rem;
-      margin: 0 0 10px;
-      color: #0f172a;
+    .example{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:0 6px 18px rgba(12,38,63,0.06);
+      margin-bottom:18px;
+      border:1px solid rgba(12,38,63,0.04);
     }
 
-    .controls {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 10px;
+    .example .header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
     }
 
-    .trigger {
-      background: linear-gradient(180deg, #ffffff, #f8fbff);
-      border: 1px solid #cfe3ff;
-      color: var(--accent);
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+    .expander{
+      appearance:none;
+      -webkit-appearance:none;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      border:0;
+      padding:10px 14px;
+      border-radius:8px;
+      background:linear-gradient(180deg,#fff,#fbfdff);
+      box-shadow:0 1px 0 rgba(12,38,63,0.04), inset 0 -1px 0 rgba(12,38,63,0.02);
+      cursor:pointer;
+      font-weight:600;
+      color:var(--accent);
+      font-size:14px;
+      transition:transform 140ms ease, box-shadow 140ms ease;
     }
 
-    .trigger:focus {
-      outline: 3px solid rgba(11,118,239,0.18);
-      outline-offset: 2px;
+    .expander:active{ transform:translateY(1px); }
+    .expander:focus{ outline:3px solid rgba(11,108,246,0.14); outline-offset:3px; }
+
+    /* Chevron */
+    .expander .chev{
+      display:inline-block;
+      width:12px;
+      height:12px;
+      transform-origin:center;
+      transition:transform var(--transition);
+    }
+    .expander[aria-expanded="true"] .chev{ transform:rotate(180deg); }
+
+    .expander .chev svg{ display:block; width:100%; height:100%; }
+
+    /* Controlled content (must use class "details") */
+    .details{
+      overflow:hidden;
+      margin-top:12px;
+      border-radius:8px;
+      transition: max-height var(--transition), opacity var(--transition);
+      max-height:0;
+      opacity:0;
+      pointer-events:none;
+      background:linear-gradient(180deg,#fbfdff,#fcfeff);
+      border:1px solid rgba(11,108,246,0.06);
+      padding:0 12px;
+    }
+    .details[aria-hidden="false"]{
+      opacity:1;
+      pointer-events:auto;
+      /* max-height will be managed via inline style for animation */
     }
 
-    .trigger .icon {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      transition: transform 220ms ease;
+    .details .content{
+      padding:12px 6px 14px 6px;
+      color:#0f1724;
     }
 
-    .trigger[aria-expanded="true"] .icon {
-      transform: rotate(180deg);
-    }
+    /* Small utilities */
+    .muted{ color:var(--muted); font-size:13px; }
+    .small{ font-size:13px; color:#334155; }
 
-    /* The controlled content container must have class "details" per instructions */
-    .details {
-      overflow: hidden;
-      transition: max-height 260ms cubic-bezier(.2,.8,.2,1), opacity 200ms ease;
-      will-change: max-height, opacity;
-      max-height: 0;
-      opacity: 0;
-      padding: 0 4px;
-      margin-top: 8px;
-    }
-
-    /* When open (we add aria-hidden="false" in JS), let it show */
-    .details[aria-hidden="false"] {
-      opacity: 1;
-    }
-
-    .details .inner {
-      padding: 12px;
-      border-left: 3px solid rgba(11,118,239,0.06);
-      background: linear-gradient(180deg, rgba(11,118,239,0.02), rgba(11,118,239,0.01));
-      border-radius: 6px;
-    }
-
-    /* Native details element styling */
-    details.details {
-      padding: 8px 12px;
-      border: 1px dashed #e3e8f0;
-      background: linear-gradient(180deg,#ffffff,#fbfcff);
-    }
-
-    details.details summary {
-      list-style: none;
-      cursor: pointer;
-      font-weight: 600;
-      color: var(--accent);
-      padding: 6px 0;
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    details.details[open] summary .caret {
-      transform: rotate(180deg);
-    }
-
-    summary::-webkit-details-marker { display: none; }
-
-    small.hint {
-      color: var(--muted);
-      display: inline-block;
-      margin-left: 8px;
-      font-weight: 500;
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .details{ transition:none; }
+      .expander .chev{ transition:none; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Expand / Collapse Widget Examples</h1>
+    <h1>Expand / Collapse Widget</h1>
+    <p class="lead">Accessible expand/collapse examples. Each widget is wrapped in a div.example and the controlled content container uses the class details.</p>
 
-    <!-- Example 1: Custom ARIA expand/collapse -->
+    <!-- Example 1 -->
     <div class="example">
-      <h2>Custom ARIA Expand/Collapse</h2>
-
-      <div class="controls">
-        <button id="toggle-aria" class="trigger" aria-expanded="false" aria-controls="content-aria">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          </svg>
-          Show more
+      <div class="header">
+        <div>
+          <div class="small">Example 1</div>
+          <strong>Basic text panel</strong>
+        </div>
+        <button class="expander" aria-expanded="false" aria-controls="details-1" id="toggle-1" type="button">
+          <span>Show details</span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
         </button>
-        <small class="hint">Use Space or Enter to toggle</small>
       </div>
 
-      <div id="content-aria" class="details" aria-hidden="true" hidden>
-        <div class="inner">
-          <p>
-            This is an accessible, JavaScript-controlled expand/collapse region. The button above controls this pane
-            using aria-expanded and aria-controls. The content container uses the class "details" as requested.
-            When the region is opened it animates smoothly.
-          </p>
-          <p>
-            Use the example to try keyboard interaction (Tab to the button, then Space / Enter) or click it with the mouse.
-          </p>
+      <div id="details-1" class="details" aria-hidden="true">
+        <div class="content">
+          <p class="muted">This panel contains some explanatory text. It is hidden by default and revealed when you toggle the button above.</p>
+          <p>Use these widgets to show optional information without overwhelming the page. The button is keyboard-accessible and updates aria-expanded and aria-hidden for assistive technologies.</p>
         </div>
       </div>
     </div>
 
-    <!-- Example 2: Native details element -->
+    <!-- Example 2 -->
     <div class="example">
-      <h2>Native &lt;details&gt; Element</h2>
-
-      <details class="details" id="native-details">
-        <summary>
-          <svg class="caret" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
-            <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          </svg>
-          Built-in details/summary
-        </summary>
-        <div class="inner" style="margin-top:8px;">
-          <p>
-            The native details/summary element provides expand/collapse behavior without any custom JavaScript, and the
-            container here also has the class "details" to match the requirement.
-          </p>
-          <p>
-            Note: styling and keyboard behavior are provided by the browser. This example demonstrates the simpler option.
-          </p>
+      <div class="header">
+        <div>
+          <div class="small">Example 2</div>
+          <strong>A list of items</strong>
         </div>
-      </details>
+        <button class="expander" aria-expanded="false" aria-controls="details-2" id="toggle-2" type="button">
+          <span>View items</span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+      </div>
+
+      <div id="details-2" class="details" aria-hidden="true">
+        <div class="content">
+          <ul>
+            <li><strong>Alpha</strong> — first item with some extra notes.</li>
+            <li><strong>Beta</strong> — another item to demonstrate the list.</li>
+            <li><strong>Gamma</strong> — final item in this small collection.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 3 -->
+    <div class="example">
+      <div class="header">
+        <div>
+          <div class="small">Example 3</div>
+          <strong>Form details</strong>
+        </div>
+        <button class="expander" aria-expanded="false" aria-controls="details-3" id="toggle-3" type="button">
+          <span>Open form</span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+      </div>
+
+      <div id="details-3" class="details" aria-hidden="true">
+        <div class="content">
+          <form onsubmit="event.preventDefault()">
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <label style="display:flex; flex-direction:column; font-size:13px;">
+                Name
+                <input type="text" placeholder="Your name" style="margin-top:6px; padding:8px; border-radius:6px; border:1px solid #d1d5db;">
+              </label>
+              <label style="display:flex; flex-direction:column; font-size:13px;">
+                Email
+                <input type="email" placeholder="you@example.com" style="margin-top:6px; padding:8px; border-radius:6px; border:1px solid #d1d5db;">
+              </label>
+            </div>
+            <div style="margin-top:10px;">
+              <button type="submit" style="padding:8px 12px; border-radius:8px; background:var(--accent); color:#fff; border:0; cursor:pointer;">Submit</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
   </div>
 
   <script>
-    (function () {
-      // Helper to animate opening/closing of a .details element
-      function openDetails(el) {
-        el.removeAttribute('hidden');
-        // allow styles to apply
-        el.style.maxHeight = '0px';
-        // Force a reflow so the transition can occur
-        void el.offsetHeight;
-        var targetHeight = el.scrollHeight + 'px';
-        el.style.maxHeight = targetHeight;
-        el.setAttribute('aria-hidden', 'false');
-        // When transition ends, clear max-height to allow natural growth
-        var cleanup = function () {
-          el.style.maxHeight = '';
-          el.removeEventListener('transitionend', cleanup);
-        };
-        el.addEventListener('transitionend', cleanup);
-      }
+    (function(){
+      // Find all buttons that control a details container
+      var toggles = document.querySelectorAll('.expander[aria-controls]');
 
-      function closeDetails(el) {
-        // Set explicit height to start the transition
-        el.style.maxHeight = el.scrollHeight + 'px';
-        // Force reflow
-        void el.offsetHeight;
-        // Transition to zero
-        el.style.maxHeight = '0px';
-        el.setAttribute('aria-hidden', 'true');
-        var hideAfter = function () {
-          el.setAttribute('hidden', '');
-          el.removeEventListener('transitionend', hideAfter);
-        };
-        el.addEventListener('transitionend', hideAfter);
-      }
+      toggles.forEach(function(btn){
+        var id = btn.getAttribute('aria-controls');
+        var details = document.getElementById(id);
+        if(!details) return;
 
-      // Wire up the ARIA toggle button
-      var btn = document.getElementById('toggle-aria');
-      var target = document.getElementById(btn.getAttribute('aria-controls'));
-
-      // Initialize from DOM state (hidden attribute present)
-      if (target.hasAttribute('hidden')) {
-        target.setAttribute('aria-hidden', 'true');
-        target.style.maxHeight = '0px';
-      } else {
-        target.setAttribute('aria-hidden', 'false');
-        target.style.maxHeight = '';
-        btn.setAttribute('aria-expanded', 'true');
-      }
-
-      btn.addEventListener('click', function (e) {
-        var expanded = btn.getAttribute('aria-expanded') === 'true';
-        if (expanded) {
-          btn.setAttribute('aria-expanded', 'false');
-          closeDetails(target);
-          btn.querySelector('.icon')?.setAttribute('aria-hidden', 'true');
-          btn.lastChild && (btn.childNodes[2].nodeValue = ' Show more'); // update text (defensive)
+        // Initialize based on aria-hidden attribute
+        var hidden = details.getAttribute('aria-hidden') === 'true';
+        if(!hidden){
+          // ensure it's open visually
+          details.style.maxHeight = details.scrollHeight + 'px';
         } else {
-          btn.setAttribute('aria-expanded', 'true');
-          openDetails(target);
-          btn.querySelector('.icon')?.setAttribute('aria-hidden', 'false');
-          btn.lastChild && (btn.childNodes[2].nodeValue = ' Show less'); // update text (defensive)
+          details.style.maxHeight = '0px';
         }
 
-        // For screen reader friendliness, ensure focus remains on the button
-        btn.focus();
-      });
+        // Helper to open
+        function open(){
+          // set to exact scroll height to animate
+          details.style.maxHeight = details.scrollHeight + 'px';
+          details.setAttribute('aria-hidden','false');
+          btn.setAttribute('aria-expanded','true');
 
-      // Also support keyboard toggling if desired (button already supports Enter/Space natively)
-      // No further keyboard handling required for a native <button>.
+          // After transition completes, clear maxHeight to allow internal dynamic height (auto)
+          var tid = function onEnd(e){
+            if(e && e.target !== details) return;
+            details.removeEventListener('transitionend', tid);
+            // only remove if it's open (not interrupted)
+            if(details.getAttribute('aria-hidden') === 'false'){
+              details.style.maxHeight = 'none';
+            }
+          };
+          details.addEventListener('transitionend', tid);
+        }
+
+        // Helper to close
+        function close(){
+          // If maxHeight is 'none' (we removed it after opening), set it back to the current height first
+          if(details.style.maxHeight === 'none'){
+            details.style.maxHeight = details.scrollHeight + 'px';
+          }
+          // Force a repaint so the next change will animate
+          details.getBoundingClientRect();
+          // then animate to 0
+          details.style.maxHeight = '0px';
+          details.setAttribute('aria-hidden','true');
+          btn.setAttribute('aria-expanded','false');
+        }
+
+        // Click toggles
+        btn.addEventListener('click', function(){
+          var expanded = btn.getAttribute('aria-expanded') === 'true';
+          if(expanded){
+            close();
+          } else {
+            open();
+          }
+        });
+
+        // If content changes size while open (e.g., images load), adjust max-height if needed
+        var resizeObserver = null;
+        if('ResizeObserver' in window){
+          resizeObserver = new ResizeObserver(function(){
+            if(details.getAttribute('aria-hidden') === 'false' && details.style.maxHeight !== 'none'){
+              details.style.maxHeight = details.scrollHeight + 'px';
+            }
+          });
+          resizeObserver.observe(details);
+        }
+
+        // Make sure keyboard interaction works when focusing on enter/space (native for button)
+        // (No extra code required.)
+
+      });
     })();
   </script>
 </body>

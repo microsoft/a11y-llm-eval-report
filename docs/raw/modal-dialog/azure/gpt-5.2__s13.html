@@ -1,0 +1,250 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modal Dialog Example</title>
+  <style>
+    :root {
+      --backdrop: rgba(0, 0, 0, 0.55);
+      --surface: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 20px 50px rgba(0,0,0,.25);
+      --radius: 14px;
+      --focus: 0 0 0 3px rgba(59,130,246,.45);
+      --accent: #2563eb;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 32px;
+      color: var(--text);
+      background: #f7f7fb;
+    }
+
+    .trigger {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--accent);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .trigger:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    /* Modal */
+    .modal[hidden] { display: none; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .modal__backdrop {
+      position: absolute;
+      inset: 0;
+      background: var(--backdrop);
+    }
+
+    .modal__panel {
+      position: relative;
+      width: min(520px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .modal__header,
+    .modal__body,
+    .modal__footer {
+      padding: 16px 18px;
+    }
+
+    .modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal__title {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .modal__close {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .modal__close:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    .modal__body {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .modal__footer {
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn--primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Modal Dialog Component</h1>
+    <p>This modal is closed by default. Use the button below to open it.</p>
+
+    <button class="trigger" type="button" aria-haspopup="dialog" aria-controls="example-modal">
+      Open modal
+    </button>
+  </main>
+
+  <div class="modal" id="example-modal" hidden>
+    <div class="modal__backdrop" data-close="true"></div>
+
+    <section
+      class="modal__panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      aria-describedby="modal-desc"
+      tabindex="-1"
+    >
+      <header class="modal__header">
+        <h2 class="modal__title" id="modal-title">Example modal</h2>
+        <button class="modal__close" type="button" data-close="true" aria-label="Close modal">Close</button>
+      </header>
+
+      <div class="modal__body" id="modal-desc">
+        <p>
+          This is an example modal dialog. Click outside, press Escape, or use a close button to dismiss it.
+        </p>
+      </div>
+
+      <footer class="modal__footer">
+        <button class="btn" type="button" data-close="true">Cancel</button>
+        <button class="btn btn--primary" type="button" data-close="true">Confirm</button>
+      </footer>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const trigger = document.querySelector('.trigger');
+      const modal = document.getElementById('example-modal');
+      const panel = modal.querySelector('.modal__panel');
+
+      let lastFocused = null;
+
+      function getFocusable(container) {
+        return Array.from(
+          container.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter(el => !el.hasAttribute('hidden') && (el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement));
+      }
+
+      function trapTab(e) {
+        if (e.key !== 'Tab') return;
+        const focusables = getFocusable(panel);
+        if (!focusables.length) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+
+      function openModal() {
+        lastFocused = document.activeElement;
+        modal.hidden = false;
+
+        // Slightly delay to ensure it's focusable after un-hiding
+        setTimeout(() => {
+          const focusables = getFocusable(panel);
+          (focusables[0] || panel).focus();
+        }, 0);
+
+        document.addEventListener('keydown', onKeydown);
+      }
+
+      function closeModal() {
+        modal.hidden = true;
+        document.removeEventListener('keydown', onKeydown);
+        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+      }
+
+      function onKeydown(e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+        trapTab(e);
+      }
+
+      trigger.addEventListener('click', openModal);
+
+      modal.addEventListener('click', (e) => {
+        const closeTarget = e.target.closest('[data-close="true"]');
+        if (closeTarget) closeModal();
+      });
+    })();
+  </script>
+</body>
+</html>
